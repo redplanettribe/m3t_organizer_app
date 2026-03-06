@@ -1,0 +1,139 @@
+import 'dart:async' show unawaited;
+
+import 'package:domain/domain.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
+import 'package:m3t_organizer/app/router.dart';
+import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/features/home/home.dart';
+import 'package:m3t_organizer/features/login/login.dart';
+import 'package:m3t_organizer/features/register_for_event/register_for_event.dart';
+import 'package:m3t_organizer/features/user/user.dart';
+
+// ---------------------------------------------------------------------------
+// App root
+// ---------------------------------------------------------------------------
+
+/// Root widget. Owns the repository and BLoC composition.
+final class App extends StatelessWidget {
+  const App({
+    required AuthRepository authRepository,
+    required AttendeeRepository attendeeRepository,
+    super.key,
+  })  : _authRepository = authRepository,
+        _attendeeRepository = attendeeRepository;
+
+  final AuthRepository _authRepository;
+  final AttendeeRepository _attendeeRepository;
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AuthRepository>.value(value: _authRepository),
+        RepositoryProvider<AttendeeRepository>.value(
+          value: _attendeeRepository,
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (context) => AuthBloc(authRepository: context.read()),
+          ),
+          BlocProvider<UserCubit>(
+            create: (context) {
+              final cubit = UserCubit(authRepository: context.read());
+              unawaited(cubit.loadCurrentUser());
+              return cubit;
+            },
+          ),
+        ],
+        child: const _AppView(),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _AppView (router host)
+// ---------------------------------------------------------------------------
+
+final class _AppView extends StatefulWidget {
+  const _AppView();
+
+  @override
+  State<_AppView> createState() => _AppViewState();
+}
+
+final class _AppViewState extends State<_AppView> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    final authBloc = context.read<AuthBloc>();
+
+    _router = GoRouter(
+      refreshListenable: GoRouterRefreshStream<AuthState>(authBloc.stream),
+      redirect: (_, routerState) {
+        final authStatus = authBloc.state.status;
+        final isOnLogin = routerState.matchedLocation == AppRoutes.login;
+
+        return switch (authStatus) {
+          AuthStatus.authenticated when isOnLogin => AppRoutes.home,
+          AuthStatus.unauthenticated when !isOnLogin => AppRoutes.login,
+          _ => null,
+        };
+      },
+      routes: [
+        GoRoute(
+          path: AppRoutes.login,
+          builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: AppRoutes.registerForEvent,
+          builder: (context, state) => const RegisterForEventPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.config,
+          builder: (context, state) => const ConfigPage(),
+          routes: [
+            GoRoute(
+              path: AppRoutes.updateUserSegment,
+              builder: (context, state) => const UpdateUserPage(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'm3t Organizer',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+        ),
+      ),
+      routerConfig: _router,
+    );
+  }
+}
