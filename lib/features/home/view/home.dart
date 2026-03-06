@@ -3,8 +3,6 @@ import 'dart:async' show unawaited;
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/core/app_config.dart';
 import 'package:m3t_organizer/features/home/bloc/bloc.dart';
 import 'package:m3t_organizer/features/user/view/user_avatar_button.dart';
@@ -42,13 +40,6 @@ final class _HomeView extends StatelessWidget {
           child: UserAvatarButton(),
         ),
         title: const Text('m3t Organizer'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Register for event',
-            onPressed: () => context.push(AppRoutes.registerForEvent),
-          ),
-        ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {

@@ -9,7 +9,6 @@ import 'package:m3t_organizer/app/router.dart';
 import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/features/home/home.dart';
 import 'package:m3t_organizer/features/login/login.dart';
-import 'package:m3t_organizer/features/register_for_event/register_for_event.dart';
 import 'package:m3t_organizer/features/user/user.dart';
 
 // ---------------------------------------------------------------------------
@@ -95,10 +94,6 @@ final class _AppViewState extends State<_AppView> {
         GoRoute(
           path: AppRoutes.home,
           builder: (context, state) => const HomePage(),
-        ),
-        GoRoute(
-          path: AppRoutes.registerForEvent,
-          builder: (context, state) => const RegisterForEventPage(),
         ),
         GoRoute(
           path: AppRoutes.config,
