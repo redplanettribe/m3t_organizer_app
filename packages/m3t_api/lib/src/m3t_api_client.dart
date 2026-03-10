@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/models/api_error.dart';
+import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_registration.dart';
 import 'package:m3t_api/src/models/list_my_registered_events_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
@@ -353,6 +354,48 @@ class M3tApiClient {
     }
 
     return ListMyRegisteredEventsResponse.fromJson(dataJson);
+  }
+
+  /// Returns events where the authenticated user is the owner or a team member.
+  Future<List<Event>> getMyManagedEvents() async {
+    final response = await _httpClient.get(
+      _uri('/events/me'),
+      headers: await _authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      final body = _decodeJson(response.body);
+      final errorJson = body['error'] as Map<String, dynamic>?;
+      final apiError = errorJson != null ? ApiError.fromJson(errorJson) : null;
+      throw GetMyManagedEventsFailure(
+        apiError?.message ??
+            'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+        errorCode: apiError?.code,
+      );
+    }
+
+    final body = _decodeJson(response.body);
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw GetMyManagedEventsFailure(
+        error.message,
+        errorCode: error.code,
+      );
+    }
+
+    final dataJson = body['data'];
+    if (dataJson is! List) {
+      throw GetMyManagedEventsFailure(
+        'Missing or invalid data field in response',
+      );
+    }
+
+    return [
+      for (final item in dataJson)
+        Event.fromJson(item as Map<String, dynamic>),
+    ];
   }
 
   Map<String, dynamic> _decodeJson(String source) {

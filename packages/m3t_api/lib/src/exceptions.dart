@@ -99,3 +99,19 @@ final class GetMyRegisteredEventsFailure implements Exception {
   @override
   String toString() => 'GetMyRegisteredEventsFailure($message)';
 }
+
+/// Thrown when fetching the current user's managed events fails.
+final class GetMyManagedEventsFailure implements Exception {
+  GetMyManagedEventsFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() => 'GetMyManagedEventsFailure($message)';
+}

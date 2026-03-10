@@ -1,25 +1,25 @@
-part of 'home_cubit.dart';
+part of 'events_cubit.dart';
 
-/// Immutable state for the home (my registered events) feature.
-final class HomeState extends Equatable {
-  const HomeState({
+/// Immutable state for the events (managed events list) feature.
+final class EventsState extends Equatable {
+  const EventsState({
     this.events = const [],
     this.loading = false,
     this.errorMessage,
   });
 
-  final List<RegisteredEventEntity> events;
+  final List<ManagedEventEntity> events;
   final bool loading;
   final String? errorMessage;
 
   static const _sentinel = Object();
 
-  HomeState copyWith({
-    List<RegisteredEventEntity>? events,
+  EventsState copyWith({
+    List<ManagedEventEntity>? events,
     bool? loading,
     Object? errorMessage = _sentinel,
   }) {
-    return HomeState(
+    return EventsState(
       events: events ?? this.events,
       loading: loading ?? this.loading,
       errorMessage: errorMessage == _sentinel

@@ -16,6 +16,8 @@ dependencies:
     path: packages/domain  
   equatable: ^2.0.8
 
+  events_repository:
+    path: packages/events_repository
   flutter:
     sdk: flutter
 

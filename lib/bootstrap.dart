@@ -1,5 +1,6 @@
 import 'package:attendee_repository/attendee_repository.dart';
 import 'package:auth_repository/auth_repository.dart';
+import 'package:events_repository/events_repository.dart';
 import 'package:flutter/widgets.dart';
 import 'package:m3t_api/m3t_api.dart';
 import 'package:m3t_organizer/app/app.dart';
@@ -22,6 +23,7 @@ Future<void> bootstrap() async {
     tokenStorage: tokenStorage,
   );
   final attendeeRepository = AttendeeRepositoryImpl(apiClient: apiClient);
+  final eventsRepository = EventsRepositoryImpl(apiClient: apiClient);
 
   try {
     await authRepository.initialize();
@@ -37,5 +39,6 @@ Future<void> bootstrap() async {
   runApp(App(
     authRepository: authRepository,
     attendeeRepository: attendeeRepository,
+    eventsRepository: eventsRepository,
   ));
 }

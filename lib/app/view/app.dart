@@ -20,12 +20,15 @@ final class App extends StatelessWidget {
   const App({
     required AuthRepository authRepository,
     required AttendeeRepository attendeeRepository,
+    required EventsRepository eventsRepository,
     super.key,
   })  : _authRepository = authRepository,
-        _attendeeRepository = attendeeRepository;
+        _attendeeRepository = attendeeRepository,
+        _eventsRepository = eventsRepository;
 
   final AuthRepository _authRepository;
   final AttendeeRepository _attendeeRepository;
+  final EventsRepository _eventsRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +37,9 @@ final class App extends StatelessWidget {
         RepositoryProvider<AuthRepository>.value(value: _authRepository),
         RepositoryProvider<AttendeeRepository>.value(
           value: _attendeeRepository,
+        ),
+        RepositoryProvider<EventsRepository>.value(
+          value: _eventsRepository,
         ),
       ],
       child: MultiBlocProvider(
