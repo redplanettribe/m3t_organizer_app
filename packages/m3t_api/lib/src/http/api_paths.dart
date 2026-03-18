@@ -8,3 +8,7 @@ abstract final class UserPaths {
   static const avatarUploadUrl = '/users/me/avatar/upload-url';
   static const avatar = '/users/me/avatar';
 }
+
+abstract final class EventPaths {
+  static const me = '/events/me';
+}

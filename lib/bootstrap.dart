@@ -18,6 +18,9 @@ Future<void> bootstrap() async {
     apiClient: apiClient,
     tokenStorage: tokenStorage,
   );
+  final eventsRepository = EventsRepositoryImpl(
+    apiClient: apiClient,
+  );
 
   try {
     await authRepository.initialize();
@@ -27,6 +30,9 @@ Future<void> bootstrap() async {
   }
 
   runApp(
-    App(authRepository: authRepository),
+    App(
+      authRepository: authRepository,
+      eventsRepository: eventsRepository,
+    ),
   );
 }

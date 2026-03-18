@@ -67,3 +67,13 @@ final class ConfirmAvatarFailure implements Exception {
   @override
   String toString() => 'ConfirmAvatarFailure($message)';
 }
+
+/// Thrown when fetching the events managed by the current user fails.
+final class GetMyEventsFailure implements Exception {
+  GetMyEventsFailure(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'GetMyEventsFailure($message)';
+}

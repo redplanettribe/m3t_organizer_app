@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m3t_organizer/features/my_events/my_events.dart';
 import 'package:m3t_organizer/features/user/view/user_avatar_button.dart';
 
 final class HomePage extends StatelessWidget {
@@ -14,8 +15,8 @@ final class HomePage extends StatelessWidget {
         ),
         title: const Text('m3t Organizer'),
       ),
-      body: const Center(
-        child: Text('Welcome to m3t Organizer'),
+      body: const SafeArea(
+        child: MyEventsList(),
       ),
     );
   }

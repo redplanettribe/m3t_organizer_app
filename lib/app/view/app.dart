@@ -20,39 +20,45 @@ import 'package:m3t_organizer/features/user/user.dart';
 final class App extends StatelessWidget {
   const App({
     required AuthRepository authRepository,
+    required EventsRepository eventsRepository,
     super.key,
-  }) : _authRepository = authRepository;
+  })  : _authRepository = authRepository,
+        _eventsRepository = eventsRepository;
 
   final AuthRepository _authRepository;
+  final EventsRepository _eventsRepository;
 
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider<AuthRepository>.value(
       value: _authRepository,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthBloc>(
-            create: (context) => AuthBloc(authRepository: context.read()),
-          ),
-          BlocProvider<UserCubit>(
-            create: (context) {
-              final cubit = UserCubit(authRepository: context.read());
-              unawaited(cubit.loadCurrentUser());
-              return cubit;
+      child: RepositoryProvider<EventsRepository>.value(
+        value: _eventsRepository,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthBloc>(
+              create: (context) => AuthBloc(authRepository: context.read()),
+            ),
+            BlocProvider<UserCubit>(
+              create: (context) {
+                final cubit = UserCubit(authRepository: context.read());
+                unawaited(cubit.loadCurrentUser());
+                return cubit;
+              },
+            ),
+          ],
+          child: BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) {
+              switch (state.status) {
+                case .authenticated:
+                  unawaited(context.read<UserCubit>().loadCurrentUser());
+                case .unauthenticated:
+                case .unknown:
+                  break;
+              }
             },
+            child: const _AppView(),
           ),
-        ],
-        child: BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-            switch (state.status) {
-              case .authenticated:
-                unawaited(context.read<UserCubit>().loadCurrentUser());
-              case .unauthenticated:
-              case .unknown:
-                break;
-            }
-          },
-          child: const _AppView(),
         ),
       ),
     );
