@@ -1,7 +1,7 @@
 import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m3t_attendee/core/auth/auth_failure_message.dart';
+import 'package:m3t_organizer/core/auth/auth_failure_message.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';

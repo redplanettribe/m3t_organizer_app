@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:m3t_attendee/features/user/view/user_avatar_button.dart';
+import 'package:m3t_organizer/features/user/view/user_avatar_button.dart';
 
 final class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,10 +12,10 @@ final class HomePage extends StatelessWidget {
           padding: EdgeInsets.only(left: 16),
           child: UserAvatarButton(),
         ),
-        title: const Text('m3t Attendee'),
+        title: const Text('m3t Organizer'),
       ),
       body: const Center(
-        child: Text('Welcome to m3t Attendee'),
+        child: Text('Welcome to m3t Organizer'),
       ),
     );
   }

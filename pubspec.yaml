@@ -1,5 +1,5 @@
-name: m3t_attendee
-description: "Flutter app for m3t event attendees."
+name: m3t_organizer
+description: "Flutter app for m3t event organizers."
 publish_to: 'none'
 
 version: 1.0.0+1

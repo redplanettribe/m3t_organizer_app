@@ -1,6 +1,6 @@
 # m3t_api
 
-HTTP client and DTOs for the m3t Attendee backend. This package handles the network — it knows nothing about the domain.
+HTTP client and DTOs for the m3t Organizer backend. This package handles the network — it knows nothing about the domain.
 
 ---
 

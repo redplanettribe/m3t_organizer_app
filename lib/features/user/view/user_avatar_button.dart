@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:m3t_attendee/app/routes.dart';
-import 'package:m3t_attendee/features/user/bloc/user_cubit.dart';
-import 'package:m3t_attendee/features/user/view/user_avatar.dart';
+import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/features/user/bloc/user_cubit.dart';
+import 'package:m3t_organizer/features/user/view/user_avatar.dart';
 
 /// Circular avatar button showing the authenticated user's photo or initials.
 ///

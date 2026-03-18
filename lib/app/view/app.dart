@@ -4,13 +4,13 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:m3t_attendee/app/bloc/auth_bloc.dart';
-import 'package:m3t_attendee/app/router.dart';
-import 'package:m3t_attendee/app/routes.dart';
-import 'package:m3t_attendee/app/theme/app_theme.dart';
-import 'package:m3t_attendee/features/home/home.dart';
-import 'package:m3t_attendee/features/login/login.dart';
-import 'package:m3t_attendee/features/user/user.dart';
+import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
+import 'package:m3t_organizer/app/router.dart';
+import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/app/theme/app_theme.dart';
+import 'package:m3t_organizer/features/home/home.dart';
+import 'package:m3t_organizer/features/login/login.dart';
+import 'package:m3t_organizer/features/user/user.dart';
 
 // ---------------------------------------------------------------------------
 // App root
@@ -122,7 +122,7 @@ final class _AppViewState extends State<_AppView> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'm3t Attendee',
+      title: 'm3t Organizer',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       routerConfig: _router,

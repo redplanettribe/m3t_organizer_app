@@ -1,6 +1,6 @@
 {
-    "name": "m3t_attendee",
-    "short_name": "m3t_attendee",
+    "name": "m3t_organizer",
+    "short_name": "m3t_organizer",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

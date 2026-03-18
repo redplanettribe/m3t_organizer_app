@@ -1,4 +1,4 @@
-package com.example.m3t_attendee
+package com.example.m3t_organizer
 
 import io.flutter.embedding.android.FlutterActivity
 

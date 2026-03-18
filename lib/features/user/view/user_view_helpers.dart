@@ -1,5 +1,5 @@
 import 'package:domain/domain.dart';
-import 'package:m3t_attendee/core/media/media_url_resolver.dart';
+import 'package:m3t_organizer/core/media/media_url_resolver.dart';
 
 /// User display utilities derived directly from domain data.
 extension UserDisplayExtension on AuthUser? {

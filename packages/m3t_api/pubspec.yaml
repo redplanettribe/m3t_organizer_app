@@ -1,5 +1,5 @@
 name: m3t_api
-description: "API client for the m3t Attendee Backend."
+description: "API client for the m3t Organizer Backend."
 version: 0.1.0
 publish_to: "none"
 

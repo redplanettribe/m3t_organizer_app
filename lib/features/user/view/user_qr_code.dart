@@ -127,7 +127,7 @@ final class _UserQrCode extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label:
-          'QR code for attendee identity. Show this to be scanned at '
+          'QR code for organizer identity. Show this to be scanned at '
           'event check-in.',
       excludeSemantics: true,
       child: QrImageView(

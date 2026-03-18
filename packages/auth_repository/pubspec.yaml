@@ -1,5 +1,5 @@
 name: auth_repository
-description: "Authentication repository for the m3t attendee app."
+description: "Authentication repository for the m3t organizer app."
 version: 0.1.0
 publish_to: "none"
 

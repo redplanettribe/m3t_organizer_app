@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m3t_attendee/core/widgets/pin_input_field.dart';
-import 'package:m3t_attendee/features/login/login.dart';
+import 'package:m3t_organizer/core/widgets/pin_input_field.dart';
+import 'package:m3t_organizer/features/login/login.dart';
 
 final class LoginForm extends StatelessWidget {
   const LoginForm({super.key});

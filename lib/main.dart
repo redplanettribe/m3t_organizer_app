@@ -1,3 +1,3 @@
-import 'package:m3t_attendee/bootstrap.dart';
+import 'package:m3t_organizer/bootstrap.dart';
 
 void main() => bootstrap();

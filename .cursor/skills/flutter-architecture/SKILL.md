@@ -3,7 +3,7 @@ name: flutter-architecture
 description: Layered architecture (presentation, domain, data), dependency direction, feature structure, and DI for this Flutter app. Use when discussing app structure, new features, or project organization.
 ---
 
-# Flutter Architecture (m3t_attendee)
+# Flutter Architecture (m3t_organizer)
 
 ## When to Use
 

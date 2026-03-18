@@ -3,7 +3,7 @@ description: Layered architecture (presentation, domain, data), dependency direc
 alwaysApply: true
 ---
 
-# m3t_attendee Architecture
+# m3t_organizer Architecture
 
 This app uses a **three-layer architecture**: presentation, domain, and data. Dependencies flow **top-down** only.
 

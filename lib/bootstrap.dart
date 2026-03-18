@@ -1,9 +1,9 @@
 import 'package:auth_repository/auth_repository.dart';
 import 'package:flutter/widgets.dart';
 import 'package:m3t_api/m3t_api.dart';
-import 'package:m3t_attendee/app/app.dart';
-import 'package:m3t_attendee/core/app_config.dart';
-import 'package:m3t_attendee/infrastructure/flutter_secure_token_storage.dart';
+import 'package:m3t_organizer/app/app.dart';
+import 'package:m3t_organizer/core/app_config.dart';
+import 'package:m3t_organizer/infrastructure/flutter_secure_token_storage.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();

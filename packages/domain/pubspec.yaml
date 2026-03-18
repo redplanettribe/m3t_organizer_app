@@ -1,5 +1,5 @@
 name: domain
-description: "Domain layer for the m3t Attendee App."
+description: "Domain layer for the m3t Organizer App."
 version: 0.0.1
 homepage:
 

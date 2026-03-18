@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:m3t_attendee/app/bloc/auth_bloc.dart';
-import 'package:m3t_attendee/app/routes.dart';
-import 'package:m3t_attendee/features/user/bloc/user_cubit.dart';
-import 'package:m3t_attendee/features/user/view/user_avatar.dart';
-import 'package:m3t_attendee/features/user/view/user_qr_code.dart';
-import 'package:m3t_attendee/features/user/view/user_view_helpers.dart';
+import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
+import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/features/user/bloc/user_cubit.dart';
+import 'package:m3t_organizer/features/user/view/user_avatar.dart';
+import 'package:m3t_organizer/features/user/view/user_qr_code.dart';
+import 'package:m3t_organizer/features/user/view/user_view_helpers.dart';
 
 /// User profile configuration page.
 ///
-/// Displays the user's avatar, their attendee QR code (primary event
+/// Displays the user's avatar, their organizer QR code (primary event
 /// credential), navigation to profile editing, and logout. All navigation
 /// uses [AppRoutes] — no raw string literals.
 final class ConfigPage extends StatelessWidget {

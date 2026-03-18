@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
-import 'package:m3t_attendee/core/app_config.dart';
+import 'package:m3t_organizer/core/app_config.dart';
 
 /// Resolves backend media paths into UI-safe absolute URLs.
 ///
