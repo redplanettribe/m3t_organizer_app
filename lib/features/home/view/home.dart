@@ -1,24 +1,22 @@
-import 'dart:async' show unawaited;
-
-import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m3t_organizer/features/events/events.dart';
+import 'package:m3t_attendee/features/user/view/user_avatar_button.dart';
 
 final class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final cubit = EventsCubit(
-          eventsRepository: context.read<EventsRepository>(),
-        );
-        unawaited(cubit.loadManagedEvents());
-        return cubit;
-      },
-      child: const EventsPage(),
+    return Scaffold(
+      appBar: AppBar(
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: UserAvatarButton(),
+        ),
+        title: const Text('m3t Attendee'),
+      ),
+      body: const Center(
+        child: Text('Welcome to m3t Attendee'),
+      ),
     );
   }
 }

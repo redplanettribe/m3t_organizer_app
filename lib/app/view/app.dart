@@ -4,12 +4,13 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
-import 'package:m3t_organizer/app/router.dart';
-import 'package:m3t_organizer/app/routes.dart';
-import 'package:m3t_organizer/features/home/home.dart';
-import 'package:m3t_organizer/features/login/login.dart';
-import 'package:m3t_organizer/features/user/user.dart';
+import 'package:m3t_attendee/app/bloc/auth_bloc.dart';
+import 'package:m3t_attendee/app/router.dart';
+import 'package:m3t_attendee/app/routes.dart';
+import 'package:m3t_attendee/app/theme/app_theme.dart';
+import 'package:m3t_attendee/features/home/home.dart';
+import 'package:m3t_attendee/features/login/login.dart';
+import 'package:m3t_attendee/features/user/user.dart';
 
 // ---------------------------------------------------------------------------
 // App root
@@ -19,29 +20,15 @@ import 'package:m3t_organizer/features/user/user.dart';
 final class App extends StatelessWidget {
   const App({
     required AuthRepository authRepository,
-    required AttendeeRepository attendeeRepository,
-    required EventsRepository eventsRepository,
     super.key,
-  })  : _authRepository = authRepository,
-        _attendeeRepository = attendeeRepository,
-        _eventsRepository = eventsRepository;
+  }) : _authRepository = authRepository;
 
   final AuthRepository _authRepository;
-  final AttendeeRepository _attendeeRepository;
-  final EventsRepository _eventsRepository;
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<AuthRepository>.value(value: _authRepository),
-        RepositoryProvider<AttendeeRepository>.value(
-          value: _attendeeRepository,
-        ),
-        RepositoryProvider<EventsRepository>.value(
-          value: _eventsRepository,
-        ),
-      ],
+    return RepositoryProvider<AuthRepository>.value(
+      value: _authRepository,
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
@@ -55,7 +42,18 @@ final class App extends StatelessWidget {
             },
           ),
         ],
-        child: const _AppView(),
+        child: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            switch (state.status) {
+              case .authenticated:
+                unawaited(context.read<UserCubit>().loadCurrentUser());
+              case .unauthenticated:
+              case .unknown:
+                break;
+            }
+          },
+          child: const _AppView(),
+        ),
       ),
     );
   }
@@ -87,8 +85,8 @@ final class _AppViewState extends State<_AppView> {
         final isOnLogin = routerState.matchedLocation == AppRoutes.login;
 
         return switch (authStatus) {
-          AuthStatus.authenticated when isOnLogin => AppRoutes.home,
-          AuthStatus.unauthenticated when !isOnLogin => AppRoutes.login,
+          .authenticated when isOnLogin => AppRoutes.home,
+          .unauthenticated when !isOnLogin => AppRoutes.login,
           _ => null,
         };
       },
@@ -124,16 +122,9 @@ final class _AppViewState extends State<_AppView> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'm3t Organizer',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-      ),
+      title: 'm3t Attendee',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       routerConfig: _router,
     );
   }

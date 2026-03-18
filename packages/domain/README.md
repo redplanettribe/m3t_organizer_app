@@ -1,6 +1,6 @@
 # domain
 
-The innermost layer of the m3t Organizer app. Pure Dart — no Flutter, no network, no storage. Everything else depends on this; this depends on nothing except `equatable`.
+The innermost layer of the m3t Attendee app. Pure Dart — no Flutter, no network, no storage. Everything else depends on this; this depends on nothing except `equatable`.
 
 ---
 

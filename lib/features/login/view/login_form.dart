@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m3t_organizer/features/login/login.dart';
+import 'package:m3t_attendee/core/widgets/pin_input_field.dart';
+import 'package:m3t_attendee/features/login/login.dart';
 
 final class LoginForm extends StatelessWidget {
   const LoginForm({super.key});
@@ -105,7 +107,6 @@ final class _EmailStepState extends State<_EmailStep> {
             labelText: 'Email',
             hintText: 'you@example.com',
             prefixIcon: Icon(Icons.email_outlined),
-            border: OutlineInputBorder(),
           ),
           onSubmitted: (_) {
             if (!isLoading) {
@@ -130,32 +131,12 @@ final class _EmailStepState extends State<_EmailStep> {
   }
 }
 
-final class _CodeVerificationStep extends StatefulWidget {
+final class _CodeVerificationStep extends StatelessWidget {
   const _CodeVerificationStep();
 
-  @override
-  State<_CodeVerificationStep> createState() => _CodeVerificationStepState();
-}
-
-final class _CodeVerificationStepState extends State<_CodeVerificationStep> {
   static bool _isLoadingSelector(LoginBloc bloc) =>
       bloc.state.status == .loading;
   static String _emailSelector(LoginBloc bloc) => bloc.state.email;
-  late final TextEditingController _codeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _codeController = TextEditingController(
-      text: context.read<LoginBloc>().state.code,
-    );
-  }
-
-  @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,28 +161,23 @@ final class _CodeVerificationStepState extends State<_CodeVerificationStep> {
         ),
         const SizedBox(height: 8),
         Text(
-          'We sent a code to $email',
+          'We sent a 6-digit code to $email',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: .center,
         ),
         const SizedBox(height: 32),
-        TextField(
-          controller: _codeController,
+        // Digits-only, SMS/email autofill via AutofillHints.oneTimeCode.
+        // Fires onCompleted to auto-submit once all 6 digits are entered.
+        PinInputField(
+          length: 6,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          enabled: !isLoading,
+          autofocus: true,
           onChanged: (value) =>
               context.read<LoginBloc>().add(LoginCodeChanged(value)),
-          keyboardType: .number,
-          textInputAction: .done,
-          textAlign: .center,
-          style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: 8),
-          decoration: const InputDecoration(
-            labelText: 'Verification Code',
-            hintText: '000000',
-            prefixIcon: Icon(Icons.pin_outlined),
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (_) {
+          onCompleted: (_) {
             if (!isLoading) {
               context.read<LoginBloc>().add(const LoginCodeSubmitted());
             }

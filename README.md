@@ -1,4 +1,4 @@
-# m3t Organizer
+# m3t Attendee
 
 A Flutter app for m3t event attendees, built with Clean Architecture and a modular package structure.
 

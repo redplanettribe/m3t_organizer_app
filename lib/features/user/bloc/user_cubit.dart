@@ -1,7 +1,7 @@
 import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m3t_organizer/core/auth/auth_failure_message.dart';
+import 'package:m3t_attendee/core/auth/auth_failure_message.dart';
 
 part 'user_state.dart';
 
@@ -43,8 +43,23 @@ final class UserCubit extends Cubit<UserState> {
 
   /// Updates the user's [name] and/or [lastName].
   ///
-  /// At least one must be non-null.
+  /// Fails fast with [InvalidProfileInput] if both values are null or blank —
+  /// the backend requires at least one non-empty name field.
   Future<void> updateProfile({String? name, String? lastName}) async {
+    final trimmedName = name?.trim();
+    final trimmedLastName = lastName?.trim();
+    final hasName = trimmedName != null && trimmedName.isNotEmpty;
+    final hasLastName = trimmedLastName != null && trimmedLastName.isNotEmpty;
+
+    if (!hasName && !hasLastName) {
+      emit(
+        state.copyWith(
+          errorMessage: InvalidProfileInput().toDisplayMessage(),
+        ),
+      );
+      return;
+    }
+
     emit(state.copyWith(updatingProfile: true, errorMessage: null));
     try {
       final user = await _authRepository.updateCurrentUser(

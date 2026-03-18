@@ -11,6 +11,8 @@ extension AuthFailureMessage on AuthFailure {
     NetworkError() => 'A network error occurred. Please try again.',
     InvalidCode() => 'The verification code is invalid.',
     InvalidEmail() => 'The email address is invalid.',
+    // Intentionally no "try again" — retrying with blank fields always fails.
+    InvalidProfileInput() => 'Enter at least a first or last name.',
     UnknownError() => 'An unexpected error occurred. Please try again.',
   };
 }

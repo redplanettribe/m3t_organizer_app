@@ -153,12 +153,17 @@ void main() {
           InvalidCode() => 'invalid_code',
           NetworkError() => 'network_error',
           UnknownError() => 'unknown_error',
+          InvalidProfileInput() => 'missing_name_or_last_name',
         };
 
         expect(describe(InvalidEmail()), equals('invalid_email'));
         expect(describe(InvalidCode()), equals('invalid_code'));
         expect(describe(NetworkError()), equals('network_error'));
         expect(describe(UnknownError()), equals('unknown_error'));
+        expect(
+          describe(InvalidProfileInput()),
+          equals('missing_name_or_last_name'),
+        );
       },
     );
   });

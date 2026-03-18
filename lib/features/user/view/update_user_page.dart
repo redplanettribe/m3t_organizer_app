@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:m3t_organizer/features/user/bloc/user_cubit.dart';
-import 'package:m3t_organizer/features/user/view/user_avatar.dart';
+import 'package:m3t_attendee/features/user/bloc/user_cubit.dart';
+import 'package:m3t_attendee/features/user/view/user_avatar.dart';
 
 final class UpdateUserPage extends StatefulWidget {
   const UpdateUserPage({super.key});
@@ -17,8 +17,18 @@ final class UpdateUserPage extends StatefulWidget {
 final class _UpdateUserPageState extends State<UpdateUserPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _lastNameController;
-  late final TextEditingController _emailController;
+  late final FocusNode _nameFocusNode;
+  late final FocusNode _lastNameFocusNode;
+  // Emits the cross-field error message, or null when cleared.
+  // Only transitions when the actual error state changes — not on every
+  // keystroke — so each field rebuilds at most once per state edge, not
+  // once per character.
+  late final ValueNotifier<String?> _nameErrorNotifier;
   late final ImagePicker _picker;
+
+  // Flipped on the first failed save attempt. Never reset — clearing is
+  // handled by _nameErrorNotifier transitioning to null automatically.
+  bool _saveAttempted = false;
 
   @override
   void initState() {
@@ -26,20 +36,49 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
     final user = context.read<UserCubit>().state.user;
     _nameController = TextEditingController(text: user?.name ?? '');
     _lastNameController = TextEditingController(text: user?.lastName ?? '');
-    _emailController = TextEditingController(text: user?.email ?? '');
+    _nameFocusNode = FocusNode();
+    _lastNameFocusNode = FocusNode();
+    _nameErrorNotifier = ValueNotifier(null);
+    _nameController.addListener(_onNameInputChanged);
+    _lastNameController.addListener(_onNameInputChanged);
     _picker = ImagePicker();
+  }
+
+  // Recomputes the cross-field error on every keystroke, but only notifies
+  // listeners when the message actually changes (empty <-> non-empty).
+  void _onNameInputChanged() {
+    if (!_saveAttempted) return;
+    final bothEmpty =
+        _nameController.text.trim().isEmpty &&
+        _lastNameController.text.trim().isEmpty;
+    final next = bothEmpty ? 'Enter a first name, last name, or both' : null;
+    if (_nameErrorNotifier.value != next) _nameErrorNotifier.value = next;
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
+    _nameController
+      ..removeListener(_onNameInputChanged)
+      ..dispose();
+    _lastNameController
+      ..removeListener(_onNameInputChanged)
+      ..dispose();
+    _nameFocusNode.dispose();
+    _lastNameFocusNode.dispose();
+    _nameErrorNotifier.dispose();
     super.dispose();
   }
 
   // Fire-and-forget: BlocListener handles the result reactively.
   void _onSavePressed() {
+    final bothEmpty =
+        _nameController.text.trim().isEmpty &&
+        _lastNameController.text.trim().isEmpty;
+    if (bothEmpty) {
+      _saveAttempted = true;
+      _nameErrorNotifier.value = 'Enter a first name, last name, or both';
+      return;
+    }
     unawaited(
       context.read<UserCubit>().updateProfile(
         name: _nameController.text.trim().isEmpty
@@ -65,7 +104,7 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
                 title: const Text('Choose from gallery'),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  unawaited(_pickImageAndUpload(ImageSource.gallery));
+                  unawaited(_pickImageAndUpload(.gallery));
                 },
               ),
               ListTile(
@@ -73,7 +112,7 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
                 title: const Text('Take photo'),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  unawaited(_pickImageAndUpload(ImageSource.camera));
+                  unawaited(_pickImageAndUpload(.camera));
                 },
               ),
             ],
@@ -96,7 +135,7 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
       }
 
       final path = picked.name.toLowerCase();
-      final contentType = source == ImageSource.camera
+      final contentType = source == .camera
           ? 'image/jpeg'
           : (path.endsWith('.png') ? 'image/png' : 'image/jpeg');
 
@@ -130,7 +169,7 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(message),
-          behavior: SnackBarBehavior.floating,
+          behavior: .floating,
           duration: duration ?? const Duration(seconds: 4),
         ),
       );
@@ -140,15 +179,14 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // Profile save completed — show success or error.
+        // Profile update completed — pop on success; error is shown
+        // inline by the BlocBuilder.
         BlocListener<UserCubit, UserState>(
           listenWhen: (previous, current) =>
               previous.updatingProfile && !current.updatingProfile,
           listener: (context, state) {
-            if (state.errorMessage != null) {
-              _showSnackBar(state.errorMessage!);
-            } else {
-              _showSnackBar('Profile updated');
+            if (state.errorMessage == null) {
+              Navigator.of(context).pop();
             }
           },
         ),
@@ -167,21 +205,23 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
         appBar: AppBar(title: const Text('Update profile')),
         body: BlocBuilder<UserCubit, UserState>(
           builder: (context, state) {
-            final theme = Theme.of(context);
+            final textTheme = Theme.of(context).textTheme;
+            final colorScheme = Theme.of(context).colorScheme;
+
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const .all(24),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 480),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: .min,
                     children: [
                       GestureDetector(
                         onTap: state.updatingAvatar
                             ? null
                             : _showImageSourceBottomSheet,
                         child: Stack(
-                          alignment: Alignment.bottomRight,
+                          alignment: .bottomRight,
                           children: [
                             UserAvatar(user: state.user, radius: 64),
                             if (state.updatingAvatar)
@@ -189,12 +229,11 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     color: Colors.black26,
-                                    shape: BoxShape.circle,
+                                    shape: .circle,
                                   ),
                                   child: Center(
-                                    child: SizedBox(
-                                      width: 32,
-                                      height: 32,
+                                    child: SizedBox.square(
+                                      dimension: 32,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
                                         color: Colors.white,
@@ -208,11 +247,10 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
                                 bottom: 4,
                                 right: 4,
                                 child: CircleAvatar(
-                                  backgroundColor:
-                                      theme.colorScheme.primaryContainer,
+                                  backgroundColor: colorScheme.primaryContainer,
                                   child: Icon(
                                     Icons.camera_alt,
-                                    color: theme.colorScheme.onPrimaryContainer,
+                                    color: colorScheme.onPrimaryContainer,
                                     size: 20,
                                   ),
                                 ),
@@ -220,45 +258,67 @@ final class _UpdateUserPageState extends State<UpdateUserPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'First name',
+                      if (state.user != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          state.user!.email,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                        textCapitalization: TextCapitalization.words,
+                      ],
+                      const SizedBox(height: 32),
+                      ValueListenableBuilder<String?>(
+                        valueListenable: _nameErrorNotifier,
+                        builder: (context, errorText, _) => TextField(
+                          controller: _nameController,
+                          focusNode: _nameFocusNode,
+                          decoration: InputDecoration(
+                            labelText: 'First name',
+                            errorText: errorText,
+                          ),
+                          textCapitalization: .words,
+                          textInputAction: .next,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: _lastNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Last name',
+                      ValueListenableBuilder<String?>(
+                        valueListenable: _nameErrorNotifier,
+                        builder: (context, errorText, _) => TextField(
+                          controller: _lastNameController,
+                          focusNode: _lastNameFocusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Last name',
+                            errorText: errorText,
+                          ),
+                          textCapitalization: .words,
+                          textInputAction: .done,
+                          onSubmitted: (_) => _onSavePressed(),
                         ),
-                        textCapitalization: TextCapitalization.words,
                       ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(labelText: 'Email'),
-                        enabled: false,
-                      ),
+                      if (state.errorMessage != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          state.errorMessage!,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.error,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: state.updatingProfile
-                              ? null
-                              : _onSavePressed,
-                          child: state.updatingProfile
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Save'),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
                         ),
+                        onPressed: state.updatingProfile
+                            ? null
+                            : _onSavePressed,
+                        child: state.updatingProfile
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(),
+                              )
+                            : const Text('Update'),
                       ),
                     ],
                   ),

@@ -10,7 +10,7 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
   id: json['id'] as String,
   name: json['name'] as String,
   startDate: json['start_date'] as String?,
-  durationDays: json['duration_days'] as int?,
+  durationDays: (json['duration_days'] as num?)?.toInt(),
   description: json['description'] as String?,
   eventCode: json['event_code'] as String?,
   locationLat: (json['location_lat'] as num?)?.toDouble(),
