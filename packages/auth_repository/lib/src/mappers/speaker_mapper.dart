@@ -7,5 +7,8 @@ extension ApiSpeakerMapper on api.Speaker {
     firstName: firstName,
     lastName: lastName,
     isTopSpeaker: isTopSpeaker,
+    profilePicture: profilePicture,
+    tagLine: tagLine,
+    bio: bio,
   );
 }

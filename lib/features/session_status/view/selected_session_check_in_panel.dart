@@ -153,11 +153,11 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                _SpeakersCard(speakers: activeSession.speakers),
+                _TagsCard(tags: activeSession.tags),
 
                 const SizedBox(height: 12),
 
-                _TagsCard(tags: activeSession.tags),
+                _SpeakersCard(speakers: activeSession.speakers),
               ],
             ),
           );
@@ -250,13 +250,26 @@ final class _SpeakersCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   for (final speaker in speakers)
-                    Chip(
-                      label: Text(
-                        '${speaker.firstName} ${speaker.lastName}',
+                    ActionChip(
+                      onPressed: () => _showSpeakerDetailsSheet(
+                        context,
+                        speaker,
                       ),
-                      avatar: speaker.isTopSpeaker
-                          ? const Icon(Icons.star_rounded, size: 18)
-                          : null,
+                      avatar: _SpeakerAvatar(
+                        imageUrl: speaker.profilePicture,
+                        initials: _speakerInitials(speaker),
+                        radius: 10,
+                      ),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_speakerFullName(speaker)),
+                          if (speaker.isTopSpeaker) ...[
+                            const SizedBox(width: 6),
+                            const Icon(Icons.star_rounded, size: 16),
+                          ],
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -265,6 +278,177 @@ final class _SpeakersCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showSpeakerDetailsSheet(BuildContext context, Speaker speaker) {
+  final theme = Theme.of(context);
+  final tagline = _normalizedText(speaker.tagLine);
+  final bio = _normalizedText(speaker.bio);
+
+  return showDialog<void>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SpeakerAvatar(
+                        imageUrl: speaker.profilePicture,
+                        initials: _speakerInitials(speaker),
+                        radius: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _speakerFullName(speaker),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (speaker.isTopSpeaker) ...[
+                              const SizedBox(height: 8),
+                              const Chip(
+                                avatar: Icon(Icons.star_rounded, size: 18),
+                                label: Text('Top Speaker'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (tagline != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      tagline,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  if (bio != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      bio,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+final class _SpeakerAvatar extends StatelessWidget {
+  const _SpeakerAvatar({
+    required this.imageUrl,
+    required this.initials,
+    required this.radius,
+  });
+
+  final String? imageUrl;
+  final String initials;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final normalizedUrl = _normalizedText(imageUrl);
+    final diameter = radius * 2;
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: theme.colorScheme.primaryContainer,
+      child: ClipOval(
+        child: normalizedUrl != null
+            ? Image.network(
+                normalizedUrl,
+                width: diameter,
+                height: diameter,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _SpeakerAvatarInitials(
+                  initials: initials,
+                  radius: radius,
+                ),
+              )
+            : _SpeakerAvatarInitials(initials: initials, radius: radius),
+      ),
+    );
+  }
+}
+
+final class _SpeakerAvatarInitials extends StatelessWidget {
+  const _SpeakerAvatarInitials({
+    required this.initials,
+    required this.radius,
+  });
+
+  final String initials;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      width: radius * 2,
+      height: radius * 2,
+      child: Center(
+        child: Text(
+          initials,
+          style: (radius >= 24
+                  ? theme.textTheme.titleMedium
+                  : theme.textTheme.labelMedium)
+              ?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+String _speakerFullName(Speaker speaker) =>
+    '${speaker.firstName} ${speaker.lastName}'.trim();
+
+String _speakerInitials(Speaker speaker) {
+  final first = speaker.firstName.trim();
+  final last = speaker.lastName.trim();
+
+  final firstInitial = first.isNotEmpty ? first.characters.first : '';
+  final lastInitial = last.isNotEmpty ? last.characters.first : '';
+  final initials = '$firstInitial$lastInitial'.trim();
+
+  return initials.isEmpty ? '?' : initials.toUpperCase();
+}
+
+String? _normalizedText(String? value) {
+  if (value == null) return null;
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return null;
+  return trimmed;
 }
 
 final class _TagsCard extends StatelessWidget {
