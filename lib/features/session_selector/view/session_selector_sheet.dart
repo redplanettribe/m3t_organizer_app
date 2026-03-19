@@ -10,6 +10,7 @@ final class SessionSelectorSheet extends StatelessWidget {
     required this.isCollapsed,
     required this.onSelectSession,
     required this.scrollController,
+    this.isExpanded = false,
     super.key,
   });
 
@@ -17,6 +18,7 @@ final class SessionSelectorSheet extends StatelessWidget {
   final String selectedSessionID;
   final Session? selectedSession;
   final bool isCollapsed;
+  final bool isExpanded;
   final ValueChanged<Session> onSelectSession;
   final ScrollController scrollController;
 
@@ -26,10 +28,14 @@ final class SessionSelectorSheet extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
+        borderRadius: isExpanded
+            ? BorderRadius.zero
+            : const BorderRadius.vertical(top: Radius.circular(24)),
+        border: isExpanded
+            ? null
+            : Border(
+                top: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
       ),
       child: ListView(
         controller: scrollController,

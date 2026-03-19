@@ -10,10 +10,12 @@ import 'package:m3t_organizer/features/session_selector/view/session_selector_sh
 final class SessionsTab extends StatefulWidget {
   const SessionsTab({
     required this.eventID,
+    this.onSheetExpanded,
     super.key,
   });
 
   final String eventID;
+  final ValueChanged<bool>? onSheetExpanded;
 
   @override
   State<SessionsTab> createState() => _SessionsTabState();
@@ -23,12 +25,12 @@ final class _SessionsTabState extends State<SessionsTab>
     with AutomaticKeepAliveClientMixin {
   static const double _minChildSize = 0.18;
   static const double _initialChildSize = 0.34;
-  static const double _maxChildSize = 0.76;
 
   final DraggableScrollableController _draggableController =
       DraggableScrollableController();
 
   bool _isCollapsed = false;
+  bool _isExpanded = false;
   ScrollController? _sheetScrollController;
 
   @override
@@ -91,50 +93,63 @@ final class _SessionsTabState extends State<SessionsTab>
                 const _SelectedSessionLoadingPanel()
               else
                 const _SelectedSessionEmptyPanel(),
-              NotificationListener<DraggableScrollableNotification>(
-                onNotification: (notification) {
-                  final shouldCollapse = notification.extent <=
-                      (_minChildSize + 0.01);
-                  if (shouldCollapse != _isCollapsed) {
-                    setState(() {
-                      _isCollapsed = shouldCollapse;
-                    });
-                  }
-                  return false;
-                },
-                child: DraggableScrollableSheet(
-                  controller: _draggableController,
-                  minChildSize: _minChildSize,
-                  initialChildSize: _initialChildSize,
-                  maxChildSize: _maxChildSize,
-                  builder: (context, scrollController) {
-                    _sheetScrollController = scrollController;
+              ClipRect(
+                child: NotificationListener<DraggableScrollableNotification>(
+                  onNotification: (notification) {
+                    final shouldCollapse =
+                        notification.extent <= (_minChildSize + 0.01);
+                    final shouldExpand = notification.extent >= 0.95;
 
-                    if (state.errorMessage != null) {
-                      return _ErrorSelectorSheet(
-                        message: state.errorMessage!,
-                        onRetry:
-                            context.read<SessionSelectorCubit>().loadEvent,
-                        scrollController: scrollController,
-                      );
+                    final collapsedChanged = shouldCollapse != _isCollapsed;
+                    final expandedChanged = shouldExpand != _isExpanded;
+
+                    if (collapsedChanged || expandedChanged) {
+                      setState(() {
+                        _isCollapsed = shouldCollapse;
+                        _isExpanded = shouldExpand;
+                      });
+                      if (expandedChanged) {
+                        widget.onSheetExpanded?.call(shouldExpand);
+                      }
                     }
-
-                    if (state.rooms.isEmpty && state.loading) {
-                      return _LoadingSelectorSheet(
-                        scrollController: scrollController,
-                      );
-                    }
-
-                    return SessionSelectorSheet(
-                      rooms: state.rooms,
-                      selectedSessionID: state.selectedSessionId ?? '',
-                      selectedSession: state.selectedSession,
-                      isCollapsed: _isCollapsed,
-                      onSelectSession: (session) =>
-                          _handleSelectSession(context, session),
-                      scrollController: scrollController,
-                    );
+                    return false;
                   },
+                  child: DraggableScrollableSheet(
+                    controller: _draggableController,
+                    minChildSize: _minChildSize,
+                    initialChildSize: _initialChildSize,
+                    snap: true,
+                    snapSizes: const [_initialChildSize],
+                    builder: (context, scrollController) {
+                      _sheetScrollController = scrollController;
+
+                      if (state.errorMessage != null) {
+                        return _ErrorSelectorSheet(
+                          message: state.errorMessage!,
+                          onRetry:
+                              context.read<SessionSelectorCubit>().loadEvent,
+                          scrollController: scrollController,
+                        );
+                      }
+
+                      if (state.rooms.isEmpty && state.loading) {
+                        return _LoadingSelectorSheet(
+                          scrollController: scrollController,
+                        );
+                      }
+
+                      return SessionSelectorSheet(
+                        rooms: state.rooms,
+                        selectedSessionID: state.selectedSessionId ?? '',
+                        selectedSession: state.selectedSession,
+                        isCollapsed: _isCollapsed,
+                        isExpanded: _isExpanded,
+                        onSelectSession: (session) =>
+                            _handleSelectSession(context, session),
+                        scrollController: scrollController,
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
