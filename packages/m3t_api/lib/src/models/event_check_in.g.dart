@@ -1,6 +1,10 @@
-// GENERATED CODE - MANUAL STUB FOR json_serializable
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'event_check_in.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 EventCheckIn _$EventCheckInFromJson(Map<String, dynamic> json) => EventCheckIn(
   id: json['id'] as String,

@@ -1,6 +1,6 @@
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:m3t_organizer/features/organizer_event/view/session_demo_models.dart';
 
 final class RoomGroupedSessionsList extends StatelessWidget {
   const RoomGroupedSessionsList({
@@ -11,9 +11,9 @@ final class RoomGroupedSessionsList extends StatelessWidget {
     super.key,
   });
 
-  final List<SessionRoomDemo> rooms;
+  final List<RoomWithSessions> rooms;
   final String selectedSessionID;
-  final ValueChanged<SessionDemo> onSelectSession;
+  final ValueChanged<Session> onSelectSession;
   final ScrollController scrollController;
 
   @override
@@ -36,14 +36,14 @@ final class RoomGroupedSessionsList extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        room.name,
+                        room.room.name,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     Text(
-                      '${room.capacity} seats',
+                      '${room.room.capacity} seats',
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -76,7 +76,7 @@ final class _SessionTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final SessionDemo session;
+  final Session session;
   final bool selected;
   final VoidCallback onTap;
 
@@ -128,9 +128,12 @@ final class _SessionTile extends StatelessWidget {
   }
 }
 
-String _formatRange(TimeOfDay start, TimeOfDay end) {
+String _formatRange(String startTime, String endTime) {
   final base = DateTime(2024);
   final formatter = DateFormat.jm();
+  final start = _parseHHmm(startTime);
+  final end = _parseHHmm(endTime);
+
   final startDate = DateTime(
     base.year,
     base.month,
@@ -145,5 +148,15 @@ String _formatRange(TimeOfDay start, TimeOfDay end) {
     end.hour,
     end.minute,
   );
+
   return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
+}
+
+({int hour, int minute}) _parseHHmm(String value) {
+  final parts = value.split(':');
+  if (parts.length != 2) return (hour: 0, minute: 0);
+
+  final hour = int.tryParse(parts[0]) ?? 0;
+  final minute = int.tryParse(parts[1]) ?? 0;
+  return (hour: hour, minute: minute);
 }

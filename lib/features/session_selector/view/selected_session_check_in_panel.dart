@@ -1,7 +1,7 @@
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:m3t_organizer/features/organizer_event/view/qr_scanner_placeholder.dart';
-import 'package:m3t_organizer/features/organizer_event/view/session_demo_models.dart';
+import 'package:m3t_organizer/features/session_selector/view/qr_scanner_placeholder.dart';
 
 final class SelectedSessionCheckInPanel extends StatelessWidget {
   const SelectedSessionCheckInPanel({
@@ -11,7 +11,7 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
   });
 
   final String roomName;
-  final SessionDemo session;
+  final Session session;
 
   @override
   Widget build(BuildContext context) {
@@ -143,11 +143,13 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
 
 enum SessionStatusVisual { upcoming, ongoing, ended }
 
-SessionStatusVisual _statusForSession(SessionDemo session) {
-  final now = TimeOfDay.now();
+SessionStatusVisual _statusForSession(Session session) {
+  final now = DateTime.now();
   final nowMinutes = (now.hour * 60) + now.minute;
-  final startMinutes = (session.startTime.hour * 60) + session.startTime.minute;
-  final endMinutes = (session.endTime.hour * 60) + session.endTime.minute;
+  final start = _parseHHmm(session.startTime);
+  final end = _parseHHmm(session.endTime);
+  final startMinutes = (start.hour * 60) + start.minute;
+  final endMinutes = (end.hour * 60) + end.minute;
 
   if (nowMinutes < startMinutes) return SessionStatusVisual.upcoming;
   if (nowMinutes > endMinutes) return SessionStatusVisual.ended;
@@ -187,9 +189,12 @@ final class _SessionStatusChip extends StatelessWidget {
   }
 }
 
-String _formatRange(TimeOfDay start, TimeOfDay end) {
+String _formatRange(String startTime, String endTime) {
   final base = DateTime(2024);
   final formatter = DateFormat.jm();
+  final start = _parseHHmm(startTime);
+  final end = _parseHHmm(endTime);
+
   final startDate = DateTime(
     base.year,
     base.month,
@@ -204,5 +209,15 @@ String _formatRange(TimeOfDay start, TimeOfDay end) {
     end.hour,
     end.minute,
   );
+
   return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
+}
+
+({int hour, int minute}) _parseHHmm(String value) {
+  final parts = value.split(':');
+  if (parts.length != 2) return (hour: 0, minute: 0);
+
+  final hour = int.tryParse(parts[0]) ?? 0;
+  final minute = int.tryParse(parts[1]) ?? 0;
+  return (hour: hour, minute: minute);
 }

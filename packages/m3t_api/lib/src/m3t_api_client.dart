@@ -5,6 +5,7 @@ import 'package:m3t_api/src/data_sources/user_data_source.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
+import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
 import 'package:m3t_api/src/models/user.dart';
 
@@ -73,6 +74,11 @@ class M3tApiClient {
   // ── Events ─────────────────────────────────────────────────────────────
 
   Future<List<Event>> getMyEvents() => _events.getMyEvents();
+
+  Future<GetEventByIdResponse> getEventById({
+    required String eventID,
+  }) =>
+      _events.getEventById(eventID: eventID);
 
   Future<EventCheckIn> checkInAttendee({
     required String eventID,

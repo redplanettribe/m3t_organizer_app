@@ -1,6 +1,6 @@
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
-import 'package:m3t_organizer/features/organizer_event/view/room_grouped_sessions_list.dart';
-import 'package:m3t_organizer/features/organizer_event/view/session_demo_models.dart';
+import 'package:m3t_organizer/features/session_selector/view/room_grouped_sessions_list.dart';
 
 final class SessionSelectorSheet extends StatelessWidget {
   const SessionSelectorSheet({
@@ -11,9 +11,9 @@ final class SessionSelectorSheet extends StatelessWidget {
     super.key,
   });
 
-  final List<SessionRoomDemo> rooms;
+  final List<RoomWithSessions> rooms;
   final String selectedSessionID;
-  final ValueChanged<SessionDemo> onSelectSession;
+  final ValueChanged<Session> onSelectSession;
   final ScrollController scrollController;
 
   @override

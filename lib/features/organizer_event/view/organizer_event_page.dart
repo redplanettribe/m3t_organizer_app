@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:m3t_organizer/features/check_in_event/check_in_event.dart';
-import 'package:m3t_organizer/features/organizer_event/view/sessions_tab.dart';
+import 'package:m3t_organizer/features/session_selector/session_selector.dart';
 
 final class OrganizerEventPage extends StatelessWidget {
   const OrganizerEventPage({
@@ -56,7 +56,7 @@ final class OrganizerEventPage extends StatelessWidget {
               child: TabBarView(
                 children: [
                   CheckInEventTab(eventID: eventID),
-                  const SessionsTab(),
+                  SessionsTab(eventID: eventID),
                 ],
               ),
             ),

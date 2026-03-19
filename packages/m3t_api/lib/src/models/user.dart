@@ -23,7 +23,7 @@ final class User extends Equatable {
   final String? lastName;
   final String? createdAt;
   final String? updatedAt;
-   final String? profilePictureUrl;
+  final String? profilePictureUrl;
 
   User copyWith({
     String? id,
@@ -48,6 +48,13 @@ final class User extends Equatable {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   @override
-  List<Object?> get props =>
-      [id, email, name, lastName, createdAt, updatedAt, profilePictureUrl];
+  List<Object?> get props => [
+    id,
+    email,
+    name,
+    lastName,
+    createdAt,
+    updatedAt,
+    profilePictureUrl,
+  ];
 }

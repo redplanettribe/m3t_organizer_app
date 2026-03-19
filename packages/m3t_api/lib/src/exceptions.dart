@@ -95,3 +95,21 @@ final class CheckInAttendeeFailure implements Exception {
       'CheckInAttendeeFailure(message: $message, statusCode: $statusCode, '
       'errorCode: $errorCode)';
 }
+
+/// Thrown when fetching a single event (with nested rooms/sessions) fails.
+final class GetEventByIdFailure implements Exception {
+  GetEventByIdFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'GetEventByIdFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}

@@ -6,6 +6,7 @@ import 'package:m3t_api/src/http/api_paths.dart';
 import 'package:m3t_api/src/models/api_error.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
+import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 
 /// Handles all events API calls.
 final class EventsDataSource {
@@ -43,6 +44,44 @@ final class EventsDataSource {
     return dataJson
         .map((e) => Event.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Returns a single event with its nested rooms and sessions.
+  Future<GetEventByIdResponse> getEventById({
+    required String eventID,
+  }) async {
+    final response = await _executor.client.get(
+      _executor.uri(EventPaths.byId(eventID)),
+      headers: await _executor.authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw GetEventByIdFailure(
+        'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final body = _executor.decodeJson(response.body);
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw GetEventByIdFailure(
+        error.message,
+        statusCode: response.statusCode,
+        errorCode: error.code,
+      );
+    }
+
+    final dataJson = body['data'] as Map<String, dynamic>?;
+    if (dataJson == null) {
+      throw GetEventByIdFailure(
+        'Missing data field in response',
+        statusCode: response.statusCode,
+      );
+    }
+
+    return GetEventByIdResponse.fromJson(dataJson);
   }
 
   /// Records check-in of an attendee for the given event.
