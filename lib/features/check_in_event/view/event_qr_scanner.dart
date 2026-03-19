@@ -70,10 +70,10 @@ final class _EventQrScannerState extends State<EventQrScanner> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Scanner', style: theme.textTheme.titleMedium),
+        Text('Check-in an attendee', style: theme.textTheme.titleMedium),
         const SizedBox(height: 4),
         Text(
-          'Position the attendee QR inside the frame.',
+          "Position the attendee's QR code inside the frame.",
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

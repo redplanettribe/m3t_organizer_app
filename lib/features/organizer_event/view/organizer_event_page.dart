@@ -51,7 +51,6 @@ final class OrganizerEventPage extends StatelessWidget {
         ),
         body: Column(
           children: [
-            _EventIdentityBanner(eventID: eventID),
             Expanded(
               child: TabBarView(
                 children: [
@@ -62,45 +61,6 @@ final class OrganizerEventPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-final class _EventIdentityBanner extends StatelessWidget {
-  const _EventIdentityBanner({required this.eventID});
-
-  final String eventID;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.event_available_rounded,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Event ID: $eventID',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
