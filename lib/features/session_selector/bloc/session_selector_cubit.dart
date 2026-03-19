@@ -31,23 +31,16 @@ final class SessionSelectorCubit extends Cubit<SessionSelectorState> {
       );
 
       final rooms = eventWithRooms.rooms;
-      Session? selectedSession;
-      String? selectedRoomName;
-
-      for (final room in rooms) {
-        if (room.sessions.isEmpty) continue;
-        selectedSession = room.sessions.first;
-        selectedRoomName = room.room.name;
-        break;
-      }
 
       emit(
         state.copyWith(
           loading: false,
           rooms: rooms,
-          selectedSessionId: selectedSession?.id,
-          selectedSession: selectedSession,
-          selectedRoomName: selectedRoomName,
+          // Intentionally start with "no selection" so the organizer can
+          // explicitly choose a session from the drawer.
+          selectedSessionId: null,
+          selectedSession: null,
+          selectedRoomName: null,
           errorMessage: null,
         ),
       );

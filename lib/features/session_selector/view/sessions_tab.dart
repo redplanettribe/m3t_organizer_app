@@ -39,6 +39,8 @@ final class SessionsTab extends StatelessWidget {
                   roomName: selectedRoomName,
                   session: selectedSession,
                 )
+              else if (state.loading)
+                const _SelectedSessionLoadingPanel()
               else
                 const _SelectedSessionEmptyPanel(),
               DraggableScrollableSheet(
@@ -82,6 +84,59 @@ final class _SelectedSessionEmptyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 280),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Session',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Select a session from the drawer below to start check-in '
+                'and manage the flow.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(
+                    Icons.keyboard_double_arrow_down_rounded,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Open the sessions list, then tap a session.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+final class _SelectedSessionLoadingPanel extends StatelessWidget {
+  const _SelectedSessionLoadingPanel();
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 280),
       child: Card(
@@ -96,7 +151,7 @@ final class _SelectedSessionEmptyPanel extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Select a session to manage check-in and flow.',
+                'Loading sessions...',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
