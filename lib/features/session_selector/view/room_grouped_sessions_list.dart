@@ -7,64 +7,84 @@ final class RoomGroupedSessionsList extends StatelessWidget {
     required this.rooms,
     required this.selectedSessionID,
     required this.onSelectSession,
-    required this.scrollController,
     super.key,
   });
 
   final List<RoomWithSessions> rooms;
   final String selectedSessionID;
   final ValueChanged<Session> onSelectSession;
-  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ListView.separated(
-      controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-      itemCount: rooms.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, roomIndex) {
-        final room = rooms[roomIndex];
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        for (var roomIndex = 0; roomIndex < rooms.length; roomIndex++) ...[
+          _RoomCard(
+            theme: theme,
+            room: rooms[roomIndex],
+            selectedSessionID: selectedSessionID,
+            onSelectSession: onSelectSession,
+          ),
+          if (roomIndex != rooms.length - 1) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
+
+final class _RoomCard extends StatelessWidget {
+  const _RoomCard({
+    required this.theme,
+    required this.room,
+    required this.selectedSessionID,
+    required this.onSelectSession,
+  });
+
+  final ThemeData theme;
+  final RoomWithSessions room;
+  final String selectedSessionID;
+  final ValueChanged<Session> onSelectSession;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        room.room.name,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                Expanded(
+                  child: Text(
+                    room.room.name,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    Text(
-                      '${room.room.capacity} seats',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                for (var index = 0; index < room.sessions.length; index++) ...[
-                  _SessionTile(
-                    session: room.sessions[index],
-                    selected: room.sessions[index].id == selectedSessionID,
-                    onTap: () => onSelectSession(room.sessions[index]),
                   ),
-                  if (index != room.sessions.length - 1)
-                    const SizedBox(height: 8),
-                ],
+                ),
+                Text(
+                  '${room.room.capacity} seats',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 10),
+            for (var index = 0; index < room.sessions.length; index++) ...[
+              _SessionTile(
+                session: room.sessions[index],
+                selected: room.sessions[index].id == selectedSessionID,
+                onTap: () => onSelectSession(room.sessions[index]),
+              ),
+              if (index != room.sessions.length - 1)
+                const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
