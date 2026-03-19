@@ -1,7 +1,8 @@
+import 'dart:async' show unawaited;
+
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:m3t_organizer/features/check_in_event/bloc/bloc.dart';
 import 'package:m3t_organizer/features/check_in_event/view/event_qr_scanner.dart';
 
@@ -32,157 +33,91 @@ final class _CheckInEventTabView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocBuilder<CheckInEventCubit, CheckInEventState>(
-      builder: (context, state) {
-        final latestCheckIn = state.latestCheckIn;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: EventQrScanner(
-                    enabled: !state.loading,
-                    onUserIDDetected: context
-                        .read<CheckInEventCubit>()
-                        .onUserIDScanned,
+    return BlocListener<CheckInEventCubit, CheckInEventState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage &&
+          current.errorMessage != null,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      },
+      child: BlocBuilder<CheckInEventCubit, CheckInEventState>(
+        builder: (context, state) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.icon(
+                  onPressed: state.loading
+                      ? null
+                      : () => _openEventScannerModal(context),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (state.errorMessage != null) ...[
-                Card(
-                  color: theme.colorScheme.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Text(
-                      state.errorMessage!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                      ),
+                  icon: Icon(
+                    Icons.qr_code_scanner_rounded,
+                    size: 22,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                  label: Text(
+                    state.loading ? 'Checking in…' : 'Scan attendee QR',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
               ],
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Latest check-in',
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 12),
-                      if (latestCheckIn == null) ...[
-                        Text(
-                          'No attendee checked in yet.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ] else ...[
-                        _ResultRow(
-                          label: 'Name',
-                          value: _buildName(latestCheckIn),
-                        ),
-                        const SizedBox(height: 8),
-                        _ResultRow(
-                          label: 'Email',
-                          value: latestCheckIn.email ?? '-',
-                        ),
-                        const SizedBox(height: 8),
-                        _ResultRow(
-                          label: 'User ID',
-                          value: latestCheckIn.userID,
-                        ),
-                        const SizedBox(height: 8),
-                        _ResultRow(
-                          label: 'Time',
-                          value: DateFormat(
-                            'hh:mm a',
-                          ).format(latestCheckIn.createdAt),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              'Status',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Chip(
-                              label: const Text('Checked in'),
-                              avatar: Icon(
-                                Icons.check_circle_outline_rounded,
-                                size: 18,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+            ),
+          );
+        },
+      ),
     );
-  }
-
-  String _buildName(EventCheckIn checkIn) {
-    final parts = <String>[];
-    if (checkIn.name != null && checkIn.name!.trim().isNotEmpty) {
-      parts.add(checkIn.name!.trim());
-    }
-    if (checkIn.lastName != null && checkIn.lastName!.trim().isNotEmpty) {
-      parts.add(checkIn.lastName!.trim());
-    }
-
-    final fullName = parts.join(' ');
-
-    if (fullName.isNotEmpty) {
-      return fullName;
-    }
-
-    return '-';
   }
 }
 
-final class _ResultRow extends StatelessWidget {
-  const _ResultRow({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+Future<void> _openEventScannerModal(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return BlocProvider.value(
+        value: context.read<CheckInEventCubit>(),
+        child: BlocBuilder<CheckInEventCubit, CheckInEventState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: EventQrScanner(
+                enabled: !state.loading,
+                onClose: () => Navigator.of(sheetContext).pop(),
+                onUserIDDetected: (userID) {
+                  unawaited(
+                    context.read<CheckInEventCubit>().onUserIDScanned(userID),
+                  );
+                },
+              ),
+            );
+          },
         ),
-        Text(value, style: theme.textTheme.bodyMedium),
-      ],
-    );
-  }
+      );
+    },
+  );
 }

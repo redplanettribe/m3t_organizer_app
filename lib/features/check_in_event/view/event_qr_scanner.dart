@@ -8,11 +8,13 @@ typedef UserIDDetected = void Function(String userID);
 final class EventQrScanner extends StatefulWidget {
   const EventQrScanner({
     required this.onUserIDDetected,
+    this.onClose,
     this.enabled = true,
     super.key,
   });
 
   final UserIDDetected onUserIDDetected;
+  final VoidCallback? onClose;
   final bool enabled;
 
   @override
@@ -70,7 +72,27 @@ final class _EventQrScannerState extends State<EventQrScanner> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Check-in an attendee', style: theme.textTheme.titleMedium),
+        if (widget.onClose != null)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  'Check-in an attendee',
+                  style: theme.textTheme.titleSmall,
+                ),
+              ),
+              TextButton(
+                onPressed: widget.onClose,
+                child: const Text('Done'),
+              ),
+            ],
+          )
+        else
+          Text(
+            'Check-in an attendee',
+            style: theme.textTheme.titleMedium,
+          ),
         const SizedBox(height: 4),
         Text(
           "Position the attendee's QR code inside the frame.",
