@@ -56,31 +56,20 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    activeSession.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    subtitle,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ],
+                              child: Text(
+                                subtitle,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
                               ),
                             ),
+                            const SizedBox(width: 8),
                             if (activeStatus != null)
                               _SessionStatusChip(status: activeStatus)
                             else
@@ -97,10 +86,12 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: 12),
-                        _SessionTagsSection(tags: activeSession.tags),
                         const SizedBox(height: 10),
-                        _SessionSpeakersSection(speakers: activeSession.speakers),
+                        _SessionTagsSection(tags: activeSession.tags),
+                        const SizedBox(height: 12),
+                        _SessionSpeakersSection(
+                          speakers: activeSession.speakers,
+                        ),
                         const SizedBox(height: 12),
                         const Divider(height: 1),
                         const SizedBox(height: 12),
@@ -458,13 +449,14 @@ final class _SpeakerAvatarInitials extends StatelessWidget {
       child: Center(
         child: Text(
           initials,
-          style: (radius >= 24
-                  ? theme.textTheme.titleMedium
-                  : theme.textTheme.labelMedium)
-              ?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w600,
-              ),
+          style:
+              (radius >= 24
+                      ? theme.textTheme.titleMedium
+                      : theme.textTheme.labelMedium)
+                  ?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:auth_repository/src/mappers/event_check_in_mapper.dart';
 import 'package:auth_repository/src/mappers/event_mapper.dart';
 import 'package:auth_repository/src/mappers/get_event_by_id_response_mapper.dart';
 import 'package:auth_repository/src/mappers/session_mapper.dart';
+import 'package:auth_repository/src/mappers/session_check_in_mapper.dart';
 import 'package:domain/domain.dart' as domain;
 import 'package:m3t_api/m3t_api.dart' as api;
 
@@ -71,6 +72,39 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
           throw domain.EventsForbidden();
         case 404:
           throw domain.EventsNotFound();
+        default:
+          throw domain.EventsNetworkError();
+      }
+    } on Object catch (_) {
+      throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<domain.SessionCheckIn> checkInAttendeeToSession({
+    required String eventID,
+    required String sessionID,
+    required String userID,
+  }) async {
+    try {
+      final checkIn = await _apiClient.checkInAttendeeToSession(
+        eventID: eventID,
+        sessionID: sessionID,
+        userID: userID,
+      );
+      return checkIn.toDomain();
+    } on api.CheckInAttendeeToSessionFailure catch (error) {
+      switch (error.statusCode) {
+        case 400:
+          throw domain.EventsInvalidInput();
+        case 401:
+          throw domain.EventsUnauthorized();
+        case 403:
+          throw domain.EventsForbidden();
+        case 404:
+          throw domain.EventsNotFound();
+        case 409:
+          throw domain.EventsConflict();
         default:
           throw domain.EventsNetworkError();
       }

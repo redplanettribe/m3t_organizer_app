@@ -20,9 +20,13 @@ abstract final class EventPaths {
 abstract final class SessionPaths {
   static String byId(String sessionID) => '/sessions/$sessionID';
 
+  static String checkIns({
+    required String eventID,
+    required String sessionID,
+  }) => '/events/$eventID/sessions/$sessionID/check-ins';
+
   static String updateStatus({
     required String eventID,
     required String sessionID,
-  }) =>
-      '/events/$eventID/sessions/$sessionID/status';
+  }) => '/events/$eventID/sessions/$sessionID/status';
 }

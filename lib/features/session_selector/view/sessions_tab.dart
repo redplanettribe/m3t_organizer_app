@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/features/session_check_in/session_check_in.dart';
 import 'package:m3t_organizer/features/session_selector/bloc/session_selector_cubit.dart';
 import 'package:m3t_organizer/features/session_selector/view/session_selector_sheet.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
@@ -85,11 +86,28 @@ final class _SessionsTabState extends State<SessionsTab>
           return Stack(
             children: [
               if (selectedSession != null && selectedRoomName != null)
-                SelectedSessionCheckInPanel(
-                  key: ValueKey<String>(selectedSession.id),
-                  eventID: widget.eventID,
-                  roomName: selectedRoomName,
-                  session: selectedSession,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                      child: SessionCheckInButton(
+                        key: ValueKey<String>(
+                          'session-check-in-${selectedSession.id}',
+                        ),
+                        eventID: widget.eventID,
+                        sessionID: selectedSession.id,
+                      ),
+                    ),
+                    Expanded(
+                      child: SelectedSessionCheckInPanel(
+                        key: ValueKey<String>(selectedSession.id),
+                        eventID: widget.eventID,
+                        roomName: selectedRoomName,
+                        session: selectedSession,
+                      ),
+                    ),
+                  ],
                 )
               else if (state.loading)
                 const _SelectedSessionLoadingPanel()

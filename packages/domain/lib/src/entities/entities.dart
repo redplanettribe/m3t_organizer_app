@@ -4,6 +4,7 @@ export 'event_check_in.dart';
 export 'event_with_rooms.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';
+export 'session_check_in.dart';
 export 'session.dart';
 export 'speaker.dart';
 export 'tag.dart';

@@ -9,6 +9,7 @@ import 'package:m3t_api/src/models/event_check_in.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
 import 'package:m3t_api/src/models/session.dart';
+import 'package:m3t_api/src/models/session_check_in.dart';
 import 'package:m3t_api/src/models/user.dart';
 
 /// Signature for a callback that returns the stored auth token (or null).
@@ -81,14 +82,22 @@ class M3tApiClient {
 
   Future<GetEventByIdResponse> getEventById({
     required String eventID,
-  }) =>
-      _events.getEventById(eventID: eventID);
+  }) => _events.getEventById(eventID: eventID);
 
   Future<EventCheckIn> checkInAttendee({
     required String eventID,
     required String userID,
-  }) =>
-      _events.checkInAttendee(eventID: eventID, userID: userID);
+  }) => _events.checkInAttendee(eventID: eventID, userID: userID);
+
+  Future<SessionCheckIn> checkInAttendeeToSession({
+    required String eventID,
+    required String sessionID,
+    required String userID,
+  }) => _events.checkInAttendeeToSession(
+    eventID: eventID,
+    sessionID: sessionID,
+    userID: userID,
+  );
 
   // ── Sessions ─────────────────────────────────────────────────────────────
 
@@ -99,10 +108,9 @@ class M3tApiClient {
     required String eventID,
     required String sessionID,
     required String status,
-  }) =>
-      _sessions.updateSessionStatus(
-        eventID: eventID,
-        sessionID: sessionID,
-        status: status,
-      );
+  }) => _sessions.updateSessionStatus(
+    eventID: eventID,
+    sessionID: sessionID,
+    status: status,
+  );
 }
