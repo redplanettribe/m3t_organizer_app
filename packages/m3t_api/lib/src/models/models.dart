@@ -7,4 +7,6 @@ export 'pagination_meta.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';
 export 'session.dart';
+export 'speaker.dart';
+export 'tag.dart';
 export 'user.dart';

@@ -5,3 +5,5 @@ export 'event_with_rooms.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';
 export 'session.dart';
+export 'speaker.dart';
+export 'tag.dart';

@@ -113,3 +113,39 @@ final class GetEventByIdFailure implements Exception {
       'GetEventByIdFailure(message: $message, statusCode: $statusCode, '
       'errorCode: $errorCode)';
 }
+
+/// Thrown when fetching session details fails.
+final class GetSessionByIdFailure implements Exception {
+  GetSessionByIdFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'GetSessionByIdFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}
+
+/// Thrown when updating a session's lifecycle status fails.
+final class UpdateSessionStatusFailure implements Exception {
+  UpdateSessionStatusFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'UpdateSessionStatusFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}

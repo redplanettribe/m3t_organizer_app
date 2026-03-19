@@ -1,3 +1,6 @@
+import 'package:domain/src/entities/speaker.dart';
+import 'package:domain/src/entities/tag.dart';
+import 'package:domain/src/enums/session_status.dart';
 import 'package:equatable/equatable.dart';
 
 /// Domain representation of a session inside a room.
@@ -12,9 +15,12 @@ final class Session extends Equatable {
     required this.eventDay,
     required this.startTime,
     required this.endTime,
+    this.status,
     this.description,
     this.source,
     this.sourceSessionId,
+    this.speakers = const <Speaker>[],
+    this.tags = const <Tag>[],
   });
 
   final String id;
@@ -23,9 +29,12 @@ final class Session extends Equatable {
   final int eventDay;
   final String startTime;
   final String endTime;
+  final SessionStatus? status;
   final String? description;
   final String? source;
   final String? sourceSessionId;
+  final List<Speaker> speakers;
+  final List<Tag> tags;
 
   @override
   List<Object?> get props => [
@@ -35,8 +44,11 @@ final class Session extends Equatable {
     eventDay,
     startTime,
     endTime,
+    status,
     description,
     source,
     sourceSessionId,
+    speakers,
+    tags,
   ];
 }

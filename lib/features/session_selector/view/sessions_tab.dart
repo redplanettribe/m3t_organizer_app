@@ -4,8 +4,8 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/session_selector/bloc/session_selector_cubit.dart';
-import 'package:m3t_organizer/features/session_selector/view/selected_session_check_in_panel.dart';
 import 'package:m3t_organizer/features/session_selector/view/session_selector_sheet.dart';
+import 'package:m3t_organizer/features/session_status/session_status.dart';
 
 final class SessionsTab extends StatefulWidget {
   const SessionsTab({
@@ -86,6 +86,8 @@ final class _SessionsTabState extends State<SessionsTab>
             children: [
               if (selectedSession != null && selectedRoomName != null)
                 SelectedSessionCheckInPanel(
+                  key: ValueKey<String>(selectedSession.id),
+                  eventID: widget.eventID,
                   roomName: selectedRoomName,
                   session: selectedSession,
                 )

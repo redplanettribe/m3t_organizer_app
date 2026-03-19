@@ -1,6 +1,8 @@
 import 'package:domain/src/entities/event.dart';
 import 'package:domain/src/entities/event_check_in.dart';
 import 'package:domain/src/entities/event_with_rooms.dart';
+import 'package:domain/src/entities/session.dart';
+import 'package:domain/src/enums/session_status.dart';
 
 /// Repository interface for events-related operations.
 abstract interface class EventsRepository {
@@ -11,6 +13,14 @@ abstract interface class EventsRepository {
   Future<EventCheckIn> checkInAttendee({
     required String eventID,
     required String userID,
+  });
+
+  Future<Session> getSessionById({required String sessionID});
+
+  Future<Session> updateSessionStatus({
+    required String eventID,
+    required String sessionID,
+    required SessionStatus status,
   });
 }
 

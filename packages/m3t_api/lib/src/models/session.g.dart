@@ -16,6 +16,13 @@ Session _$SessionFromJson(Map<String, dynamic> json) => Session(
   description: json['description'] as String?,
   source: json['source'] as String?,
   sourceSessionId: json['source_session_id'] as String?,
+  status: json['status'] as String?,
+  speakers: (json['speakers'] as List<dynamic>?)
+      ?.map((e) => Speaker.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  tags: (json['tags'] as List<dynamic>?)
+      ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
+      .toList(),
   createdAt: json['created_at'] as String?,
   updatedAt: json['updated_at'] as String?,
 );
@@ -30,6 +37,9 @@ Map<String, dynamic> _$SessionToJson(Session instance) => <String, dynamic>{
   'description': instance.description,
   'source': instance.source,
   'source_session_id': instance.sourceSessionId,
+  'status': instance.status,
+  'speakers': instance.speakers,
+  'tags': instance.tags,
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
 };

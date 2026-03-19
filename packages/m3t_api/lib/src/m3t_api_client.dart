@@ -1,12 +1,14 @@
 import 'package:http/http.dart' as http;
 import 'package:m3t_api/src/data_sources/auth_data_source.dart';
 import 'package:m3t_api/src/data_sources/events_data_source.dart';
+import 'package:m3t_api/src/data_sources/sessions_data_source.dart';
 import 'package:m3t_api/src/data_sources/user_data_source.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
+import 'package:m3t_api/src/models/session.dart';
 import 'package:m3t_api/src/models/user.dart';
 
 /// Signature for a callback that returns the stored auth token (or null).
@@ -33,11 +35,13 @@ class M3tApiClient {
     _auth = AuthDataSource(executor: executor);
     _user = UserDataSource(executor: executor);
     _events = EventsDataSource(executor: executor);
+    _sessions = SessionsDataSource(executor: executor);
   }
 
   late final AuthDataSource _auth;
   late final UserDataSource _user;
   late final EventsDataSource _events;
+  late final SessionsDataSource _sessions;
 
   // ── Auth ─────────────────────────────────────────────────────────────────
 
@@ -85,4 +89,20 @@ class M3tApiClient {
     required String userID,
   }) =>
       _events.checkInAttendee(eventID: eventID, userID: userID);
+
+  // ── Sessions ─────────────────────────────────────────────────────────────
+
+  Future<Session> getSessionById({required String sessionID}) =>
+      _sessions.getSessionById(sessionID: sessionID);
+
+  Future<Session> updateSessionStatus({
+    required String eventID,
+    required String sessionID,
+    required String status,
+  }) =>
+      _sessions.updateSessionStatus(
+        eventID: eventID,
+        sessionID: sessionID,
+        status: status,
+      );
 }
