@@ -11,6 +11,7 @@ import 'package:m3t_organizer/app/theme/app_theme.dart';
 import 'package:m3t_organizer/features/home/home.dart';
 import 'package:m3t_organizer/features/login/login.dart';
 import 'package:m3t_organizer/features/organizer_event/organizer_event.dart';
+import 'package:m3t_organizer/features/session_status/session_status.dart';
 import 'package:m3t_organizer/features/user/user.dart';
 
 // ---------------------------------------------------------------------------
@@ -126,6 +127,13 @@ final class _AppViewState extends State<_AppView> {
               builder: (context, state) => const UpdateUserPage(),
             ),
           ],
+        ),
+        GoRoute(
+          path: AppRoutes.speaker,
+          builder: (context, state) {
+            final speaker = state.extra! as Speaker;
+            return SpeakerDetailPage(speaker: speaker);
+          },
         ),
       ],
     );

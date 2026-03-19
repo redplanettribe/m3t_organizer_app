@@ -12,6 +12,7 @@ final class Speaker extends Equatable {
     required this.isTopSpeaker,
     this.bio,
     this.eventId,
+    this.phoneNumber,
     this.profilePicture,
     this.source,
     this.sourceSessionId,
@@ -30,6 +31,7 @@ final class Speaker extends Equatable {
 
   final String? bio;
   final String? eventId;
+  final String? phoneNumber;
   final String? profilePicture;
   final String? source;
   final String? sourceSessionId;
@@ -47,6 +49,7 @@ final class Speaker extends Equatable {
     isTopSpeaker,
     bio,
     eventId,
+    phoneNumber,
     profilePicture,
     source,
     sourceSessionId,

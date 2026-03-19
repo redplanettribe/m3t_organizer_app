@@ -15,10 +15,14 @@ abstract final class AppRoutes {
   static const config = '/config';
   static const updateUser = '/config/update-user';
   static const event = '/events/:eventID';
+  static const speaker = '/speakers/:speakerID';
 
   /// Bare path segments — used in nested [GoRoute] definitions only.
   static const updateUserSegment = 'update-user';
 
   /// Builds the event route path for a specific event ID.
   static String eventById(String eventID) => '/events/$eventID';
+
+  /// Builds the speaker route path for a specific speaker ID.
+  static String speakerById(String speakerID) => '/speakers/$speakerID';
 }

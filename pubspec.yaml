@@ -28,6 +28,7 @@ dependencies:
   pinput: ^6.0.2
   qr_flutter: ^4.1.0
   screen_brightness: ^2.1.7
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   bloc_test: ^10.0.0

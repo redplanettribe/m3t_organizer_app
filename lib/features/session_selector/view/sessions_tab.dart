@@ -100,7 +100,7 @@ final class _SessionsTabState extends State<SessionsTab>
                       ),
                     ),
                     Expanded(
-                      child: SelectedSessionCheckInPanel(
+                      child: SelectedSessionPanel(
                         key: ValueKey<String>(selectedSession.id),
                         eventID: widget.eventID,
                         roomName: selectedRoomName,

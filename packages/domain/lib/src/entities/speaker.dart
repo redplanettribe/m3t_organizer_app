@@ -10,6 +10,7 @@ final class Speaker extends Equatable {
     this.profilePicture,
     this.tagLine,
     this.bio,
+    this.phoneNumber,
   });
 
   final String id;
@@ -19,6 +20,7 @@ final class Speaker extends Equatable {
   final String? profilePicture;
   final String? tagLine;
   final String? bio;
+  final String? phoneNumber;
 
   @override
   List<Object?> get props => [
@@ -29,5 +31,6 @@ final class Speaker extends Equatable {
     profilePicture,
     tagLine,
     bio,
+    phoneNumber,
   ];
 }

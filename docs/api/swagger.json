@@ -2192,7 +2192,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. If the user has no booking and the session has capacity, they are auto-booked then checked in. If the session is full and the user has no booking, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
+                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. Session must be Live. If the user has no booking and the session has capacity, they are auto-booked then checked in. If the session is not Live or is full and the user has no booking, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2266,7 +2266,7 @@
                         }
                     },
                     "409": {
-                        "description": "error.code: conflict (session full)",
+                        "description": "error.code: conflict (session is not Live, or session full)",
                         "schema": {
                             "$ref": "#/definitions/helpers.APIResponse"
                         }
@@ -3296,6 +3296,87 @@
                 "responses": {
                     "204": {
                         "description": "No content"
+                    },
+                    "400": {
+                        "description": "error.code: bad_request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "error.code: unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "error.code: forbidden (not owner)",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "error.code: not_found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "error.code: internal_error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates speaker details. Only the event owner can update. Optional fields omitted from body are unchanged. Requires authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Update a speaker",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Speaker ID (UUID)",
+                        "name": "speakerID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Speaker fields to update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.UpdateSpeakerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data contains the updated speaker",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.UpdateSpeakerSuccessResponse"
+                        }
                     },
                     "400": {
                         "description": "error.code: bad_request",
@@ -4954,6 +5035,9 @@
                 "last_name": {
                     "type": "string"
                 },
+                "phone_number": {
+                    "type": "string"
+                },
                 "profile_picture": {
                     "type": "string"
                 },
@@ -5692,6 +5776,43 @@
                 }
             }
         },
+        "controllers.UpdateSpeakerRequest": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "is_top_speaker": {
+                    "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "profile_picture": {
+                    "type": "string"
+                },
+                "tag_line": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.UpdateSpeakerSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.Speaker"
+                },
+                "error": {
+                    "$ref": "#/definitions/helpers.APIError"
+                }
+            }
+        },
         "controllers.UpdateUserRequest": {
             "type": "object",
             "properties": {
@@ -6073,6 +6194,9 @@
                     "type": "boolean"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "phone_number": {
                     "type": "string"
                 },
                 "profile_picture": {

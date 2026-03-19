@@ -10,5 +10,6 @@ extension ApiSpeakerMapper on api.Speaker {
     profilePicture: profilePicture,
     tagLine: tagLine,
     bio: bio,
+    phoneNumber: phoneNumber,
   );
 }

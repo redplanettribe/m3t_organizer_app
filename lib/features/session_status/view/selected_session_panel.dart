@@ -3,11 +3,13 @@ import 'dart:async' show unawaited;
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/features/session_status/bloc/session_status_cubit.dart';
 
-final class SelectedSessionCheckInPanel extends StatelessWidget {
-  const SelectedSessionCheckInPanel({
+final class SelectedSessionPanel extends StatelessWidget {
+  const SelectedSessionPanel({
     required this.eventID,
     required this.roomName,
     required this.session,
@@ -288,7 +290,10 @@ final class _SessionSpeakersSection extends StatelessWidget {
               for (final speaker in speakers)
                 ActionChip(
                   visualDensity: VisualDensity.compact,
-                  onPressed: () => _showSpeakerDetailsSheet(context, speaker),
+                  onPressed: () => context.push(
+                    AppRoutes.speakerById(speaker.id),
+                    extra: speaker,
+                  ),
                   avatar: _SpeakerAvatar(
                     imageUrl: speaker.profilePicture,
                     initials: _speakerInitials(speaker),
@@ -312,85 +317,6 @@ final class _SessionSpeakersSection extends StatelessWidget {
   }
 }
 
-Future<void> _showSpeakerDetailsSheet(BuildContext context, Speaker speaker) {
-  final theme = Theme.of(context);
-  final tagline = _normalizedText(speaker.tagLine);
-  final bio = _normalizedText(speaker.bio);
-
-  return showDialog<void>(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              16 + MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SpeakerAvatar(
-                        imageUrl: speaker.profilePicture,
-                        initials: _speakerInitials(speaker),
-                        radius: 28,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _speakerFullName(speaker),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            if (speaker.isTopSpeaker) ...[
-                              const SizedBox(height: 8),
-                              const Chip(
-                                avatar: Icon(Icons.star_rounded, size: 18),
-                                label: Text('Top Speaker'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (tagline != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      tagline,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                  if (bio != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      bio,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
 
 final class _SpeakerAvatar extends StatelessWidget {
   const _SpeakerAvatar({
