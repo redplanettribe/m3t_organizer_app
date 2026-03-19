@@ -98,6 +98,12 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
                         ),
 
                         const SizedBox(height: 12),
+                        _SessionTagsSection(tags: activeSession.tags),
+                        const SizedBox(height: 10),
+                        _SessionSpeakersSection(speakers: activeSession.speakers),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
 
                         Text(
                           'Session status',
@@ -150,14 +156,6 @@ final class SelectedSessionCheckInPanel extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 12),
-
-                _TagsCard(tags: activeSession.tags),
-
-                const SizedBox(height: 12),
-
-                _SpeakersCard(speakers: activeSession.speakers),
               ],
             ),
           );
@@ -215,8 +213,55 @@ final class _StatusDropdown extends StatelessWidget {
   }
 }
 
-final class _SpeakersCard extends StatelessWidget {
-  const _SpeakersCard({
+final class _SessionTagsSection extends StatelessWidget {
+  const _SessionTagsSection({
+    required this.tags,
+  });
+
+  final List<Tag> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tags',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (tags.isEmpty)
+          Text(
+            'No tags',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                Chip(
+                  visualDensity: VisualDensity.compact,
+                  avatar: const Icon(Icons.tag_rounded, size: 16),
+                  label: Text(tag.name),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+final class _SessionSpeakersSection extends StatelessWidget {
+  const _SessionSpeakersSection({
     required this.speakers,
   });
 
@@ -226,56 +271,52 @@ final class _SpeakersCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Speakers',
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 10),
-            if (speakers.isEmpty)
-              Text(
-                'No speakers.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final speaker in speakers)
-                    ActionChip(
-                      onPressed: () => _showSpeakerDetailsSheet(
-                        context,
-                        speaker,
-                      ),
-                      avatar: _SpeakerAvatar(
-                        imageUrl: speaker.profilePicture,
-                        initials: _speakerInitials(speaker),
-                        radius: 10,
-                      ),
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(_speakerFullName(speaker)),
-                          if (speaker.isTopSpeaker) ...[
-                            const SizedBox(width: 6),
-                            const Icon(Icons.star_rounded, size: 16),
-                          ],
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Speakers',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        if (speakers.isEmpty)
+          Text(
+            'No speakers',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final speaker in speakers)
+                ActionChip(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _showSpeakerDetailsSheet(context, speaker),
+                  avatar: _SpeakerAvatar(
+                    imageUrl: speaker.profilePicture,
+                    initials: _speakerInitials(speaker),
+                    radius: 10,
+                  ),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_speakerFullName(speaker)),
+                      if (speaker.isTopSpeaker) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.star_rounded, size: 16),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+      ],
     );
   }
 }
@@ -449,50 +490,6 @@ String? _normalizedText(String? value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty) return null;
   return trimmed;
-}
-
-final class _TagsCard extends StatelessWidget {
-  const _TagsCard({
-    required this.tags,
-  });
-
-  final List<Tag> tags;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tags',
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 10),
-            if (tags.isEmpty)
-              Text(
-                'No tags.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final tag in tags) Chip(label: Text(tag.name)),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 final class _SessionStatusChip extends StatelessWidget {
