@@ -77,3 +77,21 @@ final class GetMyEventsFailure implements Exception {
   @override
   String toString() => 'GetMyEventsFailure($message)';
 }
+
+/// Thrown when checking in an attendee to an event fails.
+final class CheckInAttendeeFailure implements Exception {
+  CheckInAttendeeFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'CheckInAttendeeFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}

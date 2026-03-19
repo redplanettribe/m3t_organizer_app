@@ -10,6 +10,7 @@ import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/app/theme/app_theme.dart';
 import 'package:m3t_organizer/features/home/home.dart';
 import 'package:m3t_organizer/features/login/login.dart';
+import 'package:m3t_organizer/features/organizer_event/organizer_event.dart';
 import 'package:m3t_organizer/features/user/user.dart';
 
 // ---------------------------------------------------------------------------
@@ -22,8 +23,8 @@ final class App extends StatelessWidget {
     required AuthRepository authRepository,
     required EventsRepository eventsRepository,
     super.key,
-  })  : _authRepository = authRepository,
-        _eventsRepository = eventsRepository;
+  }) : _authRepository = authRepository,
+       _eventsRepository = eventsRepository;
 
   final AuthRepository _authRepository;
   final EventsRepository _eventsRepository;
@@ -104,6 +105,17 @@ final class _AppViewState extends State<_AppView> {
         GoRoute(
           path: AppRoutes.home,
           builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: AppRoutes.event,
+          builder: (context, state) {
+            final eventID = state.pathParameters['eventID'] ?? '';
+            final event = state.extra is Event ? state.extra! as Event : null;
+            return OrganizerEventPage(
+              eventID: eventID,
+              eventName: event?.name,
+            );
+          },
         ),
         GoRoute(
           path: AppRoutes.config,

@@ -3,7 +3,9 @@ import 'dart:async' show unawaited;
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/core/media/media_url_resolver.dart';
 import 'package:m3t_organizer/features/my_events/bloc/my_events_cubit.dart';
 
@@ -30,8 +32,7 @@ final class MyEventsList extends StatelessWidget {
             return ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               itemCount: 6,
-              separatorBuilder: (context, _) =>
-                  const SizedBox(height: 12),
+              separatorBuilder: (context, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 return const _EventCardSkeleton();
               },
@@ -58,9 +59,8 @@ final class MyEventsList extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     FilledButton(
-                      onPressed: () => context
-                          .read<MyEventsCubit>()
-                          .loadMyEvents(),
+                      onPressed: () =>
+                          context.read<MyEventsCubit>().loadMyEvents(),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -104,8 +104,7 @@ final class MyEventsList extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             itemCount: state.events.length,
-            separatorBuilder: (context, _) =>
-                const SizedBox(height: 12),
+            separatorBuilder: (context, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               return _EventCard(
                 event: state.events[index],
@@ -136,63 +135,68 @@ final class _EventCard extends StatelessWidget {
         ? dateFormat.format(event.startDate!)
         : 'No start date';
 
-    final durationText =
-        event.durationDays != null ? '${event.durationDays} days' : null;
+    final durationText = event.durationDays != null
+        ? '${event.durationDays} days'
+        : null;
 
     final metaText = durationText != null
         ? '$startDateText - $durationText'
         : startDateText;
 
-    final hasDescription = event.description != null &&
-        event.description!.trim().isNotEmpty;
+    final hasDescription =
+        event.description != null && event.description!.trim().isNotEmpty;
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _EventThumbnail(
-              thumbnailUrl: event.thumbnailUrl,
-              size: 74,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    metaText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (hasDescription) ...[
-                    const SizedBox(height: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => context.push(AppRoutes.eventById(event.id), extra: event),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _EventThumbnail(
+                thumbnailUrl: event.thumbnailUrl,
+                size: 74,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      event.description!.trim(),
-                      maxLines: 2,
+                      event.name,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      metaText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    if (hasDescription) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        event.description!.trim(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -283,13 +287,13 @@ final class _EventCardSkeleton extends StatelessWidget {
     final theme = Theme.of(context);
 
     Widget line(double w, {double h = 12}) => Container(
-          width: w,
-          height: h,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(6),
-          ),
-        );
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
 
     return Card(
       child: Padding(

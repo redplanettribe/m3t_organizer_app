@@ -11,4 +11,6 @@ abstract final class UserPaths {
 
 abstract final class EventPaths {
   static const me = '/events/me';
+
+  static String checkIns(String eventID) => '/events/$eventID/check-ins';
 }
