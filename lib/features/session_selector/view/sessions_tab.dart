@@ -19,7 +19,8 @@ final class SessionsTab extends StatefulWidget {
   State<SessionsTab> createState() => _SessionsTabState();
 }
 
-final class _SessionsTabState extends State<SessionsTab> {
+final class _SessionsTabState extends State<SessionsTab>
+    with AutomaticKeepAliveClientMixin {
   static const double _minChildSize = 0.18;
   static const double _initialChildSize = 0.34;
   static const double _maxChildSize = 0.76;
@@ -29,6 +30,9 @@ final class _SessionsTabState extends State<SessionsTab> {
 
   bool _isCollapsed = false;
   ScrollController? _sheetScrollController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   void _handleSelectSession(
     BuildContext context,
@@ -60,6 +64,7 @@ final class _SessionsTabState extends State<SessionsTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Keep this tab alive across TabBarView switches.
     return BlocProvider(
       create: (context) {
         final cubit = SessionSelectorCubit(
