@@ -172,6 +172,61 @@ final class EventsDataSource {
 
     return SessionCheckIn.fromJson(dataJson);
   }
+
+  /// Releases all bookings for attendees who haven't checked in to the
+  /// given session.
+  ///
+  /// Returns the number of bookings released.
+  Future<int> releaseUncheckedInSessionBookings({
+    required String eventID,
+    required String sessionID,
+  }) async {
+    final response = await _executor.client.delete(
+      _executor.uri(
+        SessionPaths.releaseUncheckedInSessionBookings(
+          eventID: eventID,
+          sessionID: sessionID,
+        ),
+      ),
+      headers: await _executor.authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw ReleaseSessionBookingsFailure(
+        'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final body = _executor.decodeJson(response.body);
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw ReleaseSessionBookingsFailure(
+        error.message,
+        statusCode: response.statusCode,
+        errorCode: error.code,
+      );
+    }
+
+    final dataJson = body['data'] as Map<String, dynamic>?;
+    if (dataJson == null) {
+      throw ReleaseSessionBookingsFailure(
+        'Missing data field in response',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final releasedValue = dataJson['released'];
+    if (releasedValue is! num) {
+      throw ReleaseSessionBookingsFailure(
+        'Missing or invalid released field in response',
+        statusCode: response.statusCode,
+      );
+    }
+
+    return releasedValue.toInt();
+  }
 }
 
 //

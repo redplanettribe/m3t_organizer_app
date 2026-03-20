@@ -25,6 +25,12 @@ abstract final class SessionPaths {
     required String sessionID,
   }) => '/events/$eventID/sessions/$sessionID/check-ins';
 
+  static String releaseUncheckedInSessionBookings({
+    required String eventID,
+    required String sessionID,
+  }) =>
+      '/events/$eventID/sessions/$sessionID/bookings';
+
   static String updateStatus({
     required String eventID,
     required String sessionID,

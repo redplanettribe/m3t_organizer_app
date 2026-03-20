@@ -1,8 +1,8 @@
 import 'package:auth_repository/src/mappers/event_check_in_mapper.dart';
 import 'package:auth_repository/src/mappers/event_mapper.dart';
 import 'package:auth_repository/src/mappers/get_event_by_id_response_mapper.dart';
-import 'package:auth_repository/src/mappers/session_mapper.dart';
 import 'package:auth_repository/src/mappers/session_check_in_mapper.dart';
+import 'package:auth_repository/src/mappers/session_mapper.dart';
 import 'package:domain/domain.dart' as domain;
 import 'package:m3t_api/m3t_api.dart' as api;
 
@@ -163,6 +163,34 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
           throw domain.EventsNotFound();
         case 409:
           throw domain.EventsConflict();
+        default:
+          throw domain.EventsNetworkError();
+      }
+    } on Object catch (_) {
+      throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<int> releaseUncheckedInSessionBookings({
+    required String eventID,
+    required String sessionID,
+  }) async {
+    try {
+      return await _apiClient.releaseUncheckedInSessionBookings(
+        eventID: eventID,
+        sessionID: sessionID,
+      );
+    } on api.ReleaseSessionBookingsFailure catch (error) {
+      switch (error.statusCode) {
+        case 400:
+          throw domain.EventsInvalidInput();
+        case 401:
+          throw domain.EventsUnauthorized();
+        case 403:
+          throw domain.EventsForbidden();
+        case 404:
+          throw domain.EventsNotFound();
         default:
           throw domain.EventsNetworkError();
       }

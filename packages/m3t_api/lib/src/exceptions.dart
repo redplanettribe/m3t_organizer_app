@@ -167,3 +167,21 @@ final class UpdateSessionStatusFailure implements Exception {
       'UpdateSessionStatusFailure(message: $message, statusCode: $statusCode, '
       'errorCode: $errorCode)';
 }
+
+/// Thrown when releasing unchecked-in session bookings fails.
+final class ReleaseSessionBookingsFailure implements Exception {
+  ReleaseSessionBookingsFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'ReleaseSessionBookingsFailure(message: $message, '
+      'statusCode: $statusCode, errorCode: $errorCode)';
+}

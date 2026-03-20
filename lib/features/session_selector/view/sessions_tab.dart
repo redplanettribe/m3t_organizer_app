@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/events/events_failure_message.dart';
 import 'package:m3t_organizer/features/session_check_in/session_check_in.dart';
 import 'package:m3t_organizer/features/session_selector/bloc/session_selector_cubit.dart';
 import 'package:m3t_organizer/features/session_selector/view/session_selector_sheet.dart';
@@ -100,15 +101,18 @@ final class _SessionsTabState extends State<SessionsTab>
                         builder: (context, statusState) {
                           final effective =
                               statusState.session ?? selectedSession;
-                          if (effective.status != SessionStatus.live) {
+                          if (effective.status == SessionStatus.completed ||
+                              effective.status == SessionStatus.canceled) {
                             return const SizedBox.shrink();
                           }
+                          final isLive = effective.status == SessionStatus.live;
+                          final disableStatusChange =
+                              statusState.loading || statusState.updating;
                           return Padding(
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                            child: SessionCheckInButton(
-                              key: ValueKey<String>(
-                                'session-check-in-${selectedSession.id}',
-                              ),
+                            child: _QuickActionsCard(
+                              isLive: isLive,
+                              disableStatusChange: disableStatusChange,
                               eventID: widget.eventID,
                               sessionID: selectedSession.id,
                             ),
@@ -193,6 +197,246 @@ final class _SessionsTabState extends State<SessionsTab>
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+final class _QuickActionsCard extends StatelessWidget {
+  const _QuickActionsCard({
+    required this.isLive,
+    required this.disableStatusChange,
+    required this.eventID,
+    required this.sessionID,
+  });
+
+  final bool isLive;
+  final bool disableStatusChange;
+  final String eventID;
+  final String sessionID;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Quick actions',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            if (isLive) ...[
+              SessionCheckInButton(
+                key: ValueKey<String>('session-check-in-$sessionID'),
+                eventID: eventID,
+                sessionID: sessionID,
+              ),
+              const SizedBox(height: 12),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _ReleaseUncheckedInBookingsButton(
+                        key: ValueKey<String>('release-unchecked-$sessionID'),
+                        eventID: eventID,
+                        sessionID: sessionID,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChangeSessionStatusButton(
+                        targetStatus: SessionStatus.completed,
+                        disabled: disableStatusChange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              _ChangeSessionStatusButton(
+                targetStatus: SessionStatus.live,
+                disabled: disableStatusChange,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+final class _ReleaseUncheckedInBookingsButton extends StatefulWidget {
+  const _ReleaseUncheckedInBookingsButton({
+    required this.eventID,
+    required this.sessionID,
+    super.key,
+  });
+
+  final String eventID;
+  final String sessionID;
+
+  @override
+  State<_ReleaseUncheckedInBookingsButton> createState() =>
+      _ReleaseUncheckedInBookingsButtonState();
+}
+
+final class _ReleaseUncheckedInBookingsButtonState
+    extends State<_ReleaseUncheckedInBookingsButton> {
+  bool _loading = false;
+
+  Future<void> _confirmAndRelease() async {
+    final eventsRepository = context.read<EventsRepository>();
+    final shouldRelease = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Release unchecked-in bookings?'),
+          content: const Text(
+            'This will release all bookings for attendees who have not '
+            'checked in to this live session.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: _loading
+                  ? null
+                  : () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: _loading
+                  ? null
+                  : () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Release bookings'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldRelease != true) return;
+    setState(() => _loading = true);
+
+    try {
+      final released = await eventsRepository.releaseUncheckedInSessionBookings(
+        eventID: widget.eventID,
+        sessionID: widget.sessionID,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Released $released bookings'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } on EventsFailure catch (failure) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(failure.toDisplayMessage()),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return FilledButton.icon(
+      onPressed: _loading ? null : _confirmAndRelease,
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(52),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+      ),
+      icon: Icon(
+        Icons.restore_rounded,
+        size: 22,
+        color: theme.colorScheme.onPrimary,
+      ),
+      label: Text(
+        _loading ? 'Releasing…' : 'Release unchecked-in bookings',
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.onPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+final class _ChangeSessionStatusButton extends StatelessWidget {
+  const _ChangeSessionStatusButton({
+    required this.targetStatus,
+    required this.disabled,
+  });
+
+  final SessionStatus targetStatus;
+  final bool disabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final (label, icon) = switch (targetStatus) {
+      SessionStatus.live => ('Set to live', Icons.play_circle_fill_rounded),
+      SessionStatus.completed =>
+        ('Mark completed', Icons.check_circle_outline_rounded),
+      _ => ('Change status', Icons.swap_horiz_rounded),
+    };
+
+    return FilledButton.icon(
+      onPressed: disabled
+          ? null
+          : () => context
+              .read<SessionStatusCubit>()
+              .changeStatus(targetStatus),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(52),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+      ),
+      icon: Icon(
+        icon,
+        size: 22,
+        color: theme.colorScheme.onPrimary,
+      ),
+      label: Text(
+        disabled ? 'Working…' : label,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.onPrimary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

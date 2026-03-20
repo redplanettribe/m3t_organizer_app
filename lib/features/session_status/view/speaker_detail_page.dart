@@ -101,8 +101,8 @@ Future<void> _openWhatsApp(String rawPhone) async {
   final uri = Uri.parse('https://wa.me/$digits');
   try {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } catch (_) {
-    await launchUrl(uri, mode: LaunchMode.platformDefault);
+  } on Exception catch (_) {
+    await launchUrl(uri);
   }
 }
 

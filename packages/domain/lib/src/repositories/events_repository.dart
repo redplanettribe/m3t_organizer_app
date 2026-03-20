@@ -22,6 +22,15 @@ abstract interface class EventsRepository {
     required String userID,
   });
 
+  /// Releases all bookings for attendees who haven't checked in to the
+  /// given live session.
+  ///
+  /// Returns the number of bookings released.
+  Future<int> releaseUncheckedInSessionBookings({
+    required String eventID,
+    required String sessionID,
+  });
+
   Future<Session> getSessionById({required String sessionID});
 
   Future<Session> updateSessionStatus({

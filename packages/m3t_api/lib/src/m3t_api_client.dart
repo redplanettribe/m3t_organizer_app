@@ -99,6 +99,15 @@ class M3tApiClient {
     userID: userID,
   );
 
+  Future<int> releaseUncheckedInSessionBookings({
+    required String eventID,
+    required String sessionID,
+  }) =>
+      _events.releaseUncheckedInSessionBookings(
+        eventID: eventID,
+        sessionID: sessionID,
+      );
+
   // ── Sessions ─────────────────────────────────────────────────────────────
 
   Future<Session> getSessionById({required String sessionID}) =>
