@@ -6144,7 +6144,16 @@
                 "created_at": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "session_id": {

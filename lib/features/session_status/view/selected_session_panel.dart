@@ -22,138 +22,128 @@ final class SelectedSessionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final cubit = SessionStatusCubit(
-          eventID: eventID,
-          sessionID: session.id,
-          eventsRepository: context.read<EventsRepository>(),
+    return BlocBuilder<SessionStatusCubit, SessionStatusState>(
+      builder: (context, state) {
+        final activeSession = state.session ?? session;
+        final activeStatus = activeSession.status;
+        final timeLabel = _formatRange(
+          activeSession.startTime,
+          activeSession.endTime,
         );
-        return cubit..loadUnawaited();
-      },
-      child: BlocBuilder<SessionStatusCubit, SessionStatusState>(
-        builder: (context, state) {
-          final activeSession = state.session ?? session;
-          final activeStatus = activeSession.status;
-          final timeLabel = _formatRange(
-            activeSession.startTime,
-            activeSession.endTime,
-          );
-          final subtitle =
-              'Day ${activeSession.eventDay} • $timeLabel • '
-              '$roomName';
+        final subtitle =
+            'Day ${activeSession.eventDay} • $timeLabel • '
+            '$roomName';
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 280),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                subtitle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              subtitle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (activeStatus != null)
+                            _SessionStatusChip(status: activeStatus)
+                          else
+                            Chip(
+                              label: const Text('Unknown'),
+                              avatar: Icon(
+                                Icons.help_outline_rounded,
+                                size: 18,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            if (activeStatus != null)
-                              _SessionStatusChip(status: activeStatus)
-                            else
-                              Chip(
-                                label: const Text('Unknown'),
-                                avatar: Icon(
-                                  Icons.help_outline_rounded,
-                                  size: 18,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+                      _SessionTagsSection(tags: activeSession.tags),
+                      const SizedBox(height: 12),
+                      _SessionSpeakersSection(
+                        speakers: activeSession.speakers,
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+
+                      Text(
+                        'Session status',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+
+                      if (state.loading && state.session == null)
+                        const LinearProgressIndicator()
+                      else
+                        _StatusDropdown(
+                          status: activeStatus,
+                          updating: state.updating,
+                          onChanged: (newStatus) {
+                            if (newStatus == null) return;
+                            unawaited(
+                              context.read<SessionStatusCubit>().changeStatus(
+                                newStatus,
                               ),
-                          ],
+                            );
+                          },
                         ),
 
-                        const SizedBox(height: 10),
-                        _SessionTagsSection(tags: activeSession.tags),
-                        const SizedBox(height: 12),
-                        _SessionSpeakersSection(
-                          speakers: activeSession.speakers,
-                        ),
-                        const SizedBox(height: 12),
-                        const Divider(height: 1),
-                        const SizedBox(height: 12),
-
+                      if (state.updating) ...[
+                        const SizedBox(height: 8),
                         Text(
-                          'Session status',
-                          style: Theme.of(context).textTheme.titleSmall,
+                          'Updating status...',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+
+                      if (state.errorMessage != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          state.errorMessage!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                         ),
                         const SizedBox(height: 8),
-
-                        if (state.loading && state.session == null)
-                          const LinearProgressIndicator()
-                        else
-                          _StatusDropdown(
-                            status: activeStatus,
-                            updating: state.updating,
-                            onChanged: (newStatus) {
-                              if (newStatus == null) return;
-                              unawaited(
-                                context.read<SessionStatusCubit>().changeStatus(
-                                  newStatus,
-                                ),
-                              );
-                            },
-                          ),
-
-                        if (state.updating) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            'Updating status...',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-
-                        if (state.errorMessage != null) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            state.errorMessage!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          FilledButton(
-                            onPressed: () => context
-                                .read<SessionStatusCubit>()
-                                .loadUnawaited(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
+                        FilledButton(
+                          onPressed: () => context
+                              .read<SessionStatusCubit>()
+                              .loadUnawaited(),
+                          child: const Text('Retry'),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -316,7 +306,6 @@ final class _SessionSpeakersSection extends StatelessWidget {
     );
   }
 }
-
 
 final class _SpeakerAvatar extends StatelessWidget {
   const _SpeakerAvatar({

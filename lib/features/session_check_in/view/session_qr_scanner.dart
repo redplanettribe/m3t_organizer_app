@@ -8,7 +8,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 typedef UserIDDetected = void Function(String userID);
 
-String _formatSessionCheckInAttendee(SessionCheckIn checkIn) {
+/// Name, email, or null — never the raw user id (avoid exposing IDs in UI).
+String? _displayAttendeeFromCheckIn(SessionCheckIn checkIn) {
   final first = checkIn.name?.trim();
   final last = checkIn.lastName?.trim();
   final parts = <String>[];
@@ -25,7 +26,7 @@ String _formatSessionCheckInAttendee(SessionCheckIn checkIn) {
   if (email != null && email.isNotEmpty) {
     return email;
   }
-  return checkIn.userID;
+  return null;
 }
 
 final class SessionQrScanner extends StatefulWidget {
@@ -46,11 +47,13 @@ final class SessionQrScanner extends StatefulWidget {
   State<SessionQrScanner> createState() => _SessionQrScannerState();
 }
 
+enum _FlashKind { success, info }
+
 final class _SessionQrScannerState extends State<SessionQrScanner> {
   late final MobileScannerController _controller;
   bool _torchEnabled = false;
   String? _flashMessage;
-  bool _flashIsSuccess = true;
+  _FlashKind _flashKind = _FlashKind.success;
   Timer? _flashTimer;
 
   @override
@@ -72,18 +75,21 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
 
   void _showFlash(
     String message, {
-    required bool success,
+    required _FlashKind kind,
     String? detail,
   }) {
     _flashTimer?.cancel();
     setState(() {
       _flashMessage = message;
       _flashDetail = detail;
-      _flashIsSuccess = success;
+      _flashKind = kind;
     });
-    final duration = detail != null
-        ? const Duration(milliseconds: 2200)
-        : const Duration(milliseconds: 1400);
+    final duration = switch (kind) {
+      _FlashKind.success when detail != null => const Duration(
+        milliseconds: 2400,
+      ),
+      _ => const Duration(milliseconds: 1600),
+    };
     _flashTimer = Timer(duration, () {
       if (!mounted) {
         return;
@@ -151,31 +157,52 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 12),
         BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
           buildWhen: (previous, current) =>
-              previous.lastScannedUserId != current.lastScannedUserId ||
-              previous.latestCheckIn?.id != current.latestCheckIn?.id,
+              previous.errorMessage != current.errorMessage,
           builder: (context, state) {
-            final id = state.lastScannedUserId;
-            String line;
-            if (id == null) {
-              line = '—';
-            } else if (state.latestCheckIn != null &&
-                state.latestCheckIn!.userID == id) {
-              line = _formatSessionCheckInAttendee(state.latestCheckIn!);
-            } else {
-              line = id;
+            final msg = state.errorMessage;
+            if (msg == null || msg.isEmpty) {
+              return const SizedBox.shrink();
             }
-            return Text(
-              'Last scan: $line',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Semantics(
+                liveRegion: true,
+                label: 'Check-in failed: $msg',
+                child: Material(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            msg,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             );
           },
         ),
-        const SizedBox(height: 12),
         SizedBox(
           height: 280,
           child: ClipRRect(
@@ -203,8 +230,10 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
                 if (_flashMessage != null)
                   IgnorePointer(
                     child: ColoredBox(
-                      color:
-                          _flashIsSuccess ? Colors.black45 : Colors.black38,
+                      color: switch (_flashKind) {
+                        _FlashKind.success => Colors.black45,
+                        _FlashKind.info => Colors.black38,
+                      },
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -212,13 +241,17 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _flashIsSuccess
-                                    ? Icons.check_circle_rounded
-                                    : Icons.info_rounded,
+                                switch (_flashKind) {
+                                  _FlashKind.success =>
+                                    Icons.check_circle_rounded,
+                                  _FlashKind.info => Icons.info_rounded,
+                                },
                                 size: 48,
-                                color: _flashIsSuccess
-                                    ? theme.colorScheme.tertiary
-                                    : Colors.white,
+                                color: switch (_flashKind) {
+                                  _FlashKind.success =>
+                                    theme.colorScheme.tertiary,
+                                  _FlashKind.info => Colors.white,
+                                },
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -283,55 +316,61 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
         ),
         if (widget.enabled && widget.lastSuccessfulCheckIn != null) ...[
           const SizedBox(height: 12),
-          Semantics(
-            liveRegion: true,
-            label: 'Checked in '
-                '${_formatSessionCheckInAttendee(
-                  widget.lastSuccessfulCheckIn!,
-                )}',
-            child: Material(
-              color: theme.colorScheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      color: theme.colorScheme.onTertiaryContainer,
+          Builder(
+            builder: (context) {
+              final checkIn = widget.lastSuccessfulCheckIn!;
+              final display = _displayAttendeeFromCheckIn(checkIn);
+              return Semantics(
+                liveRegion: true,
+                label: display != null
+                    ? 'Checked in, $display'
+                    : 'Check-in completed',
+                child: Material(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Checked in',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: theme.colorScheme.onTertiaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Checked in',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.onTertiaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (display != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  display,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color:
+                                        theme.colorScheme.onTertiaryContainer,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _formatSessionCheckInAttendee(
-                              widget.lastSuccessfulCheckIn!,
-                            ),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onTertiaryContainer,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ],
@@ -347,8 +386,8 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
         final checkIn = state.latestCheckIn!;
         _showFlash(
           'Checked in',
-          success: true,
-          detail: _formatSessionCheckInAttendee(checkIn),
+          kind: _FlashKind.success,
+          detail: _displayAttendeeFromCheckIn(checkIn),
         );
       },
       child: scannerColumn,
@@ -359,7 +398,16 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
           previous.scanFeedbackNonce != current.scanFeedbackNonce &&
           previous.latestCheckIn?.id == current.latestCheckIn?.id,
       listener: (context, state) {
-        _showFlash('Already checked in', success: false);
+        final checkIn = state.latestCheckIn;
+        final detail =
+            checkIn != null && checkIn.userID == state.lastScannedUserId
+            ? _displayAttendeeFromCheckIn(checkIn)
+            : null;
+        _showFlash(
+          'Already checked in',
+          kind: _FlashKind.info,
+          detail: detail,
+        );
       },
       child: scannerColumn,
     );

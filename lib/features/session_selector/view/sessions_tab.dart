@@ -86,28 +86,45 @@ final class _SessionsTabState extends State<SessionsTab>
           return Stack(
             children: [
               if (selectedSession != null && selectedRoomName != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                      child: SessionCheckInButton(
-                        key: ValueKey<String>(
-                          'session-check-in-${selectedSession.id}',
+                BlocProvider(
+                  key: ValueKey<String>(selectedSession.id),
+                  create: (context) => SessionStatusCubit(
+                    eventID: widget.eventID,
+                    sessionID: selectedSession.id,
+                    eventsRepository: context.read<EventsRepository>(),
+                  )..loadUnawaited(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      BlocBuilder<SessionStatusCubit, SessionStatusState>(
+                        builder: (context, statusState) {
+                          final effective =
+                              statusState.session ?? selectedSession;
+                          if (effective.status != SessionStatus.live) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                            child: SessionCheckInButton(
+                              key: ValueKey<String>(
+                                'session-check-in-${selectedSession.id}',
+                              ),
+                              eventID: widget.eventID,
+                              sessionID: selectedSession.id,
+                            ),
+                          );
+                        },
+                      ),
+                      Expanded(
+                        child: SelectedSessionPanel(
+                          key: ValueKey<String>(selectedSession.id),
+                          eventID: widget.eventID,
+                          roomName: selectedRoomName,
+                          session: selectedSession,
                         ),
-                        eventID: widget.eventID,
-                        sessionID: selectedSession.id,
                       ),
-                    ),
-                    Expanded(
-                      child: SelectedSessionPanel(
-                        key: ValueKey<String>(selectedSession.id),
-                        eventID: widget.eventID,
-                        roomName: selectedRoomName,
-                        session: selectedSession,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               else if (state.loading)
                 const _SelectedSessionLoadingPanel()
@@ -146,8 +163,9 @@ final class _SessionsTabState extends State<SessionsTab>
                       if (state.errorMessage != null) {
                         return _ErrorSelectorSheet(
                           message: state.errorMessage!,
-                          onRetry:
-                              context.read<SessionSelectorCubit>().loadEvent,
+                          onRetry: context
+                              .read<SessionSelectorCubit>()
+                              .loadEvent,
                           scrollController: scrollController,
                         );
                       }

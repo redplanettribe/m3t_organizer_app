@@ -27,54 +27,38 @@ final class SessionCheckInButton extends StatelessWidget {
         sessionID: sessionID,
         eventsRepository: context.read<EventsRepository>(),
       ),
-      child: BlocListener<SessionCheckInCubit, SessionCheckInState>(
-        listenWhen: (previous, current) =>
-            previous.errorMessage != current.errorMessage &&
-            current.errorMessage != null,
-        listener: (context, state) {
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-        },
-        child: BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
-          builder: (context, state) {
-            final theme = Theme.of(context);
+      child: BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
+        builder: (context, state) {
+          final theme = Theme.of(context);
 
-            return FilledButton.icon(
-              onPressed:
-                  state.loading ? null : () => _openScannerModal(context),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-                shadowColor: Colors.transparent,
+          return FilledButton.icon(
+            onPressed: state.loading ? null : () => _openScannerModal(context),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 14,
               ),
-              icon: Icon(
-                Icons.qr_code_scanner_rounded,
-                size: 22,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 0,
+              shadowColor: Colors.transparent,
+            ),
+            icon: Icon(
+              Icons.qr_code_scanner_rounded,
+              size: 22,
+              color: theme.colorScheme.onPrimary,
+            ),
+            label: Text(
+              state.loading ? 'Checking in…' : 'Scan attendee QR',
+              style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.w600,
               ),
-              label: Text(
-                state.loading ? 'Checking in…' : 'Scan attendee QR',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
