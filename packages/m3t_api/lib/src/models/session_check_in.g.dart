@@ -13,6 +13,9 @@ SessionCheckIn _$SessionCheckInFromJson(Map<String, dynamic> json) =>
       userId: json['user_id'] as String,
       checkedInBy: json['checked_in_by'] as String,
       createdAt: json['created_at'] as String,
+      name: json['name'] as String?,
+      lastName: json['last_name'] as String?,
+      email: json['email'] as String?,
     );
 
 Map<String, dynamic> _$SessionCheckInToJson(SessionCheckIn instance) =>
@@ -21,5 +24,8 @@ Map<String, dynamic> _$SessionCheckInToJson(SessionCheckIn instance) =>
       'session_id': instance.sessionId,
       'user_id': instance.userId,
       'checked_in_by': instance.checkedInBy,
+      'name': instance.name,
+      'last_name': instance.lastName,
+      'email': instance.email,
       'created_at': instance.createdAt,
     };

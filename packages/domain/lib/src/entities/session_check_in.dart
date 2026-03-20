@@ -8,6 +8,9 @@ final class SessionCheckIn extends Equatable {
     required this.userID,
     required this.checkedInBy,
     required this.createdAt,
+    this.name,
+    this.lastName,
+    this.email,
   });
 
   final String id;
@@ -15,7 +18,19 @@ final class SessionCheckIn extends Equatable {
   final String userID;
   final String checkedInBy;
   final DateTime createdAt;
+  final String? name;
+  final String? lastName;
+  final String? email;
 
   @override
-  List<Object?> get props => [id, sessionID, userID, checkedInBy, createdAt];
+  List<Object?> get props => [
+    id,
+    sessionID,
+    userID,
+    checkedInBy,
+    createdAt,
+    name,
+    lastName,
+    email,
+  ];
 }

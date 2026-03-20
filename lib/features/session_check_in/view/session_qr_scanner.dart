@@ -1,5 +1,6 @@
 import 'dart:async' show Timer, unawaited;
 
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/session_check_in/bloc/bloc.dart';
@@ -7,17 +8,39 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 typedef UserIDDetected = void Function(String userID);
 
+String _formatSessionCheckInAttendee(SessionCheckIn checkIn) {
+  final first = checkIn.name?.trim();
+  final last = checkIn.lastName?.trim();
+  final parts = <String>[];
+  if (first != null && first.isNotEmpty) {
+    parts.add(first);
+  }
+  if (last != null && last.isNotEmpty) {
+    parts.add(last);
+  }
+  if (parts.isNotEmpty) {
+    return parts.join(' ');
+  }
+  final email = checkIn.email?.trim();
+  if (email != null && email.isNotEmpty) {
+    return email;
+  }
+  return checkIn.userID;
+}
+
 final class SessionQrScanner extends StatefulWidget {
   const SessionQrScanner({
     required this.onUserIDDetected,
     this.onClose,
     this.enabled = true,
+    this.lastSuccessfulCheckIn,
     super.key,
   });
 
   final UserIDDetected onUserIDDetected;
   final VoidCallback? onClose;
   final bool enabled;
+  final SessionCheckIn? lastSuccessfulCheckIn;
 
   @override
   State<SessionQrScanner> createState() => _SessionQrScannerState();
@@ -45,18 +68,29 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
     super.dispose();
   }
 
-  void _showFlash(String message, {required bool success}) {
+  String? _flashDetail;
+
+  void _showFlash(
+    String message, {
+    required bool success,
+    String? detail,
+  }) {
     _flashTimer?.cancel();
     setState(() {
       _flashMessage = message;
+      _flashDetail = detail;
       _flashIsSuccess = success;
     });
-    _flashTimer = Timer(const Duration(milliseconds: 1400), () {
+    final duration = detail != null
+        ? const Duration(milliseconds: 2200)
+        : const Duration(milliseconds: 1400);
+    _flashTimer = Timer(duration, () {
       if (!mounted) {
         return;
       }
       setState(() {
         _flashMessage = null;
+        _flashDetail = null;
       });
     });
   }
@@ -120,11 +154,21 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
         const SizedBox(height: 6),
         BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
           buildWhen: (previous, current) =>
-              previous.lastScannedUserId != current.lastScannedUserId,
+              previous.lastScannedUserId != current.lastScannedUserId ||
+              previous.latestCheckIn?.id != current.latestCheckIn?.id,
           builder: (context, state) {
             final id = state.lastScannedUserId;
+            String line;
+            if (id == null) {
+              line = '—';
+            } else if (state.latestCheckIn != null &&
+                state.latestCheckIn!.userID == id) {
+              line = _formatSessionCheckInAttendee(state.latestCheckIn!);
+            } else {
+              line = id;
+            }
             return Text(
-              id == null ? 'Last scanned: —' : 'Last scanned: $id',
+              'Last scan: $line',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -159,28 +203,45 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
                 if (_flashMessage != null)
                   IgnorePointer(
                     child: ColoredBox(
-                      color: Colors.black38,
+                      color:
+                          _flashIsSuccess ? Colors.black45 : Colors.black38,
                       child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _flashIsSuccess
-                                  ? Icons.check_circle_rounded
-                                  : Icons.info_rounded,
-                              size: 48,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _flashMessage!,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _flashIsSuccess
+                                    ? Icons.check_circle_rounded
+                                    : Icons.info_rounded,
+                                size: 48,
+                                color: _flashIsSuccess
+                                    ? theme.colorScheme.tertiary
+                                    : Colors.white,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                _flashMessage!,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (_flashDetail != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  _flashDetail!,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -220,6 +281,59 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
             ),
           ),
         ),
+        if (widget.enabled && widget.lastSuccessfulCheckIn != null) ...[
+          const SizedBox(height: 12),
+          Semantics(
+            liveRegion: true,
+            label: 'Checked in '
+                '${_formatSessionCheckInAttendee(
+                  widget.lastSuccessfulCheckIn!,
+                )}',
+            child: Material(
+              color: theme.colorScheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: theme.colorScheme.onTertiaryContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Checked in',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatSessionCheckInAttendee(
+                              widget.lastSuccessfulCheckIn!,
+                            ),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
 
@@ -230,7 +344,12 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
           !current.loading &&
           current.errorMessage == null,
       listener: (context, state) {
-        _showFlash('Checked in', success: true);
+        final checkIn = state.latestCheckIn!;
+        _showFlash(
+          'Checked in',
+          success: true,
+          detail: _formatSessionCheckInAttendee(checkIn),
+        );
       },
       child: scannerColumn,
     );

@@ -7,6 +7,9 @@ extension ApiSessionCheckInMapper on api.SessionCheckIn {
     sessionID: sessionId,
     userID: userId,
     checkedInBy: checkedInBy,
+    name: name,
+    lastName: lastName,
+    email: email,
     createdAt: DateTime.tryParse(createdAt) ?? DateTime.now(),
   );
 }

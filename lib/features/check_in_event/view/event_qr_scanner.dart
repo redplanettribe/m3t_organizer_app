@@ -1,21 +1,44 @@
 import 'dart:async' show unawaited;
 
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 typedef UserIDDetected = void Function(String userID);
+
+String _formatEventCheckInAttendee(EventCheckIn checkIn) {
+  final first = checkIn.name?.trim();
+  final last = checkIn.lastName?.trim();
+  final parts = <String>[];
+  if (first != null && first.isNotEmpty) {
+    parts.add(first);
+  }
+  if (last != null && last.isNotEmpty) {
+    parts.add(last);
+  }
+  if (parts.isNotEmpty) {
+    return parts.join(' ');
+  }
+  final email = checkIn.email?.trim();
+  if (email != null && email.isNotEmpty) {
+    return email;
+  }
+  return checkIn.userID;
+}
 
 final class EventQrScanner extends StatefulWidget {
   const EventQrScanner({
     required this.onUserIDDetected,
     this.onClose,
     this.enabled = true,
+    this.lastSuccessfulCheckIn,
     super.key,
   });
 
   final UserIDDetected onUserIDDetected;
   final VoidCallback? onClose;
   final bool enabled;
+  final EventCheckIn? lastSuccessfulCheckIn;
 
   @override
   State<EventQrScanner> createState() => _EventQrScannerState();
@@ -160,6 +183,57 @@ final class _EventQrScannerState extends State<EventQrScanner> {
             ),
           ),
         ),
+        if (widget.enabled && widget.lastSuccessfulCheckIn != null) ...[
+          const SizedBox(height: 12),
+          Semantics(
+            liveRegion: true,
+            label: 'Checked in '
+                '${_formatEventCheckInAttendee(widget.lastSuccessfulCheckIn!)}',
+            child: Material(
+              color: theme.colorScheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: theme.colorScheme.onTertiaryContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Checked in',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatEventCheckInAttendee(
+                              widget.lastSuccessfulCheckIn!,
+                            ),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

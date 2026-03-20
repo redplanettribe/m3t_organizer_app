@@ -11,6 +11,9 @@ final class SessionCheckIn extends Equatable {
     required this.userId,
     required this.checkedInBy,
     required this.createdAt,
+    this.name,
+    this.lastName,
+    this.email,
   });
 
   factory SessionCheckIn.fromJson(Map<String, dynamic> json) =>
@@ -20,10 +23,22 @@ final class SessionCheckIn extends Equatable {
   final String sessionId;
   final String userId;
   final String checkedInBy;
+  final String? name;
+  final String? lastName;
+  final String? email;
   final String createdAt;
 
   Map<String, dynamic> toJson() => _$SessionCheckInToJson(this);
 
   @override
-  List<Object?> get props => [id, sessionId, userId, checkedInBy, createdAt];
+  List<Object?> get props => [
+    id,
+    sessionId,
+    userId,
+    checkedInBy,
+    name,
+    lastName,
+    email,
+    createdAt,
+  ];
 }

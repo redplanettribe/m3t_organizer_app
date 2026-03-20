@@ -107,6 +107,7 @@ Future<void> _openEventScannerModal(BuildContext context) {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: EventQrScanner(
                 enabled: !state.loading,
+                lastSuccessfulCheckIn: state.latestCheckIn,
                 onClose: () => Navigator.of(sheetContext).pop(),
                 onUserIDDetected: (userID) {
                   unawaited(
