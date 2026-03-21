@@ -125,26 +125,37 @@ final class UserDataSource {
     required String contentType,
   }) async {
     final objectStoreBaseUrl = _executor.objectStoreBaseUrl;
-    final effectiveUploadUrl = objectStoreBaseUrl == null
-        ? uploadUrl
-        : uploadUrl.replace(
-            scheme: objectStoreBaseUrl.scheme,
-            host: objectStoreBaseUrl.host,
-            port: objectStoreBaseUrl.hasPort ? objectStoreBaseUrl.port : null,
-          );
+    // Only rewrite to [objectStoreBaseUrl] (e.g. 10.0.2.2 for Android emulator)
+    // when the API signed a loopback URL. Production/R2 URLs must be used as-is
+    // on physical devices and in release builds.
+    final Uri effectiveUploadUrl;
+    final bool rewriteForReachability;
+    if (objectStoreBaseUrl != null &&
+        _presignedUrlHostNeedsObjectStoreRewrite(uploadUrl.host)) {
+      rewriteForReachability = true;
+      effectiveUploadUrl = uploadUrl.replace(
+        scheme: objectStoreBaseUrl.scheme,
+        host: objectStoreBaseUrl.host,
+        port: objectStoreBaseUrl.hasPort ? objectStoreBaseUrl.port : null,
+      );
+    } else {
+      rewriteForReachability = false;
+      effectiveUploadUrl = uploadUrl;
+    }
     final signedHost = uploadUrl.hasPort
         ? '${uploadUrl.host}:${uploadUrl.port}'
         : uploadUrl.host;
 
+    final headers = <String, String>{'content-type': contentType};
+    if (rewriteForReachability) {
+      // Presigned S3 URLs include `host` in signed headers; keep the signed
+      // value while connecting via the emulator-reachable address.
+      headers['host'] = signedHost;
+    }
+
     final response = await _executor.client.put(
       effectiveUploadUrl,
-      headers: <String, String>{
-        'content-type': contentType,
-        // Presigned S3 URLs frequently include `host` in signed headers, so we
-        // preserve the original host value even when we rewrite the destination
-        // host for emulator/device reachability.
-        'host': signedHost,
-      },
+      headers: headers,
       body: bytes,
     );
 
@@ -182,4 +193,12 @@ final class UserDataSource {
 
     return User.fromJson(dataJson);
   }
+}
+
+/// True when the presigned URL targets the machine running MinIO/S3 locally.
+/// In that case the Android emulator replaces the host with [OBJECT_STORE_URL]
+/// (typically `10.0.2.2`). Remote hosts (R2, AWS S3, etc.) are never rewritten.
+bool _presignedUrlHostNeedsObjectStoreRewrite(String host) {
+  final h = host.toLowerCase();
+  return h == 'localhost' || h == '127.0.0.1' || h == '::1';
 }

@@ -15,10 +15,12 @@ abstract final class AppConfig {
     defaultValue: 'http://10.0.2.2:8080',
   );
 
-  /// The base URL for the object store (MinIO/S3) used by presigned upload URLs.
+  /// The base URL for the object store (MinIO/S3) used when presigned upload
+  /// URLs point at **localhost** (local dev). The client rewrites only those
+  /// URLs so the Android emulator can reach the host via `10.0.2.2`.
   ///
-  /// Defaults to the Android emulator loopback address for local development.
-  /// This is used to reach your host machine from the Android emulator.
+  /// Presigned URLs with a public hostname (e.g. Cloudflare R2) are never
+  /// rewritten, so physical devices and production builds work without changes.
   static const objectStoreUrl = String.fromEnvironment(
     'OBJECT_STORE_URL',
     defaultValue: 'http://10.0.2.2:9000',
