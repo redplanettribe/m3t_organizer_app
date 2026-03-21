@@ -24,7 +24,7 @@ dependencies:
   intl: ^0.20.2
   m3t_api:
     path: packages/m3t_api
-  mobile_scanner: ^6.0.2
+  mobile_scanner: ^7.2.0
   pinput: ^6.0.2
   qr_flutter: ^4.1.0
   screen_brightness: ^2.1.7
