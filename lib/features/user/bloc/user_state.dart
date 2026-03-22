@@ -10,6 +10,7 @@ final class UserState extends Equatable {
     this.loading = false,
     this.updatingProfile = false,
     this.updatingAvatar = false,
+    this.deletingAccount = false,
     this.errorMessage,
   });
 
@@ -17,6 +18,7 @@ final class UserState extends Equatable {
   final bool loading;
   final bool updatingProfile;
   final bool updatingAvatar;
+  final bool deletingAccount;
   final String? errorMessage;
 
   static const _sentinel = Object();
@@ -26,6 +28,7 @@ final class UserState extends Equatable {
     bool? loading,
     bool? updatingProfile,
     bool? updatingAvatar,
+    bool? deletingAccount,
     Object? errorMessage = _sentinel,
   }) {
     return UserState(
@@ -33,6 +36,7 @@ final class UserState extends Equatable {
       loading: loading ?? this.loading,
       updatingProfile: updatingProfile ?? this.updatingProfile,
       updatingAvatar: updatingAvatar ?? this.updatingAvatar,
+      deletingAccount: deletingAccount ?? this.deletingAccount,
       errorMessage: errorMessage == _sentinel
           ? this.errorMessage
           : errorMessage as String?,
@@ -45,6 +49,7 @@ final class UserState extends Equatable {
     loading,
     updatingProfile,
     updatingAvatar,
+    deletingAccount,
     errorMessage,
   ];
 }

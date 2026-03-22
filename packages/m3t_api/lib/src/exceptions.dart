@@ -38,6 +38,24 @@ final class UpdateCurrentUserFailure implements Exception {
   String toString() => 'UpdateCurrentUserFailure($message)';
 }
 
+/// Thrown when deleting the current user's account fails.
+final class DeleteCurrentUserFailure implements Exception {
+  DeleteCurrentUserFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'DeleteCurrentUserFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}
+
 /// Thrown when requesting a presigned avatar upload URL fails.
 final class RequestAvatarUploadFailure implements Exception {
   RequestAvatarUploadFailure(this.message);

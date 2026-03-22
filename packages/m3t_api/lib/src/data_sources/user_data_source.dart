@@ -40,6 +40,31 @@ final class UserDataSource {
     return User.fromJson(dataJson);
   }
 
+  Future<void> deleteCurrentUser() async {
+    final response = await _executor.client.delete(
+      _executor.uri(UserPaths.me),
+      headers: await _executor.authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw DeleteCurrentUserFailure(
+        'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final body = _executor.decodeJson(response.body);
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw DeleteCurrentUserFailure(
+        error.message,
+        statusCode: response.statusCode,
+        errorCode: error.code,
+      );
+    }
+  }
+
   Future<User> updateCurrentUser({
     String? name,
     String? lastName,
@@ -196,8 +221,9 @@ final class UserDataSource {
 }
 
 /// True when the presigned URL targets the machine running MinIO/S3 locally.
-/// In that case the Android emulator replaces the host with [OBJECT_STORE_URL]
-/// (typically `10.0.2.2`). Remote hosts (R2, AWS S3, etc.) are never rewritten.
+/// In that case the Android emulator replaces the host with the object-store
+/// base URL (typically `10.0.2.2`). Remote hosts (R2, AWS S3, etc.) are never
+/// rewritten.
 bool _presignedUrlHostNeedsObjectStoreRewrite(String host) {
   final h = host.toLowerCase();
   return h == 'localhost' || h == '127.0.0.1' || h == '::1';

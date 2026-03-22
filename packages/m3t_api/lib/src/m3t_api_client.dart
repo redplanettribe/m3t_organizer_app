@@ -57,6 +57,8 @@ class M3tApiClient {
 
   Future<User> getCurrentUser() => _user.getCurrentUser();
 
+  Future<void> deleteCurrentUser() => _user.deleteCurrentUser();
+
   Future<User> updateCurrentUser({String? name, String? lastName}) =>
       _user.updateCurrentUser(name: name, lastName: lastName);
 

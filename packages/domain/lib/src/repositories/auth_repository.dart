@@ -38,6 +38,10 @@ abstract interface class AuthRepository {
   /// returns the updated user.
   Future<AuthUser> confirmAvatar({required String key});
 
+  /// Deletes the account on the server, then clears the session locally
+  /// (same effect as [logout] on success).
+  Future<void> deleteAccount();
+
   Future<void> logout();
   Future<void> dispose();
 }

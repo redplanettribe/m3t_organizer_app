@@ -154,6 +154,7 @@ void main() {
           NetworkError() => 'network_error',
           UnknownError() => 'unknown_error',
           InvalidProfileInput() => 'missing_name_or_last_name',
+          AccountDeleteConflict() => 'account_delete_conflict',
         };
 
         expect(describe(InvalidEmail()), equals('invalid_email'));
@@ -163,6 +164,10 @@ void main() {
         expect(
           describe(InvalidProfileInput()),
           equals('missing_name_or_last_name'),
+        );
+        expect(
+          describe(AccountDeleteConflict()),
+          equals('account_delete_conflict'),
         );
       },
     );

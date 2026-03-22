@@ -126,4 +126,36 @@ final class UserCubit extends Cubit<UserState> {
       );
     }
   }
+
+  /// Deletes the account on the server and ends the session.
+  ///
+  /// On success the repository logs out; the app shell calls [reset] when
+  /// auth becomes unauthenticated so profile cache is cleared.
+  Future<void> deleteAccount() async {
+    emit(state.copyWith(deletingAccount: true, errorMessage: null));
+    try {
+      await _authRepository.deleteAccount();
+    } on AuthFailure catch (failure, stackTrace) {
+      addError(failure, stackTrace);
+      emit(
+        state.copyWith(
+          deletingAccount: false,
+          errorMessage: failure.toDisplayMessage(),
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(
+        state.copyWith(
+          deletingAccount: false,
+          errorMessage: UnknownError().toDisplayMessage(),
+        ),
+      );
+    }
+  }
+
+  /// Clears cached profile (e.g. after logout).
+  void reset() {
+    emit(const UserState());
+  }
 }

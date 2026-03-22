@@ -55,6 +55,7 @@ final class App extends StatelessWidget {
                 case .authenticated:
                   unawaited(context.read<UserCubit>().loadCurrentUser());
                 case .unauthenticated:
+                  context.read<UserCubit>().reset();
                 case .unknown:
                   break;
               }

@@ -14,3 +14,6 @@ final class UnknownError extends AuthFailure {}
 /// [NetworkError], this failure is deterministic — retrying without
 /// changing the input will always reproduce it.
 final class InvalidProfileInput extends AuthFailure {}
+
+/// Account deletion was rejected because the user owns an active event.
+final class AccountDeleteConflict extends AuthFailure {}

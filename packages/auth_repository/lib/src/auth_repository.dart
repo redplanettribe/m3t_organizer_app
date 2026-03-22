@@ -162,6 +162,22 @@ final class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// Deletes the authenticated account on the server, then [logout].
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await _apiClient.deleteCurrentUser();
+      await logout();
+    } on DeleteCurrentUserFailure catch (e) {
+      if (e.statusCode == 409 || e.errorCode == 'conflict') {
+        throw AccountDeleteConflict();
+      }
+      throw NetworkError();
+    } on Exception catch (_) {
+      throw UnknownError();
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Auth lifecycle
   // ---------------------------------------------------------------------------

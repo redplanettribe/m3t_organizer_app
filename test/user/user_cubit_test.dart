@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:m3t_organizer/core/auth/auth_failure_message.dart';
 import 'package:m3t_organizer/features/user/user.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -212,6 +213,63 @@ void main() {
           const UserState(updatingAvatar: true),
           const UserState(
             errorMessage: 'An unexpected error occurred. Please try again.',
+          ),
+        ],
+      );
+    });
+
+    group('deleteAccount', () {
+      blocTest<UserCubit, UserState>(
+        'calls repository and leaves deletingAccount true on success '
+        '(App resets profile when auth becomes unauthenticated)',
+        build: buildCubit,
+        setUp: () {
+          when(
+            () => authRepository.deleteAccount(),
+          ).thenAnswer((_) async {});
+        },
+        act: (cubit) => cubit.deleteAccount(),
+        expect: () => <UserState>[
+          const UserState(deletingAccount: true),
+        ],
+        verify: (_) {
+          verify(() => authRepository.deleteAccount()).called(1);
+        },
+      );
+
+      blocTest<UserCubit, UserState>(
+        'emits deletingAccount false and conflict message on AccountDeleteConflict',
+        build: buildCubit,
+        setUp: () {
+          when(
+            () => authRepository.deleteAccount(),
+          ).thenThrow(AccountDeleteConflict());
+        },
+        act: (cubit) => cubit.deleteAccount(),
+        expect: () => <UserState>[
+          const UserState(deletingAccount: true),
+          UserState(
+            deletingAccount: false,
+            errorMessage: AccountDeleteConflict().toDisplayMessage(),
+          ),
+        ],
+      );
+
+      blocTest<UserCubit, UserState>(
+        'emits deletingAccount false and network message on NetworkError',
+        build: buildCubit,
+        setUp: () {
+          when(
+            () => authRepository.deleteAccount(),
+          ).thenThrow(NetworkError());
+        },
+        act: (cubit) => cubit.deleteAccount(),
+        expect: () => <UserState>[
+          const UserState(deletingAccount: true),
+          const UserState(
+            deletingAccount: false,
+            errorMessage:
+                'A network error occurred. Please try again.',
           ),
         ],
       );

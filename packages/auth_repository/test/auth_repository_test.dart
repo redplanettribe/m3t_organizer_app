@@ -261,6 +261,80 @@ void main() {
       });
     });
 
+    // ─── deleteAccount() ─────────────────────────────────────────────────────
+
+    group('deleteAccount()', () {
+      test('calls deleteCurrentUser then deletes token from storage', () async {
+        when(
+          () => apiClient.deleteCurrentUser(),
+        ).thenAnswer((_) async {});
+        when(() => tokenStorage.delete()).thenAnswer((_) async {});
+
+        await repository.deleteAccount();
+
+        verify(() => apiClient.deleteCurrentUser()).called(1);
+        verify(() => tokenStorage.delete()).called(1);
+      });
+
+      test('emits AuthStatus.unauthenticated after success', () async {
+        when(
+          () => apiClient.deleteCurrentUser(),
+        ).thenAnswer((_) async {});
+        when(() => tokenStorage.delete()).thenAnswer((_) async {});
+
+        final emitted = <AuthStatus>[];
+        final sub = repository.status.listen(emitted.add);
+
+        await repository.deleteAccount();
+        await Future<void>.delayed(Duration.zero);
+        await sub.cancel();
+
+        expect(emitted, contains(AuthStatus.unauthenticated));
+      });
+
+      test('throws AccountDeleteConflict on 409', () async {
+        when(() => apiClient.deleteCurrentUser()).thenThrow(
+          DeleteCurrentUserFailure('conflict', statusCode: 409),
+        );
+
+        await expectLater(
+          repository.deleteAccount(),
+          throwsA(isA<AccountDeleteConflict>()),
+        );
+
+        verifyNever(() => tokenStorage.delete());
+      });
+
+      test(
+        'throws AccountDeleteConflict when error code is conflict',
+        () async {
+          when(() => apiClient.deleteCurrentUser()).thenThrow(
+            DeleteCurrentUserFailure('msg', errorCode: 'conflict'),
+          );
+
+          await expectLater(
+            repository.deleteAccount(),
+            throwsA(isA<AccountDeleteConflict>()),
+          );
+
+          verifyNever(() => tokenStorage.delete());
+        },
+      );
+
+      test('throws NetworkError on other DeleteCurrentUserFailure', () async {
+        when(() => apiClient.deleteCurrentUser()).thenThrow(
+          DeleteCurrentUserFailure('bad', statusCode: 401),
+        );
+
+        await expectLater(
+          repository.deleteAccount(),
+          throwsA(isA<NetworkError>()),
+        );
+
+        verifyNever(() => tokenStorage.delete());
+      });
+    });
+
     // ─── logout() ────────────────────────────────────────────────────────────
 
     group('logout()', () {
