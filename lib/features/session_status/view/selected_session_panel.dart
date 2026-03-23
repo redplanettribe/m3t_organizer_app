@@ -22,7 +22,22 @@ final class SelectedSessionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SessionStatusCubit, SessionStatusState>(
+    return BlocConsumer<SessionStatusCubit, SessionStatusState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage &&
+          current.errorMessage != null &&
+          !current.loading,
+      listener: (context, state) {
+        final message = _friendlyErrorMessage(state.errorMessage!);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(message),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      },
       builder: (context, state) {
         final activeSession = state.session ?? session;
         final activeStatus = activeSession.status;
@@ -34,10 +49,12 @@ final class SelectedSessionPanel extends StatelessWidget {
             'Day ${activeSession.eventDay} • $timeLabel • '
             '$roomName';
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 280),
+        // Parent [SessionsView] owns scrolling — no nested scroll here.
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Card(
                 child: Padding(
@@ -119,16 +136,9 @@ final class SelectedSessionPanel extends StatelessWidget {
                         ),
                       ],
 
-                      if (state.errorMessage != null) ...[
+                      if (state.errorMessage != null &&
+                          state.session == null) ...[
                         const SizedBox(height: 12),
-                        Text(
-                          state.errorMessage!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
                         FilledButton(
                           onPressed: () => context
                               .read<SessionStatusCubit>()
@@ -450,6 +460,15 @@ String _statusLabel(SessionStatus status) {
     SessionStatus.draft => 'Draft',
     SessionStatus.canceled => 'Canceled',
   };
+}
+
+String _friendlyErrorMessage(String message) {
+  if (message.contains('room already has a live session')) {
+    return 'Could not set this session to Live. Another session is already '
+        'live in this room. End that session first and try again.';
+  }
+
+  return message;
 }
 
 String _formatRange(String startTime, String endTime) {
