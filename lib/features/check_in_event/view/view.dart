@@ -1,1 +1,1 @@
-export 'check_in_event_tab.dart';
+export 'check_in_event_view.dart';

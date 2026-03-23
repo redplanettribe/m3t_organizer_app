@@ -9,8 +9,8 @@ import 'package:m3t_organizer/features/session_selector/bloc/session_selector_cu
 import 'package:m3t_organizer/features/session_selector/view/session_selector_sheet.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
 
-final class SessionsTab extends StatefulWidget {
-  const SessionsTab({
+final class SessionsView extends StatefulWidget {
+  const SessionsView({
     required this.eventID,
     this.onSheetExpanded,
     super.key,
@@ -20,20 +20,30 @@ final class SessionsTab extends StatefulWidget {
   final ValueChanged<bool>? onSheetExpanded;
 
   @override
-  State<SessionsTab> createState() => _SessionsTabState();
+  State<SessionsView> createState() => _SessionsViewState();
 }
 
-final class _SessionsTabState extends State<SessionsTab>
+final class _SessionsViewState extends State<SessionsView>
     with AutomaticKeepAliveClientMixin {
-  static const double _minChildSize = 0.18;
-  static const double _initialChildSize = 0.34;
+  static const double _minSheetHeight = 92;
+  static const double _sheetTopPadding = 10;
+  static const double _sheetBottomSpacing = 8;
 
-  final DraggableScrollableController _draggableController =
-      DraggableScrollableController();
-
-  bool _isCollapsed = false;
+  bool _isCollapsed = true;
   bool _isExpanded = false;
-  ScrollController? _sheetScrollController;
+  late final ScrollController _sheetScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _sheetScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _sheetScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -43,32 +53,31 @@ final class _SessionsTabState extends State<SessionsTab>
     Session session,
   ) {
     context.read<SessionSelectorCubit>().selectSession(session);
-
-    // Update UI immediately; the draggable sheet will animate to min size.
-    if (!_isCollapsed) {
-      setState(() {
-        _isCollapsed = true;
-      });
-    }
+    _setSheetExpanded(false);
 
     // Ensure the sheet content starts from the top when reopening.
-    if (_sheetScrollController?.hasClients ?? false) {
-      _sheetScrollController!.jumpTo(0);
+    if (_sheetScrollController.hasClients) {
+      _sheetScrollController.jumpTo(0);
     }
+  }
 
-    // Collapse the drawer after selecting.
-    unawaited(
-      _draggableController.animateTo(
-        _minChildSize,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-      ),
-    );
+  void _setSheetExpanded(bool expanded) {
+    if (_isExpanded == expanded && _isCollapsed == !expanded) return;
+    setState(() {
+      _isExpanded = expanded;
+      _isCollapsed = !expanded;
+    });
+    widget.onSheetExpanded?.call(expanded);
+  }
+
+  void _toggleSheet() {
+    _setSheetExpanded(!_isExpanded);
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Keep this tab alive across TabBarView switches.
+    // keepAlive: preserve state when parent swaps children.
+    super.build(context);
     return BlocProvider(
       create: (context) {
         final cubit = SessionSelectorCubit(
@@ -84,120 +93,161 @@ final class _SessionsTabState extends State<SessionsTab>
           final selectedSession = state.selectedSession;
           final selectedRoomName = state.selectedRoomName;
 
-          return Stack(
-            children: [
-              if (selectedSession != null && selectedRoomName != null)
-                BlocProvider(
-                  key: ValueKey<String>(selectedSession.id),
-                  create: (context) => SessionStatusCubit(
-                    eventID: widget.eventID,
-                    sessionID: selectedSession.id,
-                    eventsRepository: context.read<EventsRepository>(),
-                  )..loadUnawaited(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      BlocBuilder<SessionStatusCubit, SessionStatusState>(
-                        builder: (context, statusState) {
-                          final effective =
-                              statusState.session ?? selectedSession;
-                          if (effective.status == SessionStatus.completed ||
-                              effective.status == SessionStatus.canceled) {
-                            return const SizedBox.shrink();
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final maxSheetHeight =
+                  constraints.maxHeight -
+                  _sheetTopPadding -
+                  _sheetBottomSpacing;
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      12,
+                      _sheetTopPadding,
+                      12,
+                      0,
+                    ),
+                    child: _SessionDropdownContainer(
+                      isExpanded: _isExpanded,
+                      expandedHeight: maxSheetHeight,
+                      collapsedHeight: _minSheetHeight,
+                      child: Builder(
+                        builder: (context) {
+                          if (state.errorMessage != null) {
+                            return _ErrorSelectorSheet(
+                              message: state.errorMessage!,
+                              onRetry: context
+                                  .read<SessionSelectorCubit>()
+                                  .loadEvent,
+                              scrollController: _sheetScrollController,
+                            );
                           }
-                          final isLive = effective.status == SessionStatus.live;
-                          final disableStatusChange =
-                              statusState.loading || statusState.updating;
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                            child: _QuickActionsCard(
-                              isLive: isLive,
-                              disableStatusChange: disableStatusChange,
-                              eventID: widget.eventID,
-                              sessionID: selectedSession.id,
-                            ),
+
+                          if (state.rooms.isEmpty && state.loading) {
+                            return _LoadingSelectorSheet(
+                              scrollController: _sheetScrollController,
+                            );
+                          }
+
+                          return SessionSelectorSheet(
+                            rooms: state.rooms,
+                            selectedSessionID: state.selectedSessionId ?? '',
+                            selectedSession: state.selectedSession,
+                            isCollapsed: _isCollapsed,
+                            isExpanded: _isExpanded,
+                            onTapHeader: _toggleSheet,
+                            onSelectSession: (session) =>
+                                _handleSelectSession(context, session),
+                            scrollController: _sheetScrollController,
                           );
                         },
                       ),
-                      Expanded(
-                        child: SelectedSessionPanel(
-                          key: ValueKey<String>(selectedSession.id),
+                    ),
+                  ),
+                  if (selectedSession != null && selectedRoomName != null)
+                    Expanded(
+                      child: BlocProvider(
+                        key: ValueKey<String>(selectedSession.id),
+                        create: (context) => SessionStatusCubit(
                           eventID: widget.eventID,
-                          roomName: selectedRoomName,
-                          session: selectedSession,
+                          sessionID: selectedSession.id,
+                          eventsRepository: context.read<EventsRepository>(),
+                        )..loadUnawaited(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Flexible(
+                              child:
+                                  BlocBuilder<
+                                    SessionStatusCubit,
+                                    SessionStatusState
+                                  >(
+                                    builder: (context, statusState) {
+                                      final effective =
+                                          statusState.session ??
+                                          selectedSession;
+                                      if (effective.status ==
+                                              SessionStatus.completed ||
+                                          effective.status ==
+                                              SessionStatus.canceled) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final isLive =
+                                          effective.status ==
+                                          SessionStatus.live;
+                                      final disableStatusChange =
+                                          statusState.loading ||
+                                          statusState.updating;
+                                      return SingleChildScrollView(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          20,
+                                          16,
+                                          20,
+                                          12,
+                                        ),
+                                        child: _QuickActionsCard(
+                                          isLive: isLive,
+                                          disableStatusChange:
+                                              disableStatusChange,
+                                          eventID: widget.eventID,
+                                          sessionID: selectedSession.id,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                            ),
+                            Expanded(
+                              child: SelectedSessionPanel(
+                                key: ValueKey<String>(selectedSession.id),
+                                eventID: widget.eventID,
+                                roomName: selectedRoomName,
+                                session: selectedSession,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                )
-              else if (state.loading)
-                const _SelectedSessionLoadingPanel()
-              else
-                const _SelectedSessionEmptyPanel(),
-              ClipRect(
-                child: NotificationListener<DraggableScrollableNotification>(
-                  onNotification: (notification) {
-                    final shouldCollapse =
-                        notification.extent <= (_minChildSize + 0.01);
-                    final shouldExpand = notification.extent >= 0.95;
-
-                    final collapsedChanged = shouldCollapse != _isCollapsed;
-                    final expandedChanged = shouldExpand != _isExpanded;
-
-                    if (collapsedChanged || expandedChanged) {
-                      setState(() {
-                        _isCollapsed = shouldCollapse;
-                        _isExpanded = shouldExpand;
-                      });
-                      if (expandedChanged) {
-                        widget.onSheetExpanded?.call(shouldExpand);
-                      }
-                    }
-                    return false;
-                  },
-                  child: DraggableScrollableSheet(
-                    controller: _draggableController,
-                    minChildSize: _minChildSize,
-                    initialChildSize: _initialChildSize,
-                    snap: true,
-                    snapSizes: const [_initialChildSize],
-                    builder: (context, scrollController) {
-                      _sheetScrollController = scrollController;
-
-                      if (state.errorMessage != null) {
-                        return _ErrorSelectorSheet(
-                          message: state.errorMessage!,
-                          onRetry: context
-                              .read<SessionSelectorCubit>()
-                              .loadEvent,
-                          scrollController: scrollController,
-                        );
-                      }
-
-                      if (state.rooms.isEmpty && state.loading) {
-                        return _LoadingSelectorSheet(
-                          scrollController: scrollController,
-                        );
-                      }
-
-                      return SessionSelectorSheet(
-                        rooms: state.rooms,
-                        selectedSessionID: state.selectedSessionId ?? '',
-                        selectedSession: state.selectedSession,
-                        isCollapsed: _isCollapsed,
-                        isExpanded: _isExpanded,
-                        onSelectSession: (session) =>
-                            _handleSelectSession(context, session),
-                        scrollController: scrollController,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
+                    )
+                  else if (state.loading)
+                    const Expanded(child: _SelectedSessionLoadingPanel())
+                  else
+                    const Expanded(child: _SelectedSessionEmptyPanel()),
+                ],
+              );
+            },
           );
         },
       ),
+    );
+  }
+}
+
+final class _SessionDropdownContainer extends StatelessWidget {
+  const _SessionDropdownContainer({
+    required this.isExpanded,
+    required this.expandedHeight,
+    required this.collapsedHeight,
+    required this.child,
+  });
+
+  final bool isExpanded;
+  final double expandedHeight;
+  final double collapsedHeight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    const dropdownBorderRadius = BorderRadius.all(Radius.circular(24));
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      height: isExpanded ? expandedHeight : collapsedHeight,
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(borderRadius: dropdownBorderRadius),
+      child: child,
     );
   }
 }
@@ -226,8 +276,8 @@ final class _QuickActionsCard extends StatelessWidget {
             Text(
               'Quick actions',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 12),
             if (isLive) ...[
@@ -403,17 +453,17 @@ final class _ChangeSessionStatusButton extends StatelessWidget {
 
     final (label, icon) = switch (targetStatus) {
       SessionStatus.live => ('Set to live', Icons.play_circle_fill_rounded),
-      SessionStatus.completed =>
-        ('Mark completed', Icons.check_circle_outline_rounded),
+      SessionStatus.completed => (
+        'Mark completed',
+        Icons.check_circle_outline_rounded,
+      ),
       _ => ('Change status', Icons.swap_horiz_rounded),
     };
 
     return FilledButton.icon(
       onPressed: disabled
           ? null
-          : () => context
-              .read<SessionStatusCubit>()
-              .changeStatus(targetStatus),
+          : () => context.read<SessionStatusCubit>().changeStatus(targetStatus),
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(52),
         padding: const EdgeInsets.symmetric(

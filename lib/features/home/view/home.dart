@@ -13,7 +13,7 @@ final class HomePage extends StatelessWidget {
           padding: EdgeInsets.only(left: 16),
           child: UserAvatarButton(),
         ),
-        title: const Text('m3t Organizer'),
+        title: const Text('Event Organizer'),
       ),
       body: const SafeArea(
         child: MyEventsList(),

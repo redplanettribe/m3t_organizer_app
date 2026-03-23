@@ -10,6 +10,7 @@ final class SessionSelectorSheet extends StatelessWidget {
     required this.isCollapsed,
     required this.onSelectSession,
     required this.scrollController,
+    required this.onTapHeader,
     this.isExpanded = false,
     super.key,
   });
@@ -21,53 +22,48 @@ final class SessionSelectorSheet extends StatelessWidget {
   final bool isExpanded;
   final ValueChanged<Session> onSelectSession;
   final ScrollController scrollController;
+  final VoidCallback onTapHeader;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DecoratedBox(
+    const sheetBorderRadius = BorderRadius.all(Radius.circular(24));
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: isExpanded
-            ? BorderRadius.zero
-            : const BorderRadius.vertical(top: Radius.circular(24)),
-        border: isExpanded
-            ? null
-            : Border(
-                top: BorderSide(color: theme.colorScheme.outlineVariant),
-              ),
+        borderRadius: sheetBorderRadius,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
-      child: ListView(
-        controller: scrollController,
-        padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 8),
-          Center(
-            child: Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(999),
+          InkWell(
+            onTap: onTapHeader,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              child: _SheetHeader(
+                theme: theme,
+                selectedSession: selectedSession,
+                isCollapsed: isCollapsed,
+                isExpanded: isExpanded,
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _SheetHeader(
-              theme: theme,
-              selectedSession: selectedSession,
-              isCollapsed: isCollapsed,
             ),
           ),
           if (!isCollapsed)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-              child: RoomGroupedSessionsList(
-                rooms: rooms,
-                selectedSessionID: selectedSessionID,
-                onSelectSession: onSelectSession,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: RoomGroupedSessionsList(
+                    rooms: rooms,
+                    selectedSessionID: selectedSessionID,
+                    onSelectSession: onSelectSession,
+                  ),
+                ),
               ),
             ),
         ],
@@ -81,22 +77,33 @@ final class _SheetHeader extends StatelessWidget {
     required this.theme,
     required this.selectedSession,
     required this.isCollapsed,
+    required this.isExpanded,
   });
 
   final ThemeData theme;
   final Session? selectedSession;
   final bool isCollapsed;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
     if (isCollapsed && selectedSession != null) {
       return Row(
         children: [
-          Icon(
-            Icons.event_available_rounded,
-            color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.event_available_rounded,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 20,
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,15 +114,13 @@ final class _SheetHeader extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Day ${selectedSession!.eventDay}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
               ],
             ),
+          ),
+          const SizedBox(width: 8),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: theme.colorScheme.primary,
           ),
         ],
       );
@@ -123,12 +128,49 @@ final class _SheetHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          Icons.view_stream_rounded,
-          color: theme.colorScheme.onSurfaceVariant,
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.view_stream_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Select a session', style: theme.textTheme.titleMedium),
+              if (isExpanded)
+                Text(
+                  'Tap to collapse',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                )
+              else
+                Text(
+                  'Tap to expand',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
         ),
         const SizedBox(width: 8),
-        Text('Select a session', style: theme.textTheme.titleMedium),
+        Icon(
+          isCollapsed
+              ? Icons.keyboard_arrow_down_rounded
+              : Icons.keyboard_arrow_up_rounded,
+          color: theme.colorScheme.primary,
+        ),
       ],
     );
   }

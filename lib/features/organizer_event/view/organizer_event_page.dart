@@ -17,29 +17,20 @@ final class OrganizerEventPage extends StatefulWidget {
 }
 
 final class _OrganizerEventPageState extends State<OrganizerEventPage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+    with AutomaticKeepAliveClientMixin {
+  int _selectedIndex = 0;
   bool _isSessionSheetExpanded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this)
-      ..addListener(_onTabChanged);
-  }
+  bool get wantKeepAlive => true;
 
-  @override
-  void dispose() {
-    _tabController
-      ..removeListener(_onTabChanged)
-      ..dispose();
-    super.dispose();
-  }
-
-  void _onTabChanged() {
-    if (_tabController.index != 1 && _isSessionSheetExpanded) {
+  void _onDestinationSelected(int index) {
+    if (_selectedIndex != index) {
       setState(() {
-        _isSessionSheetExpanded = false;
+        _selectedIndex = index;
+        if (_selectedIndex != 1 && _isSessionSheetExpanded) {
+          _isSessionSheetExpanded = false;
+        }
       });
     }
   }
@@ -54,17 +45,20 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final title = (widget.eventName?.trim().isNotEmpty ?? false)
         ? widget.eventName!
         : 'Event';
     final theme = Theme.of(context);
 
-    final hideDivider =
-        _tabController.index == 1 && _isSessionSheetExpanded;
+    final hideBottomDivider = _selectedIndex == 1 && _isSessionSheetExpanded;
 
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -77,36 +71,39 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
             ),
           ],
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          dividerHeight: hideDivider ? 0 : null,
-          tabs: const [
-            Tab(
-              text: 'Check-in',
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          CheckInEventView(eventID: widget.eventID),
+          SessionsView(
+            eventID: widget.eventID,
+            onSheetExpanded: _onSessionSheetExpansionChanged,
+          ),
+        ],
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          border: hideBottomDivider
+              ? null
+              : Border(
+                  top: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onDestinationSelected,
+          destinations: const [
+            NavigationDestination(
               icon: Icon(Icons.qr_code_scanner_rounded),
+              label: 'Check-in',
             ),
-            Tab(
-              text: 'Sessions',
+            NavigationDestination(
               icon: Icon(Icons.view_agenda_rounded),
+              label: 'Sessions',
             ),
           ],
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                CheckInEventTab(eventID: widget.eventID),
-                SessionsTab(
-                  eventID: widget.eventID,
-                  onSheetExpanded: _onSessionSheetExpansionChanged,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -6,8 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/check_in_event/bloc/bloc.dart';
 import 'package:m3t_organizer/features/check_in_event/view/event_qr_scanner.dart';
 
-final class CheckInEventTab extends StatelessWidget {
-  const CheckInEventTab({
+final class CheckInEventView extends StatelessWidget {
+  const CheckInEventView({
     required this.eventID,
     super.key,
   });
@@ -21,13 +21,13 @@ final class CheckInEventTab extends StatelessWidget {
         eventID: eventID,
         eventsRepository: context.read<EventsRepository>(),
       ),
-      child: const _CheckInEventTabView(),
+      child: const _CheckInEventViewBody(),
     );
   }
 }
 
-final class _CheckInEventTabView extends StatelessWidget {
-  const _CheckInEventTabView();
+final class _CheckInEventViewBody extends StatelessWidget {
+  const _CheckInEventViewBody();
 
   @override
   Widget build(BuildContext context) {
