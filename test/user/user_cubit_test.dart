@@ -238,7 +238,8 @@ void main() {
       );
 
       blocTest<UserCubit, UserState>(
-        'emits deletingAccount false and conflict message on AccountDeleteConflict',
+        'emits deletingAccount false and conflict message on '
+        'AccountDeleteConflict',
         build: buildCubit,
         setUp: () {
           when(
@@ -249,7 +250,6 @@ void main() {
         expect: () => <UserState>[
           const UserState(deletingAccount: true),
           UserState(
-            deletingAccount: false,
             errorMessage: AccountDeleteConflict().toDisplayMessage(),
           ),
         ],
@@ -267,7 +267,6 @@ void main() {
         expect: () => <UserState>[
           const UserState(deletingAccount: true),
           const UserState(
-            deletingAccount: false,
             errorMessage:
                 'A network error occurred. Please try again.',
           ),

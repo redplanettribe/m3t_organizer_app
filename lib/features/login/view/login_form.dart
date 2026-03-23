@@ -1,8 +1,21 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/legal/privacy_policy_url.dart';
 import 'package:m3t_organizer/core/widgets/pin_input_field.dart';
 import 'package:m3t_organizer/features/login/login.dart';
+import 'package:url_launcher/url_launcher.dart' show LaunchMode, launchUrl;
+
+Future<void> _openPrivacyPolicy() async {
+  final uri = Uri.parse(PrivacyPolicyUrl.url);
+  try {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } on Exception catch (_) {
+    await launchUrl(uri);
+  }
+}
 
 final class LoginForm extends StatelessWidget {
   const LoginForm({super.key});
@@ -25,13 +38,23 @@ final class LoginForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: BlocBuilder<LoginBloc, LoginState>(
-              builder: (context, state) {
-                return switch (state.step) {
-                  .emailEntry => const _EmailStep(),
-                  .codeVerification => const _CodeVerificationStep(),
-                };
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BlocBuilder<LoginBloc, LoginState>(
+                  builder: (context, state) {
+                    return switch (state.step) {
+                      .emailEntry => const _EmailStep(),
+                      .codeVerification => const _CodeVerificationStep(),
+                    };
+                  },
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => unawaited(_openPrivacyPolicy()),
+                  child: const Text('Privacy Policy'),
+                ),
+              ],
             ),
           ),
         ),

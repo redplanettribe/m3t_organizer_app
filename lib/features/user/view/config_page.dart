@@ -5,10 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
 import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/core/legal/privacy_policy_url.dart';
 import 'package:m3t_organizer/features/user/bloc/user_cubit.dart';
 import 'package:m3t_organizer/features/user/view/user_avatar.dart';
 import 'package:m3t_organizer/features/user/view/user_qr_code.dart';
 import 'package:m3t_organizer/features/user/view/user_view_helpers.dart';
+import 'package:url_launcher/url_launcher.dart' show LaunchMode, launchUrl;
 
 /// User profile configuration page.
 ///
@@ -23,6 +25,15 @@ final class ConfigPage extends StatefulWidget {
 }
 
 final class _ConfigPageState extends State<ConfigPage> {
+  Future<void> _openPrivacyPolicy() async {
+    final uri = Uri.parse(PrivacyPolicyUrl.url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on Exception catch (_) {
+      await launchUrl(uri);
+    }
+  }
+
   Future<void> _confirmAndDeleteAccount() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -140,6 +151,11 @@ final class _ConfigPageState extends State<ConfigPage> {
                             : () => context.push(AppRoutes.updateUser),
                       ),
                       const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.privacy_tip_outlined),
+                        title: const Text('Privacy Policy'),
+                        onTap: () => unawaited(_openPrivacyPolicy()),
+                      ),
                       ListTile(
                         leading: Icon(Icons.logout, color: dangerColor),
                         title: Text(
