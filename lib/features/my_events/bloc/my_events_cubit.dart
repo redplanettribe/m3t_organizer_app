@@ -13,8 +13,16 @@ final class MyEventsCubit extends Cubit<MyEventsState> {
 
   final EventsRepository _eventsRepository;
 
-  Future<void> loadMyEvents() async {
-    emit(state.copyWith(loading: true, errorMessage: null));
+  /// Loads managed events for the current user.
+  ///
+  /// When [silent] is true, the list is not replaced by the loading skeleton
+  /// (for pull-to-refresh).
+  Future<void> loadMyEvents({bool silent = false}) async {
+    if (silent) {
+      emit(state.copyWith(errorMessage: null));
+    } else {
+      emit(state.copyWith(loading: true, errorMessage: null));
+    }
 
     try {
       final events = await _eventsRepository.getMyEvents();

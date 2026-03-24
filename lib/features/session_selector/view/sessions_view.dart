@@ -25,7 +25,6 @@ final class SessionsView extends StatefulWidget {
 
 final class _SessionsViewState extends State<SessionsView>
     with AutomaticKeepAliveClientMixin {
-  static const double _minSheetHeight = 92;
   static const double _sheetTopPadding = 10;
   static const double _sheetBottomSpacing = 8;
 
@@ -112,7 +111,6 @@ final class _SessionsViewState extends State<SessionsView>
                     child: _SessionDropdownContainer(
                       isExpanded: _isExpanded,
                       expandedHeight: maxSheetHeight,
-                      collapsedHeight: _minSheetHeight,
                       child: Builder(
                         builder: (context) {
                           if (state.errorMessage != null) {
@@ -122,12 +120,14 @@ final class _SessionsViewState extends State<SessionsView>
                                   .read<SessionSelectorCubit>()
                                   .loadEvent,
                               scrollController: _sheetScrollController,
+                              fillsExpandedViewport: _isExpanded,
                             );
                           }
 
                           if (state.rooms.isEmpty && state.loading) {
                             return _LoadingSelectorSheet(
                               scrollController: _sheetScrollController,
+                              fillsExpandedViewport: _isExpanded,
                             );
                           }
 
@@ -242,26 +242,30 @@ final class _SessionDropdownContainer extends StatelessWidget {
   const _SessionDropdownContainer({
     required this.isExpanded,
     required this.expandedHeight,
-    required this.collapsedHeight,
     required this.child,
   });
 
   final bool isExpanded;
   final double expandedHeight;
-  final double collapsedHeight;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     const dropdownBorderRadius = BorderRadius.all(Radius.circular(24));
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
-      height: isExpanded ? expandedHeight : collapsedHeight,
-      clipBehavior: Clip.antiAlias,
-      decoration: const BoxDecoration(borderRadius: dropdownBorderRadius),
-      child: child,
+    return ClipRRect(
+      borderRadius: dropdownBorderRadius,
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: isExpanded
+            ? SizedBox(
+                height: expandedHeight,
+                child: child,
+              )
+            : child,
+      ),
     );
   }
 }
@@ -594,14 +598,22 @@ final class _SelectedSessionLoadingPanel extends StatelessWidget {
 }
 
 final class _LoadingSelectorSheet extends StatelessWidget {
-  const _LoadingSelectorSheet({required this.scrollController});
+  const _LoadingSelectorSheet({
+    required this.scrollController,
+    required this.fillsExpandedViewport,
+  });
 
   final ScrollController scrollController;
+  final bool fillsExpandedViewport;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       controller: scrollController,
+      shrinkWrap: !fillsExpandedViewport,
+      physics: fillsExpandedViewport
+          ? null
+          : const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
         Card(
@@ -630,16 +642,22 @@ final class _ErrorSelectorSheet extends StatelessWidget {
     required this.message,
     required this.onRetry,
     required this.scrollController,
+    required this.fillsExpandedViewport,
   });
 
   final String message;
   final VoidCallback onRetry;
   final ScrollController scrollController;
+  final bool fillsExpandedViewport;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       controller: scrollController,
+      shrinkWrap: !fillsExpandedViewport,
+      physics: fillsExpandedViewport
+          ? null
+          : const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
         Card(
