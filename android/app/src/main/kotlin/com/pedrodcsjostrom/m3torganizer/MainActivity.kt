@@ -1,4 +1,4 @@
-package com.example.m3t_organizer
+package com.pedrodcsjostrom.m3torganizer
 
 import io.flutter.embedding.android.FlutterActivity
 

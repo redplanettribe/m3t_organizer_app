@@ -49,3 +49,4 @@ app.*.map.json
 
 .env*
 *.p8
+/upload-keystore.jks
