@@ -531,8 +531,8 @@ final class _SelectedSessionEmptyPanel extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Select a session from the drawer below to start check-in '
-                'and manage the flow.',
+                'Select a session from the dropdown above '
+                'to manage the session.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

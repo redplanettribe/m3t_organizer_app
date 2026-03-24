@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:domain/domain.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -344,10 +345,19 @@ final class _SpeakerAvatar extends StatelessWidget {
                 width: diameter,
                 height: diameter,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _SpeakerAvatarInitials(
-                  initials: initials,
-                  radius: radius,
-                ),
+                errorBuilder: (context, error, stackTrace) {
+                  if (kDebugMode) {
+                    debugPrint(
+                      'SelectedSessionPanel: speaker avatar failed '
+                      'url=$normalizedUrl error=$error',
+                    );
+                    debugPrint('SelectedSessionPanel: stack $stackTrace');
+                  }
+                  return _SpeakerAvatarInitials(
+                    initials: initials,
+                    radius: radius,
+                  );
+                },
               )
             : _SpeakerAvatarInitials(initials: initials, radius: radius),
       ),
