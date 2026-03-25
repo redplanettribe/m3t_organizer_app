@@ -197,6 +197,7 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				A4C8A1B31B1A2C3D4E5F6789 /* Fix native objective_c.framework */,
 				1CE24FA867E827050EF70F65 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -301,6 +302,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+		};
+		A4C8A1B31B1A2C3D4E5F6789 /* Fix native objective_c.framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Fix native objective_c.framework";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n\n# Workaround: ensure native assets framework is iOS device, not iOS Simulator.\n# App Store rejects simulator-platform Mach-O slices embedded in the archive.\n\nif [ \"${PLATFORM_NAME:-}\" != \"iphoneos\" ]; then\n  exit 0\nfi\n\nFRAMEWORK_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/objective_c.framework\"\nBIN=\"${FRAMEWORK_DIR}/objective_c\"\n\nif [ ! -f \"${BIN}\" ]; then\n  exit 0\nfi\n\nPLATFORM_LINE=\"$(otool -l \"${BIN}\" 2>/dev/null | awk '/LC_BUILD_VERSION/{p=1} p&&/platform/{print; p=0}' | tr -d '\\r')\"\n\n# platform 7 == iOS Simulator\nif echo \"${PLATFORM_LINE}\" | grep -q \"platform 7\"; then\n  SRC_FRAMEWORK=\"${PROJECT_DIR}/../build/ios/iphoneos/Runner.app/Frameworks/objective_c.framework\"\n  if [ ! -d \"${SRC_FRAMEWORK}\" ]; then\n    echo \"error: Expected device framework not found at ${SRC_FRAMEWORK}\" >&2\n    exit 1\n  fi\n\n  rm -rf \"${FRAMEWORK_DIR}\"\n  cp -R \"${SRC_FRAMEWORK}\" \"${FRAMEWORK_DIR}\"\n\n  if [ \"${CODE_SIGNING_ALLOWED:-NO}\" = \"YES\" ] && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ]; then\n    /usr/bin/codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --preserve-metadata=identifier,entitlements \"${FRAMEWORK_DIR}\" >/dev/null\n  fi\nfi\n";
 		};
 		5CD701C0FF01D07CBC58DC8B /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -482,7 +498,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.pedrodcsjostrom.m3tOrganizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -704,7 +720,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.pedrodcsjostrom.m3tOrganizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;

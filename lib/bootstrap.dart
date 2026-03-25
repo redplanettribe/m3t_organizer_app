@@ -1,6 +1,7 @@
 import 'dart:io' show HttpClient, HttpOverrides, SecurityContext;
 
 import 'package:auth_repository/auth_repository.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:m3t_api/m3t_api.dart';
 import 'package:m3t_organizer/app/app.dart';
@@ -10,6 +11,10 @@ import 'package:m3t_organizer/infrastructure/flutter_secure_token_storage.dart';
 Future<void> bootstrap() async {
   HttpOverrides.global = _AppHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+    DeviceOrientation.portraitUp,
+  ]);
 
   const tokenStorage = FlutterSecureTokenStorage();
   final apiClient = M3tApiClient(
