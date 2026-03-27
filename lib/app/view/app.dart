@@ -8,11 +8,10 @@ import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
 import 'package:m3t_organizer/app/router.dart';
 import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/app/theme/app_theme.dart';
-import 'package:m3t_organizer/features/home/home.dart';
 import 'package:m3t_organizer/features/login/login.dart';
-import 'package:m3t_organizer/features/organizer_event/organizer_event.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
 import 'package:m3t_organizer/features/user/user.dart';
+import 'package:m3t_organizer/layout/layout.dart';
 
 // ---------------------------------------------------------------------------
 // App root

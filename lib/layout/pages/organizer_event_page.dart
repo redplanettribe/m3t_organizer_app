@@ -75,7 +75,7 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          CheckInEventView(eventID: widget.eventID),
+          EventActionsView(eventID: widget.eventID),
           SessionsView(
             eventID: widget.eventID,
             onSheetExpanded: _onSessionSheetExpansionChanged,
@@ -96,7 +96,7 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.qr_code_scanner_rounded),
-              label: 'Check-in',
+              label: 'Event actions',
             ),
             NavigationDestination(
               icon: Icon(Icons.view_agenda_rounded),

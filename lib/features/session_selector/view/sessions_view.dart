@@ -8,6 +8,7 @@ import 'package:m3t_organizer/features/session_check_in/session_check_in.dart';
 import 'package:m3t_organizer/features/session_selector/bloc/session_selector_cubit.dart';
 import 'package:m3t_organizer/features/session_selector/view/session_selector_sheet.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
+import 'package:m3t_organizer/layout/sections/sessions_layout.dart';
 
 final class SessionsView extends StatefulWidget {
   const SessionsView({
@@ -25,9 +26,6 @@ final class SessionsView extends StatefulWidget {
 
 final class _SessionsViewState extends State<SessionsView>
     with AutomaticKeepAliveClientMixin {
-  static const double _sheetTopPadding = 10;
-  static const double _sheetBottomSpacing = 8;
-
   bool _isCollapsed = true;
   bool _isExpanded = false;
   late final ScrollController _sheetScrollController;
@@ -92,179 +90,113 @@ final class _SessionsViewState extends State<SessionsView>
           final selectedSession = state.selectedSession;
           final selectedRoomName = state.selectedRoomName;
 
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final maxSheetHeight =
-                  constraints.maxHeight -
-                  _sheetTopPadding -
-                  _sheetBottomSpacing;
+          return SessionsLayout(
+            isExpanded: _isExpanded,
+            selectorSheet: Builder(
+              builder: (context) {
+                if (state.errorMessage != null) {
+                  return _ErrorSelectorSheet(
+                    message: state.errorMessage!,
+                    onRetry: context.read<SessionSelectorCubit>().loadEvent,
+                    scrollController: _sheetScrollController,
+                    fillsExpandedViewport: _isExpanded,
+                  );
+                }
 
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      12,
-                      _sheetTopPadding,
-                      12,
-                      0,
-                    ),
-                    child: _SessionDropdownContainer(
-                      isExpanded: _isExpanded,
-                      expandedHeight: maxSheetHeight,
-                      child: Builder(
-                        builder: (context) {
-                          if (state.errorMessage != null) {
-                            return _ErrorSelectorSheet(
-                              message: state.errorMessage!,
-                              onRetry: context
-                                  .read<SessionSelectorCubit>()
-                                  .loadEvent,
-                              scrollController: _sheetScrollController,
-                              fillsExpandedViewport: _isExpanded,
-                            );
-                          }
+                if (state.rooms.isEmpty && state.loading) {
+                  return _LoadingSelectorSheet(
+                    scrollController: _sheetScrollController,
+                    fillsExpandedViewport: _isExpanded,
+                  );
+                }
 
-                          if (state.rooms.isEmpty && state.loading) {
-                            return _LoadingSelectorSheet(
-                              scrollController: _sheetScrollController,
-                              fillsExpandedViewport: _isExpanded,
-                            );
-                          }
-
-                          return SessionSelectorSheet(
-                            rooms: state.rooms,
-                            selectedSessionID: state.selectedSessionId ?? '',
-                            selectedSession: state.selectedSession,
-                            isCollapsed: _isCollapsed,
-                            isExpanded: _isExpanded,
-                            onTapHeader: _toggleSheet,
-                            onSelectSession: (session) =>
-                                _handleSelectSession(context, session),
-                            scrollController: _sheetScrollController,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  if (selectedSession != null && selectedRoomName != null)
-                    Expanded(
-                      child: BlocProvider(
-                        key: ValueKey<String>(selectedSession.id),
-                        create: (context) => SessionStatusCubit(
-                          eventID: widget.eventID,
-                          sessionID: selectedSession.id,
-                          eventsRepository: context.read<EventsRepository>(),
-                        )..loadUnawaited(),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final bottomSafe = MediaQuery.paddingOf(
-                              context,
-                            ).bottom;
-                            return SingleChildScrollView(
-                              padding: EdgeInsets.only(bottom: bottomSafe + 12),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    // Quick actions only use intrinsic height.
-                                    BlocBuilder<
-                                      SessionStatusCubit,
-                                      SessionStatusState
-                                    >(
-                                      builder: (context, statusState) {
-                                        final effective =
-                                            statusState.session ??
-                                            selectedSession;
-                                        if (effective.status ==
-                                                SessionStatus.completed ||
-                                            effective.status ==
-                                                SessionStatus.canceled) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        final isLive =
-                                            effective.status ==
-                                            SessionStatus.live;
-                                        final disableStatusChange =
-                                            statusState.loading ||
-                                            statusState.updating;
-                                        return Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            20,
-                                            16,
-                                            20,
-                                            12,
-                                          ),
-                                          child: _QuickActionsCard(
-                                            isLive: isLive,
-                                            disableStatusChange:
-                                                disableStatusChange,
-                                            eventID: widget.eventID,
-                                            sessionID: selectedSession.id,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    SelectedSessionPanel(
-                                      key: ValueKey<String>(
-                                        selectedSession.id,
+                return SessionSelectorSheet(
+                  rooms: state.rooms,
+                  selectedSessionID: state.selectedSessionId ?? '',
+                  selectedSession: state.selectedSession,
+                  isCollapsed: _isCollapsed,
+                  isExpanded: _isExpanded,
+                  onTapHeader: _toggleSheet,
+                  onSelectSession: (session) =>
+                      _handleSelectSession(context, session),
+                  scrollController: _sheetScrollController,
+                );
+              },
+            ),
+            sessionContent: selectedSession != null && selectedRoomName != null
+                ? BlocProvider(
+                    key: ValueKey<String>(selectedSession.id),
+                    create: (context) => SessionStatusCubit(
+                      eventID: widget.eventID,
+                      sessionID: selectedSession.id,
+                      eventsRepository: context.read<EventsRepository>(),
+                    )..loadUnawaited(),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final bottomSafe = MediaQuery.paddingOf(context).bottom;
+                        return SingleChildScrollView(
+                          padding: EdgeInsets.only(bottom: bottomSafe + 12),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Quick actions only use intrinsic height.
+                                BlocBuilder<
+                                  SessionStatusCubit,
+                                  SessionStatusState
+                                >(
+                                  builder: (context, statusState) {
+                                    final effective =
+                                        statusState.session ?? selectedSession;
+                                    if (effective.status ==
+                                            SessionStatus.completed ||
+                                        effective.status ==
+                                            SessionStatus.canceled) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final isLive =
+                                        effective.status == SessionStatus.live;
+                                    final disableStatusChange =
+                                        statusState.loading ||
+                                        statusState.updating;
+                                    return Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        20,
+                                        16,
+                                        20,
+                                        12,
                                       ),
-                                      eventID: widget.eventID,
-                                      roomName: selectedRoomName,
-                                      session: selectedSession,
-                                    ),
-                                  ],
+                                      child: _QuickActionsCard(
+                                        isLive: isLive,
+                                        disableStatusChange:
+                                            disableStatusChange,
+                                        eventID: widget.eventID,
+                                        sessionID: selectedSession.id,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                  else if (state.loading)
-                    const Expanded(child: _SelectedSessionLoadingPanel())
-                  else
-                    const Expanded(child: _SelectedSessionEmptyPanel()),
-                ],
-              );
-            },
+                                SelectedSessionPanel(
+                                  key: ValueKey<String>(selectedSession.id),
+                                  eventID: widget.eventID,
+                                  roomName: selectedRoomName,
+                                  session: selectedSession,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : state.loading
+                ? const _SelectedSessionLoadingPanel()
+                : const _SelectedSessionEmptyPanel(),
           );
         },
-      ),
-    );
-  }
-}
-
-final class _SessionDropdownContainer extends StatelessWidget {
-  const _SessionDropdownContainer({
-    required this.isExpanded,
-    required this.expandedHeight,
-    required this.child,
-  });
-
-  final bool isExpanded;
-  final double expandedHeight;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    const dropdownBorderRadius = BorderRadius.all(Radius.circular(24));
-
-    return ClipRRect(
-      borderRadius: dropdownBorderRadius,
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        alignment: Alignment.topCenter,
-        child: isExpanded
-            ? SizedBox(
-                height: expandedHeight,
-                child: child,
-              )
-            : child,
       ),
     );
   }

@@ -33,6 +33,10 @@ A Flutter app for m3t event organizers, built with Clean Architecture and a modu
 lib/
 ├── main.dart                            # Entry point → bootstrap()
 ├── bootstrap.dart                       # Composition root
+├── layout/
+│   ├── layout.dart                      # Shared layout barrel
+│   ├── pages/                           # Feature-agnostic app pages/screens
+│   └── sections/                        # Reusable sections inside pages
 ├── core/
 │   ├── app_config.dart                  # --dart-define constants
 │   └── auth/
@@ -48,11 +52,15 @@ lib/
     ├── login/
     │   ├── bloc/                        # LoginBloc (screen-scoped)
     │   └── view/
+    ├── session_selector/
+    │   ├── bloc/
+    │   └── view/                        # Feature container + feature widgets
     ├── user/
     │   ├── bloc/                        # UserCubit
     │   └── view/                        # UserAvatar, UserAvatarButton, ConfigPage, UpdateUserPage
-    └── home/
-        └── view/
+    ├── check_in_event/
+    │   └── view/
+    └── ...                              # Feature-specific blocs/widgets
 
 packages/
 ├── domain/          # Pure Dart domain layer
@@ -65,7 +73,7 @@ packages/
 ## Getting started
 
 ```bash
-flutter pub get
+fvm flutter pub get
 ```
 
 The API base URL is injected at compile time via `--dart-define`. If the flag
@@ -74,14 +82,14 @@ loopback — useful for local development).
 
 ```bash
 # Remote server
-flutter run --dart-define=M3T_API_URL=https://your-api-host.example.com
+fvm flutter run --dart-define=M3T_API_URL=https://your-api-host.example.com
 
 # Local backend (Android emulator default, no flag needed)
-flutter run
+fvm flutter run
 
 # Production build
-flutter build apk --dart-define=M3T_API_URL=https://your-api-host.example.com
-flutter build ipa --dart-define=M3T_API_URL=https://your-api-host.example.com
+fvm flutter build apk --dart-define=M3T_API_URL=https://your-api-host.example.com
+fvm flutter build ipa --dart-define=M3T_API_URL=https://your-api-host.example.com
 ```
 
 The VS Code launch configuration passes the URL via `--dart-define` — just
@@ -92,11 +100,11 @@ Debugging** (`F5`).
 
 ```bash
 # App layer
-flutter test
+fvm flutter test
 
 # domain and auth_repository are pure Dart — no Flutter toolchain needed
-dart test packages/domain
-dart test packages/auth_repository
+fvm dart test packages/domain
+fvm dart test packages/auth_repository
 ```
 
 ---
