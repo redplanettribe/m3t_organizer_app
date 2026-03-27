@@ -15,6 +15,15 @@ abstract final class EventPaths {
   static String byId(String eventID) => '/events/$eventID';
 
   static String checkIns(String eventID) => '/events/$eventID/check-ins';
+
+  static String deliverables(String eventID) =>
+      '/events/$eventID/deliverables';
+
+  static String deliverableGiveaways({
+    required String eventID,
+    required String deliverableID,
+  }) =>
+      '/events/$eventID/deliverables/$deliverableID/giveaways';
 }
 
 abstract final class SessionPaths {

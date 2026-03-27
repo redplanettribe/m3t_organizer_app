@@ -4,8 +4,10 @@ import 'package:m3t_api/src/data_sources/events_data_source.dart';
 import 'package:m3t_api/src/data_sources/sessions_data_source.dart';
 import 'package:m3t_api/src/data_sources/user_data_source.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
+import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
+import 'package:m3t_api/src/models/event_deliverable.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
 import 'package:m3t_api/src/models/session.dart';
@@ -90,6 +92,22 @@ class M3tApiClient {
     required String eventID,
     required String userID,
   }) => _events.checkInAttendee(eventID: eventID, userID: userID);
+
+  Future<List<EventDeliverable>> getEventDeliverables({
+    required String eventID,
+  }) => _events.getEventDeliverables(eventID: eventID);
+
+  Future<DeliverableGiveaway> giveDeliverableToUser({
+    required String eventID,
+    required String deliverableID,
+    required String userID,
+    bool giveAnyway = false,
+  }) => _events.giveDeliverableToUser(
+    eventID: eventID,
+    deliverableID: deliverableID,
+    userID: userID,
+    giveAnyway: giveAnyway,
+  );
 
   Future<SessionCheckIn> checkInAttendeeToSession({
     required String eventID,

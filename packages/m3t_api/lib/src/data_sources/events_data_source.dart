@@ -4,10 +4,60 @@ import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/http/api_paths.dart';
 import 'package:m3t_api/src/models/api_error.dart';
+import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
+import 'package:m3t_api/src/models/event_deliverable.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/session_check_in.dart';
+
+/// Parses `data` from the deliverables-list API envelope.
+///
+/// Supports a top-level JSON array, `null` (empty list), an empty object,
+/// or a wrapper object with a list under `deliverables`, `items`,
+/// `results`, or nested `data`.
+List<Map<String, dynamic>> _parseEventDeliverableListPayload(
+  Object? data,
+  int statusCode,
+) {
+  if (data == null) {
+    return const [];
+  }
+  if (data is List) {
+    return data.map((e) {
+      if (e is Map<String, dynamic>) {
+        return e;
+      }
+      throw GetEventDeliverablesFailure(
+        'Deliverable list item must be an object',
+        statusCode: statusCode,
+      );
+    }).toList();
+  }
+  if (data is Map<String, dynamic>) {
+    if (data.isEmpty) {
+      return const [];
+    }
+    for (final key in ['deliverables', 'items', 'results', 'data']) {
+      final nested = data[key];
+      if (nested is List) {
+        return nested.map((e) {
+          if (e is Map<String, dynamic>) {
+            return e;
+          }
+          throw GetEventDeliverablesFailure(
+            'Deliverable list item must be an object',
+            statusCode: statusCode,
+          );
+        }).toList();
+      }
+    }
+  }
+  throw GetEventDeliverablesFailure(
+    'Unexpected data field for deliverables list',
+    statusCode: statusCode,
+  );
+}
 
 /// Handles all events API calls.
 final class EventsDataSource {
@@ -125,6 +175,105 @@ final class EventsDataSource {
     }
 
     return EventCheckIn.fromJson(dataJson);
+  }
+
+  /// Returns deliverables configured for the event.
+  Future<List<EventDeliverable>> getEventDeliverables({
+    required String eventID,
+  }) async {
+    final response = await _executor.client.get(
+      _executor.uri(EventPaths.deliverables(eventID)),
+      headers: await _executor.authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw GetEventDeliverablesFailure(
+        'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final body = _executor.decodeJson(response.body);
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw GetEventDeliverablesFailure(
+        error.message,
+        statusCode: response.statusCode,
+        errorCode: error.code,
+      );
+    }
+
+    final itemMaps = _parseEventDeliverableListPayload(
+      body['data'],
+      response.statusCode,
+    );
+
+    return itemMaps.map(EventDeliverable.fromJson).toList();
+  }
+
+  /// Records giving a deliverable to the user identified by [userID].
+  ///
+  /// On failure, parses the API envelope and throws [GiveDeliverableFailure]
+  /// with [GiveDeliverableFailure.statusCode] set (4xx including 409 and 422,
+  /// and 500).
+  Future<DeliverableGiveaway> giveDeliverableToUser({
+    required String eventID,
+    required String deliverableID,
+    required String userID,
+    bool giveAnyway = false,
+  }) async {
+    final response = await _executor.client.post(
+      _executor.uri(
+        EventPaths.deliverableGiveaways(
+          eventID: eventID,
+          deliverableID: deliverableID,
+        ),
+      ),
+      headers: await _executor.authHeaders(),
+      body: jsonEncode(<String, dynamic>{
+        'user_id': userID,
+        if (giveAnyway) 'give_anyway': true,
+      }),
+    );
+
+    final body = _executor.decodeJson(response.body);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final errorJson = body['error'] as Map<String, dynamic>?;
+      if (errorJson != null) {
+        final error = ApiError.fromJson(errorJson);
+        throw GiveDeliverableFailure(
+          error.message,
+          statusCode: response.statusCode,
+          errorCode: error.code,
+        );
+      }
+      throw GiveDeliverableFailure(
+        'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final errorJson = body['error'] as Map<String, dynamic>?;
+    if (errorJson != null) {
+      final error = ApiError.fromJson(errorJson);
+      throw GiveDeliverableFailure(
+        error.message,
+        statusCode: response.statusCode,
+        errorCode: error.code,
+      );
+    }
+
+    final dataJson = body['data'] as Map<String, dynamic>?;
+    if (dataJson == null) {
+      throw GiveDeliverableFailure(
+        'Missing data field in response',
+        statusCode: response.statusCode,
+      );
+    }
+
+    return DeliverableGiveaway.fromJson(dataJson);
   }
 
   /// Records check-in of an attendee for a specific session in an event.

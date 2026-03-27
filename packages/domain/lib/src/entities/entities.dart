@@ -1,6 +1,8 @@
 export 'auth_user.dart';
+export 'deliverable_giveaway.dart';
 export 'event.dart';
 export 'event_check_in.dart';
+export 'event_deliverable.dart';
 export 'event_with_rooms.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';

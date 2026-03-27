@@ -1,4 +1,6 @@
+import 'package:auth_repository/src/mappers/deliverable_giveaway_mapper.dart';
 import 'package:auth_repository/src/mappers/event_check_in_mapper.dart';
+import 'package:auth_repository/src/mappers/event_deliverable_mapper.dart';
 import 'package:auth_repository/src/mappers/event_mapper.dart';
 import 'package:auth_repository/src/mappers/get_event_by_id_response_mapper.dart';
 import 'package:auth_repository/src/mappers/session_check_in_mapper.dart';
@@ -72,6 +74,70 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
           throw domain.EventsForbidden();
         case 404:
           throw domain.EventsNotFound();
+        default:
+          throw domain.EventsNetworkError();
+      }
+    } on Object catch (_) {
+      throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<List<domain.EventDeliverable>> getEventDeliverables({
+    required String eventID,
+  }) async {
+    try {
+      final list = await _apiClient.getEventDeliverables(eventID: eventID);
+      return list.map((e) => e.toDomain()).toList();
+    } on api.GetEventDeliverablesFailure catch (error) {
+      switch (error.statusCode) {
+        case 400:
+          throw domain.EventsInvalidInput();
+        case 401:
+          throw domain.EventsUnauthorized();
+        case 403:
+          throw domain.EventsForbidden();
+        case 404:
+          throw domain.EventsNotFound();
+        default:
+          throw domain.EventsNetworkError();
+      }
+    } on Object catch (_) {
+      throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<domain.DeliverableGiveaway> giveDeliverableToUser({
+    required String eventID,
+    required String deliverableID,
+    required String userID,
+    bool giveAnyway = false,
+  }) async {
+    try {
+      final result = await _apiClient.giveDeliverableToUser(
+        eventID: eventID,
+        deliverableID: deliverableID,
+        userID: userID,
+        giveAnyway: giveAnyway,
+      );
+      return result.toDomain();
+    } on api.GiveDeliverableFailure catch (error) {
+      switch (error.statusCode) {
+        case 400:
+          throw domain.EventsInvalidInput();
+        case 401:
+          throw domain.EventsUnauthorized();
+        case 403:
+          throw domain.EventsForbidden();
+        case 404:
+          throw domain.EventsNotFound();
+        case 409:
+          throw domain.EventsDeliverableAlreadyGiven();
+        case 422:
+          throw domain.EventsUnprocessableEntity();
+        case 500:
+          throw domain.EventsUnknownError();
         default:
           throw domain.EventsNetworkError();
       }

@@ -1,6 +1,8 @@
 export 'api_error.dart';
+export 'deliverable_giveaway.dart';
 export 'event.dart';
 export 'event_check_in.dart';
+export 'event_deliverable.dart';
 export 'get_event_by_id_response.dart';
 export 'login_response.dart';
 export 'pagination_meta.dart';

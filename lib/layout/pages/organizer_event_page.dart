@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:m3t_organizer/features/check_in_event/check_in_event.dart';
 import 'package:m3t_organizer/features/session_selector/session_selector.dart';
+import 'package:m3t_organizer/layout/sections/event_actions_section.dart';
 
 final class OrganizerEventPage extends StatefulWidget {
   const OrganizerEventPage({
@@ -75,7 +75,7 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          EventActionsView(eventID: widget.eventID),
+          EventActionsSection(eventID: widget.eventID),
           SessionsView(
             eventID: widget.eventID,
             onSheetExpanded: _onSessionSheetExpansionChanged,

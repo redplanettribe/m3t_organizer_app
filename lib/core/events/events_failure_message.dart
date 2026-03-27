@@ -8,6 +8,10 @@ extension EventsFailureMessage on EventsFailure {
     EventsConflict() =>
       'This session cannot be activated because the room already '
       'has a live session.',
+    EventsDeliverableAlreadyGiven() =>
+      'This item was already marked as delivered for this attendee.',
+    EventsUnprocessableEntity() =>
+      'This action cannot be completed for this attendee right now.',
     EventsNotFound() =>
       'We could not find this event or attendee. Please check the QR code.',
     EventsInvalidInput() =>

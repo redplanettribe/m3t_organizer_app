@@ -1,5 +1,7 @@
+import 'package:domain/src/entities/deliverable_giveaway.dart';
 import 'package:domain/src/entities/event.dart';
 import 'package:domain/src/entities/event_check_in.dart';
+import 'package:domain/src/entities/event_deliverable.dart';
 import 'package:domain/src/entities/event_with_rooms.dart';
 import 'package:domain/src/entities/session.dart';
 import 'package:domain/src/entities/session_check_in.dart';
@@ -14,6 +16,17 @@ abstract interface class EventsRepository {
   Future<EventCheckIn> checkInAttendee({
     required String eventID,
     required String userID,
+  });
+
+  Future<List<EventDeliverable>> getEventDeliverables({
+    required String eventID,
+  });
+
+  Future<DeliverableGiveaway> giveDeliverableToUser({
+    required String eventID,
+    required String deliverableID,
+    required String userID,
+    bool giveAnyway = false,
   });
 
   Future<SessionCheckIn> checkInAttendeeToSession({

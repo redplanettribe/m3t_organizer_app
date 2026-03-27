@@ -1,14 +1,13 @@
 import 'dart:async' show unawaited;
 
-import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 typedef UserIDDetected = void Function(String userID);
 
-String _formatEventCheckInAttendee(EventCheckIn checkIn) {
-  final first = checkIn.name?.trim();
-  final last = checkIn.lastName?.trim();
+String formatEventCheckInSuccess(EventCheckInDisplay data) {
+  final first = data.name?.trim();
+  final last = data.lastName?.trim();
   final parts = <String>[];
   if (first != null && first.isNotEmpty) {
     parts.add(first);
@@ -19,32 +18,61 @@ String _formatEventCheckInAttendee(EventCheckIn checkIn) {
   if (parts.isNotEmpty) {
     return parts.join(' ');
   }
-  final email = checkIn.email?.trim();
+  final email = data.email?.trim();
   if (email != null && email.isNotEmpty) {
     return email;
   }
-  return checkIn.userID;
+  return data.userID;
 }
 
-final class EventQrScanner extends StatefulWidget {
+/// Minimal fields for displaying a successful scan (check-in or similar).
+typedef EventCheckInDisplay = ({
+  String userID,
+  String? name,
+  String? lastName,
+  String? email,
+});
+
+EventCheckInDisplay eventCheckInToDisplay({
+  required String userID,
+  String? name,
+  String? lastName,
+  String? email,
+}) {
+  return (userID: userID, name: name, lastName: lastName, email: email);
+}
+
+final class EventQrScanner<T> extends StatefulWidget {
   const EventQrScanner({
     required this.onUserIDDetected,
+    required this.formatSuccessDetail,
     this.onClose,
     this.enabled = true,
-    this.lastSuccessfulCheckIn,
+    this.lastSuccess,
+    this.title = 'Check-in an attendee',
+    this.subtitle = "Position the attendee's QR code inside the frame.",
+    this.processingLabel = 'Processing check-in...',
+    this.successHeading = 'Checked in',
+    this.semanticsSuccessPrefix = 'Checked in ',
     super.key,
   });
 
   final UserIDDetected onUserIDDetected;
+  final String Function(T value) formatSuccessDetail;
   final VoidCallback? onClose;
   final bool enabled;
-  final EventCheckIn? lastSuccessfulCheckIn;
+  final T? lastSuccess;
+  final String title;
+  final String subtitle;
+  final String processingLabel;
+  final String successHeading;
+  final String semanticsSuccessPrefix;
 
   @override
-  State<EventQrScanner> createState() => _EventQrScannerState();
+  State<EventQrScanner<T>> createState() => _EventQrScannerState<T>();
 }
 
-final class _EventQrScannerState extends State<EventQrScanner> {
+final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
   late final MobileScannerController _controller;
   bool _torchEnabled = false;
 
@@ -91,6 +119,7 @@ final class _EventQrScannerState extends State<EventQrScanner> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final success = widget.lastSuccess;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +130,7 @@ final class _EventQrScannerState extends State<EventQrScanner> {
             children: [
               Expanded(
                 child: Text(
-                  'Check-in an attendee',
+                  widget.title,
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -113,12 +142,12 @@ final class _EventQrScannerState extends State<EventQrScanner> {
           )
         else
           Text(
-            'Check-in an attendee',
+            widget.title,
             style: theme.textTheme.titleMedium,
           ),
         const SizedBox(height: 4),
         Text(
-          "Position the attendee's QR code inside the frame.",
+          widget.subtitle,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -172,7 +201,7 @@ final class _EventQrScannerState extends State<EventQrScanner> {
                     color: Colors.black45,
                     child: Center(
                       child: Text(
-                        'Processing check-in...',
+                        widget.processingLabel,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,
                         ),
@@ -183,12 +212,12 @@ final class _EventQrScannerState extends State<EventQrScanner> {
             ),
           ),
         ),
-        if (widget.enabled && widget.lastSuccessfulCheckIn != null) ...[
+        if (widget.enabled && success != null) ...[
           const SizedBox(height: 12),
           Semantics(
             liveRegion: true,
-            label: 'Checked in '
-                '${_formatEventCheckInAttendee(widget.lastSuccessfulCheckIn!)}',
+            label: '${widget.semanticsSuccessPrefix}'
+                '${widget.formatSuccessDetail(success)}',
             child: Material(
               color: theme.colorScheme.tertiaryContainer,
               borderRadius: BorderRadius.circular(12),
@@ -210,7 +239,7 @@ final class _EventQrScannerState extends State<EventQrScanner> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Checked in',
+                            widget.successHeading,
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: theme.colorScheme.onTertiaryContainer,
                               fontWeight: FontWeight.w600,
@@ -218,9 +247,7 @@ final class _EventQrScannerState extends State<EventQrScanner> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _formatEventCheckInAttendee(
-                              widget.lastSuccessfulCheckIn!,
-                            ),
+                            widget.formatSuccessDetail(success),
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: theme.colorScheme.onTertiaryContainer,
                             ),

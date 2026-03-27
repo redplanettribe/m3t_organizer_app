@@ -186,6 +186,42 @@ final class UpdateSessionStatusFailure implements Exception {
       'errorCode: $errorCode)';
 }
 
+/// Thrown when listing event deliverables fails.
+final class GetEventDeliverablesFailure implements Exception {
+  GetEventDeliverablesFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'GetEventDeliverablesFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}
+
+/// Thrown when recording a deliverable giveaway fails.
+final class GiveDeliverableFailure implements Exception {
+  GiveDeliverableFailure(
+    this.message, {
+    this.statusCode,
+    this.errorCode,
+  });
+
+  final String message;
+  final int? statusCode;
+  final String? errorCode;
+
+  @override
+  String toString() =>
+      'GiveDeliverableFailure(message: $message, statusCode: $statusCode, '
+      'errorCode: $errorCode)';
+}
+
 /// Thrown when releasing unchecked-in session bookings fails.
 final class ReleaseSessionBookingsFailure implements Exception {
   ReleaseSessionBookingsFailure(

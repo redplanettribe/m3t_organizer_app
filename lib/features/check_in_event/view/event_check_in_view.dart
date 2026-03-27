@@ -6,8 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/check_in_event/bloc/bloc.dart';
 import 'package:m3t_organizer/features/check_in_event/view/event_qr_scanner.dart';
 
-final class EventActionsView extends StatelessWidget {
-  const EventActionsView({
+final class EventCheckInView extends StatelessWidget {
+  const EventCheckInView({
     required this.eventID,
     super.key,
   });
@@ -21,13 +21,13 @@ final class EventActionsView extends StatelessWidget {
         eventID: eventID,
         eventsRepository: context.read<EventsRepository>(),
       ),
-      child: const _EventActionsViewBody(),
+      child: const _EventCheckInViewBody(),
     );
   }
 }
 
-final class _EventActionsViewBody extends StatelessWidget {
-  const _EventActionsViewBody();
+final class _EventCheckInViewBody extends StatelessWidget {
+  const _EventCheckInViewBody();
 
   @override
   Widget build(BuildContext context) {
@@ -49,42 +49,39 @@ final class _EventActionsViewBody extends StatelessWidget {
       },
       child: BlocBuilder<CheckInEventCubit, CheckInEventState>(
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FilledButton.icon(
-                  onPressed: state.loading
-                      ? null
-                      : () => _openEventScannerModal(context),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                    shadowColor: Colors.transparent,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton.icon(
+                onPressed: state.loading
+                    ? null
+                    : () => _openEventScannerModal(context),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
                   ),
-                  icon: Icon(
-                    Icons.qr_code_scanner_rounded,
-                    size: 22,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                ),
+                icon: Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 22,
+                  color: theme.colorScheme.onPrimary,
+                ),
+                label: Text(
+                  state.loading ? 'Checking in…' : 'Scan attendee QR',
+                  style: theme.textTheme.titleSmall?.copyWith(
                     color: theme.colorScheme.onPrimary,
-                  ),
-                  label: Text(
-                    state.loading ? 'Checking in…' : 'Scan attendee QR',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -105,9 +102,17 @@ Future<void> _openEventScannerModal(BuildContext context) {
           builder: (context, state) {
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              child: EventQrScanner(
+              child: EventQrScanner<EventCheckIn>(
                 enabled: !state.loading,
-                lastSuccessfulCheckIn: state.latestCheckIn,
+                lastSuccess: state.latestCheckIn,
+                formatSuccessDetail: (checkIn) => formatEventCheckInSuccess(
+                  eventCheckInToDisplay(
+                    userID: checkIn.userID,
+                    name: checkIn.name,
+                    lastName: checkIn.lastName,
+                    email: checkIn.email,
+                  ),
+                ),
                 onClose: () => Navigator.of(sheetContext).pop(),
                 onUserIDDetected: (userID) {
                   unawaited(
