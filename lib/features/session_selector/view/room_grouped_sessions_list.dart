@@ -175,17 +175,6 @@ final class _SessionTile extends StatelessWidget {
                       status: session.status,
                       compact: true,
                     ),
-                    if (selected) ...[
-                      const SizedBox(width: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          size: 22,
-                          color: scheme.primary,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ],
