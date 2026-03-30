@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:m3t_organizer/app/routes.dart';
+import 'package:m3t_organizer/core/widgets/session_status_chip.dart';
 import 'package:m3t_organizer/features/session_status/bloc/session_status_cubit.dart';
 
 final class SelectedSessionPanel extends StatelessWidget {
@@ -81,19 +82,7 @@ final class SelectedSessionPanel extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          if (activeStatus != null)
-                            _SessionStatusChip(status: activeStatus)
-                          else
-                            Chip(
-                              label: const Text('Unknown'),
-                              avatar: Icon(
-                                Icons.help_outline_rounded,
-                                size: 18,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
+                          SessionStatusChip(status: activeStatus),
                         ],
                       ),
 
@@ -417,49 +406,6 @@ String? _normalizedText(String? value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty) return null;
   return trimmed;
-}
-
-final class _SessionStatusChip extends StatelessWidget {
-  const _SessionStatusChip({required this.status});
-
-  final SessionStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final (label, icon, color) = switch (status) {
-      SessionStatus.scheduled => (
-        'Scheduled',
-        Icons.schedule_rounded,
-        theme.colorScheme.tertiary,
-      ),
-      SessionStatus.live => (
-        'Live',
-        Icons.play_circle_fill_rounded,
-        theme.colorScheme.primary,
-      ),
-      SessionStatus.completed => (
-        'Completed',
-        Icons.check_circle_outline_rounded,
-        theme.colorScheme.secondary,
-      ),
-      SessionStatus.draft => (
-        'Draft',
-        Icons.edit_rounded,
-        theme.colorScheme.onSurfaceVariant,
-      ),
-      SessionStatus.canceled => (
-        'Canceled',
-        Icons.cancel_rounded,
-        theme.colorScheme.error,
-      ),
-    };
-
-    return Chip(
-      label: Text(label),
-      avatar: Icon(icon, size: 18, color: color),
-    );
-  }
 }
 
 String _statusLabel(SessionStatus status) {

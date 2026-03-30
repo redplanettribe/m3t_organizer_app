@@ -1,6 +1,7 @@
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:m3t_organizer/core/widgets/session_status_chip.dart';
 
 final class RoomGroupedSessionsList extends StatelessWidget {
   const RoomGroupedSessionsList({
@@ -103,44 +104,92 @@ final class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final timeRange = _formatRange(session.startTime, session.endTime);
-    final baseColor = selected
-        ? theme.colorScheme.primaryContainer
-        : theme.colorScheme.surfaceContainerHigh;
+    final isLive = session.status == SessionStatus.live;
+
+    final Color fill;
+    if (selected) {
+      fill = scheme.primaryContainer;
+    } else if (isLive) {
+      fill = Color.alphaBlend(
+        scheme.primary.withValues(alpha: 0.14),
+        scheme.surfaceContainerHigh,
+      );
+    } else {
+      fill = scheme.surfaceContainerHigh;
+    }
+
+    final BoxBorder? liveBorder = !selected && isLive
+        ? Border.all(color: scheme.primary.withValues(alpha: 0.22))
+        : null;
+
+    const radius = 14.0;
 
     return Material(
-      color: baseColor,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(radius),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(radius),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
+        child: Ink(
+          decoration: BoxDecoration(
+            color: fill,
+            borderRadius: BorderRadius.circular(radius),
+            border: liveBorder,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Day ${session.eventDay} • $timeRange',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      session.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    SessionStatusChip(
+                      status: session.status,
+                      compact: true,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Day ${session.eventDay} • $timeRange',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    if (selected) ...[
+                      const SizedBox(width: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.check_circle_rounded,
+                          size: 22,
+                          color: scheme.primary,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
-              ),
-              if (selected)
-                Icon(Icons.check_circle, color: theme.colorScheme.primary),
-            ],
+              ],
+            ),
           ),
         ),
       ),

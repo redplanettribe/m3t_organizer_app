@@ -1,5 +1,6 @@
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'package:m3t_organizer/core/widgets/session_status_chip.dart';
 import 'package:m3t_organizer/features/session_selector/view/room_grouped_sessions_list.dart';
 
 final class SessionSelectorSheet extends StatelessWidget {
@@ -88,6 +89,7 @@ final class _SheetHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isCollapsed && selectedSession != null) {
+      final session = selectedSession!;
       return Row(
         children: [
           Container(
@@ -109,11 +111,13 @@ final class _SheetHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  selectedSession!.title,
+                  session.title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(height: 4),
+                SessionStatusChip(status: session.status, compact: true),
               ],
             ),
           ),
