@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/http/api_paths.dart';
-import 'package:m3t_api/src/models/api_error.dart';
 import 'package:m3t_api/src/models/login_response.dart';
 
 /// Handles authentication API calls: request and verify login codes.
@@ -20,18 +19,21 @@ final class AuthDataSource {
       body: jsonEncode(<String, String>{'email': email}),
     );
 
-    if (response.statusCode != 200) {
-      throw RequestLoginCodeFailure(
-        'Request failed with status ${response.statusCode}',
-      );
-    }
-
-    final body = _executor.decodeJson(response.body);
-    final errorJson = body['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw RequestLoginCodeFailure(error.message);
-    }
+    _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => RequestLoginCodeFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
   }
 
   Future<LoginResponse> verifyLoginCode({
@@ -47,24 +49,29 @@ final class AuthDataSource {
       }),
     );
 
-    if (response.statusCode != 200) {
+    final data = _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => VerifyLoginCodeFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    if (data == null) {
       throw VerifyLoginCodeFailure(
-        'Request failed with status ${response.statusCode}',
+        'Missing data field in response',
+        statusCode: response.statusCode,
       );
     }
 
-    final body = _executor.decodeJson(response.body);
-    final errorJson = body['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw VerifyLoginCodeFailure(error.message);
-    }
-
-    final dataJson = body['data'] as Map<String, dynamic>?;
-    if (dataJson == null) {
-      throw VerifyLoginCodeFailure('Missing data field in response');
-    }
-
-    return LoginResponse.fromJson(dataJson);
+    return LoginResponse.fromJson(data);
   }
 }

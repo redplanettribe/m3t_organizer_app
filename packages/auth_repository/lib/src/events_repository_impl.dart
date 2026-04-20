@@ -21,8 +21,8 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     try {
       final events = await _apiClient.getMyEvents();
       return events.map((e) => e.toDomain()).toList();
-    } on api.GetMyEventsFailure catch (_) {
-      throw domain.EventsNetworkError();
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -35,48 +35,30 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     try {
       final result = await _apiClient.getEventById(eventID: eventID);
       return result.toDomain();
-    } on api.GetEventByIdFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
   }
 
   @override
-  Future<domain.EventCheckIn> checkInAttendee({
+  Future<({domain.EventCheckIn checkIn, bool alreadyCheckedIn})>
+  checkInAttendee({
     required String eventID,
     required String userID,
   }) async {
     try {
-      final checkIn = await _apiClient.checkInAttendee(
+      final result = await _apiClient.checkInAttendee(
         eventID: eventID,
         userID: userID,
       );
-      return checkIn.toDomain();
-    } on api.CheckInAttendeeFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        default:
-          throw domain.EventsNetworkError();
-      }
+      return (
+        checkIn: result.checkIn.toDomain(),
+        alreadyCheckedIn: result.alreadyCheckedIn,
+      );
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -89,19 +71,8 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     try {
       final list = await _apiClient.getEventDeliverables(eventID: eventID);
       return list.map((e) => e.toDomain()).toList();
-    } on api.GetEventDeliverablesFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -122,58 +93,32 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
         giveAnyway: giveAnyway,
       );
       return result.toDomain();
-    } on api.GiveDeliverableFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        case 409:
-          throw domain.EventsDeliverableAlreadyGiven();
-        case 422:
-          throw domain.EventsUnprocessableEntity();
-        case 500:
-          throw domain.EventsUnknownError();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
   }
 
   @override
-  Future<domain.SessionCheckIn> checkInAttendeeToSession({
+  Future<({domain.SessionCheckIn checkIn, bool alreadyCheckedIn})>
+  checkInAttendeeToSession({
     required String eventID,
     required String sessionID,
     required String userID,
   }) async {
     try {
-      final checkIn = await _apiClient.checkInAttendeeToSession(
+      final result = await _apiClient.checkInAttendeeToSession(
         eventID: eventID,
         sessionID: sessionID,
         userID: userID,
       );
-      return checkIn.toDomain();
-    } on api.CheckInAttendeeToSessionFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        case 409:
-          throw domain.EventsConflict();
-        default:
-          throw domain.EventsNetworkError();
-      }
+      return (
+        checkIn: result.checkIn.toDomain(),
+        alreadyCheckedIn: result.alreadyCheckedIn,
+      );
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -186,19 +131,8 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     try {
       final session = await _apiClient.getSessionById(sessionID: sessionID);
       return session.toDomain();
-    } on api.GetSessionByIdFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -217,21 +151,8 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
         status: status.toApiValue(),
       );
       return session.toDomain();
-    } on api.UpdateSessionStatusFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        case 409:
-          throw domain.EventsConflict();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
@@ -247,23 +168,73 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
         eventID: eventID,
         sessionID: sessionID,
       );
-    } on api.ReleaseSessionBookingsFailure catch (error) {
-      switch (error.statusCode) {
-        case 400:
-          throw domain.EventsInvalidInput();
-        case 401:
-          throw domain.EventsUnauthorized();
-        case 403:
-          throw domain.EventsForbidden();
-        case 404:
-          throw domain.EventsNotFound();
-        default:
-          throw domain.EventsNetworkError();
-      }
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
     }
   }
 }
 
-//
+/// Maps every transport-layer [api.M3tApiException] to a domain
+/// [domain.EventsFailure]. Branches on the backend business code first
+/// (`error.code`) and falls back to HTTP status code when the code is
+/// unknown or absent.
+Never _throwEventsFailure(api.M3tApiException e) {
+  switch (e.errorCode) {
+    case 'session_full':
+      throw domain.EventsSessionFull();
+    case 'schedule_conflict':
+      throw domain.EventsScheduleConflict();
+    case 'live_session_conflict':
+      throw domain.EventsLiveSessionConflict();
+    case 'session_not_live':
+      throw domain.EventsConflict();
+    case 'deliverable_already_given':
+      throw domain.EventsDeliverableAlreadyGiven();
+    case 'unprocessable_entity':
+      throw domain.EventsUnprocessableEntity();
+    case 'not_registered_for_event':
+      throw domain.EventsNotRegisteredForEvent();
+    case 'session_all_attend':
+      throw domain.EventsSessionAllAttend();
+    case 'invalid_or_expired_token':
+      throw domain.EventsInvalidOrExpiredToken();
+    case 'event_not_found':
+    case 'session_not_found':
+    case 'deliverable_not_found':
+      throw domain.EventsNotFound();
+    case 'conflict':
+      throw domain.EventsConflict();
+    case 'unauthorized':
+      throw domain.EventsUnauthorized();
+    case 'tier_not_allowed':
+    case 'not_event_owner':
+    case 'not_event_team_member':
+      throw domain.EventsForbidden();
+    case 'missing_path_param':
+    case 'invalid_path_param':
+    case 'invalid_query_param':
+    case 'invalid_request_body':
+      throw domain.EventsInvalidInput();
+    case 'internal_error':
+      throw domain.EventsUnknownError();
+  }
+  switch (e.statusCode) {
+    case 400:
+      throw domain.EventsInvalidInput();
+    case 401:
+      throw domain.EventsUnauthorized();
+    case 403:
+      throw domain.EventsForbidden();
+    case 404:
+      throw domain.EventsNotFound();
+    case 409:
+      throw domain.EventsConflict();
+    case 422:
+      throw domain.EventsUnprocessableEntity();
+    case 500:
+      throw domain.EventsUnknownError();
+  }
+  throw domain.EventsNetworkError();
+}

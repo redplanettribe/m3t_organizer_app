@@ -2,6 +2,7 @@ import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/core/events/events_failure_message.dart';
+import 'package:m3t_organizer/features/session_check_in/bloc/session_check_in_failure_message.dart';
 
 part 'session_check_in_state.dart';
 
@@ -19,22 +20,9 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
   final String _sessionID;
   final EventsRepository _eventsRepository;
 
-  final Set<String> _successfullyCheckedInUserIds = {};
-
   Future<void> onUserIDScanned(String userID) async {
     final normalizedUserID = userID.trim();
     if (normalizedUserID.isEmpty || state.loading) {
-      return;
-    }
-
-    if (_successfullyCheckedInUserIds.contains(normalizedUserID)) {
-      emit(
-        state.copyWith(
-          lastScannedUserId: normalizedUserID,
-          scanFeedbackNonce: state.scanFeedbackNonce + 1,
-          errorMessage: null,
-        ),
-      );
       return;
     }
 
@@ -47,17 +35,22 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
     );
 
     try {
-      final checkIn = await _eventsRepository.checkInAttendeeToSession(
+      final result = await _eventsRepository.checkInAttendeeToSession(
         eventID: _eventID,
         sessionID: _sessionID,
         userID: normalizedUserID,
       );
-      _successfullyCheckedInUserIds.add(normalizedUserID);
       emit(
         state.copyWith(
           loading: false,
-          latestCheckIn: checkIn,
+          latestCheckIn: result.checkIn,
           errorMessage: null,
+          // Bumping the nonce on idempotent (already-checked-in) scans lets
+          // the scanner flash an "Already checked in" banner even when
+          // [latestCheckIn] is unchanged.
+          scanFeedbackNonce: result.alreadyCheckedIn
+              ? state.scanFeedbackNonce + 1
+              : state.scanFeedbackNonce,
         ),
       );
     } on EventsFailure catch (failure, stackTrace) {
@@ -65,7 +58,7 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
       emit(
         state.copyWith(
           loading: false,
-          errorMessage: failure.toDisplayMessage(),
+          errorMessage: failure.toSessionCheckInMessage(),
         ),
       );
     } on Object catch (error, stackTrace) {

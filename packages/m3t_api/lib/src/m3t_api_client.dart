@@ -88,7 +88,7 @@ class M3tApiClient {
     required String eventID,
   }) => _events.getEventById(eventID: eventID);
 
-  Future<EventCheckIn> checkInAttendee({
+  Future<({EventCheckIn checkIn, bool alreadyCheckedIn})> checkInAttendee({
     required String eventID,
     required String userID,
   }) => _events.checkInAttendee(eventID: eventID, userID: userID);
@@ -109,7 +109,8 @@ class M3tApiClient {
     giveAnyway: giveAnyway,
   );
 
-  Future<SessionCheckIn> checkInAttendeeToSession({
+  Future<({SessionCheckIn checkIn, bool alreadyCheckedIn})>
+  checkInAttendeeToSession({
     required String eventID,
     required String sessionID,
     required String userID,

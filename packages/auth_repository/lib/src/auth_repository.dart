@@ -46,7 +46,17 @@ final class AuthRepositoryImpl implements AuthRepository {
   Future<void> requestLoginCode(String email) async {
     try {
       await _apiClient.requestLoginCode(email);
-    } on RequestLoginCodeFailure catch (_) {
+    } on RequestLoginCodeFailure catch (error) {
+      switch (error.errorCode) {
+        case 'invalid_request_body':
+        case 'invalid_email':
+          throw InvalidEmail();
+        case 'internal_error':
+          throw UnknownError();
+      }
+      if (error.statusCode == 400) {
+        throw InvalidEmail();
+      }
       throw NetworkError();
     } on Exception catch (_) {
       throw UnknownError();
@@ -72,8 +82,19 @@ final class AuthRepositoryImpl implements AuthRepository {
       _emitStatus(.authenticated);
 
       return user;
-    } on VerifyLoginCodeFailure catch (_) {
-      throw InvalidCode();
+    } on VerifyLoginCodeFailure catch (error) {
+      switch (error.errorCode) {
+        case 'invalid_code':
+        case 'expired_code':
+        case 'invalid_request_body':
+          throw InvalidCode();
+        case 'internal_error':
+          throw UnknownError();
+      }
+      if (error.statusCode == 400 || error.statusCode == 401) {
+        throw InvalidCode();
+      }
+      throw NetworkError();
     } on Exception catch (_) {
       throw UnknownError();
     }
@@ -169,7 +190,7 @@ final class AuthRepositoryImpl implements AuthRepository {
       await _apiClient.deleteCurrentUser();
       await logout();
     } on DeleteCurrentUserFailure catch (e) {
-      if (e.statusCode == 409 || e.errorCode == 'conflict') {
+      if (e.errorCode == 'conflict' || e.statusCode == 409) {
         throw AccountDeleteConflict();
       }
       throw NetworkError();

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/http/api_paths.dart';
-import 'package:m3t_api/src/models/api_error.dart';
 import 'package:m3t_api/src/models/user.dart';
 
 /// Handles all user profile and avatar API calls.
@@ -19,25 +18,30 @@ final class UserDataSource {
       headers: await _executor.authHeaders(),
     );
 
-    if (response.statusCode != 200) {
+    final data = _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => GetCurrentUserFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    if (data == null) {
       throw GetCurrentUserFailure(
-        'Request failed with status ${response.statusCode}',
+        'Missing data field in response',
+        statusCode: response.statusCode,
       );
     }
 
-    final body = _executor.decodeJson(response.body);
-    final errorJson = body['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw GetCurrentUserFailure(error.message);
-    }
-
-    final dataJson = body['data'] as Map<String, dynamic>?;
-    if (dataJson == null) {
-      throw GetCurrentUserFailure('Missing data field in response');
-    }
-
-    return User.fromJson(dataJson);
+    return User.fromJson(data);
   }
 
   Future<void> deleteCurrentUser() async {
@@ -46,23 +50,21 @@ final class UserDataSource {
       headers: await _executor.authHeaders(),
     );
 
-    if (response.statusCode != 200) {
-      throw DeleteCurrentUserFailure(
-        'Request failed with status ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
-    }
-
-    final body = _executor.decodeJson(response.body);
-    final errorJson = body['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw DeleteCurrentUserFailure(
-        error.message,
-        statusCode: response.statusCode,
-        errorCode: error.code,
-      );
-    }
+    _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => DeleteCurrentUserFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
   }
 
   Future<User> updateCurrentUser({
@@ -85,25 +87,30 @@ final class UserDataSource {
       body: jsonEncode(body),
     );
 
-    if (response.statusCode != 200) {
+    final data = _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => UpdateCurrentUserFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    if (data == null) {
       throw UpdateCurrentUserFailure(
-        'Request failed with status ${response.statusCode}',
+        'Missing data field in response',
+        statusCode: response.statusCode,
       );
     }
 
-    final bodyJson = _executor.decodeJson(response.body);
-    final errorJson = bodyJson['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw UpdateCurrentUserFailure(error.message);
-    }
-
-    final dataJson = bodyJson['data'] as Map<String, dynamic>?;
-    if (dataJson == null) {
-      throw UpdateCurrentUserFailure('Missing data field in response');
-    }
-
-    return User.fromJson(dataJson);
+    return User.fromJson(data);
   }
 
   Future<(Uri uploadUrl, String key)> requestAvatarUploadUrl() async {
@@ -115,12 +122,16 @@ final class UserDataSource {
     if (response.statusCode != 200) {
       throw RequestAvatarUploadFailure(
         'Avatar upload URL request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
 
     final dynamic decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw RequestAvatarUploadFailure('Expected JSON object response');
+      throw RequestAvatarUploadFailure(
+        'Expected JSON object response',
+        statusCode: response.statusCode,
+      );
     }
 
     final root = decoded;
@@ -138,7 +149,10 @@ final class UserDataSource {
     final uploadUrl = data?['upload_url'] as String?;
 
     if (key == null || uploadUrl == null) {
-      throw RequestAvatarUploadFailure('Missing key or upload_url in response');
+      throw RequestAvatarUploadFailure(
+        'Missing key or upload_url in response',
+        statusCode: response.statusCode,
+      );
     }
 
     return (Uri.parse(uploadUrl), key);
@@ -187,6 +201,7 @@ final class UserDataSource {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw UploadAvatarFailure(
         'Avatar upload failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
   }
@@ -198,25 +213,30 @@ final class UserDataSource {
       body: jsonEncode(<String, String>{'key': key}),
     );
 
-    if (response.statusCode != 200) {
+    final data = _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => ConfirmAvatarFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    if (data == null) {
       throw ConfirmAvatarFailure(
-        'Confirm avatar failed with status ${response.statusCode}',
+        'Missing data field in response',
+        statusCode: response.statusCode,
       );
     }
 
-    final bodyJson = _executor.decodeJson(response.body);
-    final errorJson = bodyJson['error'] as Map<String, dynamic>?;
-    if (errorJson != null) {
-      final error = ApiError.fromJson(errorJson);
-      throw ConfirmAvatarFailure(error.message);
-    }
-
-    final dataJson = bodyJson['data'] as Map<String, dynamic>?;
-    if (dataJson == null) {
-      throw ConfirmAvatarFailure('Missing data field in response');
-    }
-
-    return User.fromJson(dataJson);
+    return User.fromJson(data);
   }
 }
 

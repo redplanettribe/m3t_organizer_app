@@ -13,7 +13,12 @@ abstract interface class EventsRepository {
 
   Future<EventWithRooms> getEventById({required String eventID});
 
-  Future<EventCheckIn> checkInAttendee({
+  /// Records check-in of an attendee for the event.
+  ///
+  /// Returns the resulting [EventCheckIn] together with `alreadyCheckedIn`,
+  /// which is `true` when the attendee was already checked in (idempotent
+  /// success) and `false` when a new check-in record was created.
+  Future<({EventCheckIn checkIn, bool alreadyCheckedIn})> checkInAttendee({
     required String eventID,
     required String userID,
   });
@@ -29,7 +34,13 @@ abstract interface class EventsRepository {
     bool giveAnyway = false,
   });
 
-  Future<SessionCheckIn> checkInAttendeeToSession({
+  /// Records check-in of an attendee for a specific session.
+  ///
+  /// Returns the resulting [SessionCheckIn] together with `alreadyCheckedIn`,
+  /// which is `true` when the attendee was already checked in to the session
+  /// (idempotent success) and `false` when a new check-in record was created.
+  Future<({SessionCheckIn checkIn, bool alreadyCheckedIn})>
+  checkInAttendeeToSession({
     required String eventID,
     required String sessionID,
     required String userID,

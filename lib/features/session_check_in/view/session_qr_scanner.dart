@@ -376,12 +376,15 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
       ],
     );
 
+    // Fresh check-in success: a new check-in record was created (id changed)
+    // and the API did not signal idempotency (nonce unchanged).
     scannerColumn = BlocListener<SessionCheckInCubit, SessionCheckInState>(
       listenWhen: (previous, current) =>
           previous.latestCheckIn?.id != current.latestCheckIn?.id &&
           current.latestCheckIn != null &&
           !current.loading &&
-          current.errorMessage == null,
+          current.errorMessage == null &&
+          previous.scanFeedbackNonce == current.scanFeedbackNonce,
       listener: (context, state) {
         final checkIn = state.latestCheckIn!;
         _showFlash(
@@ -393,10 +396,13 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
       child: scannerColumn,
     );
 
+    // Idempotent success: the backend returned 200, meaning the attendee was
+    // already checked in. The nonce bumps regardless of whether the underlying
+    // check-in id changed (re-scan of same user vs. first scan of an attendee
+    // who was checked in earlier in the session).
     scannerColumn = BlocListener<SessionCheckInCubit, SessionCheckInState>(
       listenWhen: (previous, current) =>
-          previous.scanFeedbackNonce != current.scanFeedbackNonce &&
-          previous.latestCheckIn?.id == current.latestCheckIn?.id,
+          previous.scanFeedbackNonce != current.scanFeedbackNonce,
       listener: (context, state) {
         final checkIn = state.latestCheckIn;
         final detail =

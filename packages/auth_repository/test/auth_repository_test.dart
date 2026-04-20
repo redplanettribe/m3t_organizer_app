@@ -150,7 +150,8 @@ void main() {
       });
 
       test(
-        'throws NetworkError when api throws RequestLoginCodeFailure',
+        'throws NetworkError when api throws RequestLoginCodeFailure '
+        'without a recognized code',
         () async {
           when(
             () => apiClient.requestLoginCode(any()),
@@ -159,6 +160,42 @@ void main() {
           await expectLater(
             repository.requestLoginCode(testEmail),
             throwsA(isA<NetworkError>()),
+          );
+        },
+      );
+
+      test(
+        'throws InvalidEmail when error code is invalid_request_body',
+        () async {
+          when(() => apiClient.requestLoginCode(any())).thenThrow(
+            RequestLoginCodeFailure(
+              'bad email',
+              statusCode: 400,
+              errorCode: 'invalid_request_body',
+            ),
+          );
+
+          await expectLater(
+            repository.requestLoginCode(testEmail),
+            throwsA(isA<InvalidEmail>()),
+          );
+        },
+      );
+
+      test(
+        'throws UnknownError when error code is internal_error',
+        () async {
+          when(() => apiClient.requestLoginCode(any())).thenThrow(
+            RequestLoginCodeFailure(
+              'boom',
+              statusCode: 500,
+              errorCode: 'internal_error',
+            ),
+          );
+
+          await expectLater(
+            repository.requestLoginCode(testEmail),
+            throwsA(isA<UnknownError>()),
           );
         },
       );
@@ -230,18 +267,82 @@ void main() {
       });
 
       test(
-        'throws InvalidCode when api throws VerifyLoginCodeFailure',
+        'throws InvalidCode when error code is invalid_code',
         () async {
           when(
             () => apiClient.verifyLoginCode(
               email: any(named: 'email'),
               code: any(named: 'code'),
             ),
-          ).thenThrow(VerifyLoginCodeFailure('bad code'));
+          ).thenThrow(
+            VerifyLoginCodeFailure(
+              'bad code',
+              statusCode: 400,
+              errorCode: 'invalid_code',
+            ),
+          );
 
           await expectLater(
             repository.verifyLoginCode(email: testEmail, code: testCode),
             throwsA(isA<InvalidCode>()),
+          );
+        },
+      );
+
+      test(
+        'throws InvalidCode when error code is expired_code',
+        () async {
+          when(
+            () => apiClient.verifyLoginCode(
+              email: any(named: 'email'),
+              code: any(named: 'code'),
+            ),
+          ).thenThrow(
+            VerifyLoginCodeFailure(
+              'expired',
+              statusCode: 401,
+              errorCode: 'expired_code',
+            ),
+          );
+
+          await expectLater(
+            repository.verifyLoginCode(email: testEmail, code: testCode),
+            throwsA(isA<InvalidCode>()),
+          );
+        },
+      );
+
+      test(
+        'throws InvalidCode on 400/401 status without a known code',
+        () async {
+          when(
+            () => apiClient.verifyLoginCode(
+              email: any(named: 'email'),
+              code: any(named: 'code'),
+            ),
+          ).thenThrow(VerifyLoginCodeFailure('bad code', statusCode: 400));
+
+          await expectLater(
+            repository.verifyLoginCode(email: testEmail, code: testCode),
+            throwsA(isA<InvalidCode>()),
+          );
+        },
+      );
+
+      test(
+        'throws NetworkError on VerifyLoginCodeFailure without a known code '
+        'or status',
+        () async {
+          when(
+            () => apiClient.verifyLoginCode(
+              email: any(named: 'email'),
+              code: any(named: 'code'),
+            ),
+          ).thenThrow(VerifyLoginCodeFailure('boom'));
+
+          await expectLater(
+            repository.verifyLoginCode(email: testEmail, code: testCode),
+            throwsA(isA<NetworkError>()),
           );
         },
       );

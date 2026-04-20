@@ -2,6 +2,7 @@ import 'package:domain/domain.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/core/events/events_failure_message.dart';
+import 'package:m3t_organizer/features/check_in_event/bloc/event_check_in_failure_message.dart';
 
 part 'check_in_event_state.dart';
 
@@ -40,19 +41,26 @@ final class CheckInEventCubit extends Cubit<CheckInEventState> {
       state.copyWith(
         loading: true,
         errorMessage: null,
+        lastScannedUserId: normalizedUserID,
       ),
     );
 
     try {
-      final checkIn = await _eventsRepository.checkInAttendee(
+      final result = await _eventsRepository.checkInAttendee(
         eventID: _eventID,
         userID: normalizedUserID,
       );
       emit(
         state.copyWith(
           loading: false,
-          latestCheckIn: checkIn,
+          latestCheckIn: result.checkIn,
           errorMessage: null,
+          // Bumping the nonce on idempotent (already-checked-in) scans lets
+          // the scanner flash an "Already checked in" banner even when
+          // [latestCheckIn] is unchanged.
+          scanFeedbackNonce: result.alreadyCheckedIn
+              ? state.scanFeedbackNonce + 1
+              : state.scanFeedbackNonce,
         ),
       );
     } on EventsFailure catch (failure, stackTrace) {
@@ -60,7 +68,7 @@ final class CheckInEventCubit extends Cubit<CheckInEventState> {
       emit(
         state.copyWith(
           loading: false,
-          errorMessage: failure.toDisplayMessage(),
+          errorMessage: failure.toEventCheckInMessage(),
         ),
       );
     } on Object catch (error, stackTrace) {

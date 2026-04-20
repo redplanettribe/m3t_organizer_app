@@ -33,58 +33,43 @@ final class _EventCheckInViewBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocListener<CheckInEventCubit, CheckInEventState>(
-      listenWhen: (previous, current) =>
-          previous.errorMessage != current.errorMessage &&
-          current.errorMessage != null,
-      listener: (context, state) {
-        ScaffoldMessenger.of(context)
-          ..clearSnackBars()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-      },
-      child: BlocBuilder<CheckInEventCubit, CheckInEventState>(
-        builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FilledButton.icon(
-                onPressed: state.loading
-                    ? null
-                    : () => _openEventScannerModal(context),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
+    return BlocBuilder<CheckInEventCubit, CheckInEventState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FilledButton.icon(
+              onPressed: state.loading
+                  ? null
+                  : () => _openEventScannerModal(context),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
                 ),
-                icon: Icon(
-                  Icons.qr_code_scanner_rounded,
-                  size: 22,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+                shadowColor: Colors.transparent,
+              ),
+              icon: Icon(
+                Icons.qr_code_scanner_rounded,
+                size: 22,
+                color: theme.colorScheme.onPrimary,
+              ),
+              label: Text(
+                state.loading ? 'Checking in…' : 'Scan attendee QR',
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onPrimary,
-                ),
-                label: Text(
-                  state.loading ? 'Checking in…' : 'Scan attendee QR',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -100,11 +85,31 @@ Future<void> _openEventScannerModal(BuildContext context) {
         value: context.read<CheckInEventCubit>(),
         child: BlocBuilder<CheckInEventCubit, CheckInEventState>(
           builder: (context, state) {
+            // The detail line on "Already checked in" only makes sense when
+            // the latest successful check-in matches the user we just
+            // re-scanned; otherwise show just the heading.
+            final latest = state.latestCheckIn;
+            final infoDetail =
+                latest != null && latest.userID == state.lastScannedUserId
+                    ? formatEventCheckInSuccess(
+                        eventCheckInToDisplay(
+                          userID: latest.userID,
+                          name: latest.name,
+                          lastName: latest.lastName,
+                          email: latest.email,
+                        ),
+                      )
+                    : null;
+
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: EventQrScanner<EventCheckIn>(
                 enabled: !state.loading,
                 lastSuccess: state.latestCheckIn,
+                errorMessage: state.errorMessage,
+                infoFlashNonce: state.scanFeedbackNonce,
+                infoFlashLabel: 'Already checked in',
+                infoFlashDetail: infoDetail,
                 formatSuccessDetail: (checkIn) => formatEventCheckInSuccess(
                   eventCheckInToDisplay(
                     userID: checkIn.userID,

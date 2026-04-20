@@ -15,17 +15,26 @@ extension DeliverableGiveawayFailureMessage on EventsFailure {
   String toDeliverableGiveawayScanMessage() => switch (this) {
     EventsInvalidInput() =>
       'We could not record this giveaway. Check the QR code and try again.',
+    // Backend codes `deliverable_not_found`, `event_not_found`, and
+    // `session_not_found` all collapse into [EventsNotFound].
     EventsNotFound() =>
-      'We could not find this event, deliverable, or attendee. '
+      'We could not find this deliverable, event, or attendee. '
       'Check the QR code.',
     EventsUnprocessableEntity() =>
       'This attendee must be registered and checked in to the event '
       'before they can receive this item.',
-    EventsForbidden() =>
-      'You do not have permission to record giveaways for this event.',
+    EventsNotRegisteredForEvent() =>
+      'This attendee is not registered for this event.',
+    // Backend code `not_event_team_member` collapses into [EventsForbidden].
+    EventsForbidden() => "You are not on this event's team.",
     EventsUnauthorized() => toDisplayMessage(),
+    EventsInvalidOrExpiredToken() => toDisplayMessage(),
     EventsDeliverableAlreadyGiven() => toDisplayMessage(),
     EventsConflict() => toDisplayMessage(),
+    EventsLiveSessionConflict() => toDisplayMessage(),
+    EventsSessionFull() => toDisplayMessage(),
+    EventsScheduleConflict() => toDisplayMessage(),
+    EventsSessionAllAttend() => toDisplayMessage(),
     EventsNetworkError() => toDisplayMessage(),
     EventsUnknownError() => toDisplayMessage(),
   };
