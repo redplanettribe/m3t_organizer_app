@@ -82,4 +82,49 @@ final class SessionSelectorCubit extends Cubit<SessionSelectorState> {
       return;
     }
   }
+
+  /// Merges a fresher [Session] (e.g. after status update) into the cached
+  /// room/session list and the current selection when IDs match.
+  void applySessionUpdate(Session updated) {
+    var roomsChanged = false;
+    final newRooms = <RoomWithSessions>[];
+
+    for (final roomWithSessions in state.rooms) {
+      final sessions = roomWithSessions.sessions;
+      final index = sessions.indexWhere((s) => s.id == updated.id);
+      if (index < 0) {
+        newRooms.add(roomWithSessions);
+        continue;
+      }
+      final current = sessions[index];
+      if (current == updated) {
+        newRooms.add(roomWithSessions);
+        continue;
+      }
+      roomsChanged = true;
+      final replaced = List<Session>.from(sessions);
+      replaced[index] = updated;
+      newRooms.add(
+        RoomWithSessions(
+          room: roomWithSessions.room,
+          sessions: replaced,
+        ),
+      );
+    }
+
+    final matchSelected = state.selectedSessionId == updated.id;
+    final shouldUpdateSelection =
+        matchSelected && state.selectedSession != updated;
+
+    if (!roomsChanged && !shouldUpdateSelection) return;
+
+    emit(
+      shouldUpdateSelection
+          ? state.copyWith(
+              rooms: roomsChanged ? newRooms : state.rooms,
+              selectedSession: updated,
+            )
+          : state.copyWith(rooms: newRooms),
+    );
+  }
 }

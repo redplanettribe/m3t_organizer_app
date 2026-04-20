@@ -131,65 +131,77 @@ final class _SessionsViewState extends State<SessionsView>
                       sessionID: selectedSession.id,
                       eventsRepository: context.read<EventsRepository>(),
                     )..loadUnawaited(),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final bottomSafe = MediaQuery.paddingOf(context).bottom;
-                        return SingleChildScrollView(
-                          padding: EdgeInsets.only(bottom: bottomSafe + 12),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // Quick actions only use intrinsic height.
-                                BlocBuilder<
-                                  SessionStatusCubit,
-                                  SessionStatusState
-                                >(
-                                  builder: (context, statusState) {
-                                    final effective =
-                                        statusState.session ?? selectedSession;
-                                    if (effective.status ==
-                                            SessionStatus.completed ||
-                                        effective.status ==
-                                            SessionStatus.canceled) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    final isLive =
-                                        effective.status == SessionStatus.live;
-                                    final disableStatusChange =
-                                        statusState.loading ||
-                                        statusState.updating;
-                                    return Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        20,
-                                        16,
-                                        20,
-                                        12,
-                                      ),
-                                      child: _QuickActionsCard(
-                                        isLive: isLive,
-                                        disableStatusChange:
-                                            disableStatusChange,
-                                        eventID: widget.eventID,
-                                        sessionID: selectedSession.id,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                SelectedSessionPanel(
-                                  key: ValueKey<String>(selectedSession.id),
-                                  eventID: widget.eventID,
-                                  roomName: selectedRoomName,
-                                  session: selectedSession,
-                                ),
-                              ],
-                            ),
-                          ),
+                    child: BlocListener<SessionStatusCubit, SessionStatusState>(
+                      listenWhen: (previous, current) =>
+                          current.session != null &&
+                          current.session != previous.session,
+                      listener: (context, statusState) {
+                        context.read<SessionSelectorCubit>().applySessionUpdate(
+                          statusState.session!,
                         );
                       },
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final bottomSafe =
+                              MediaQuery.paddingOf(context).bottom;
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.only(bottom: bottomSafe + 12),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Quick actions only use intrinsic height.
+                                  BlocBuilder<
+                                    SessionStatusCubit,
+                                    SessionStatusState
+                                  >(
+                                    builder: (context, statusState) {
+                                      final effective =
+                                          statusState.session ??
+                                              selectedSession;
+                                      if (effective.status ==
+                                              SessionStatus.completed ||
+                                          effective.status ==
+                                              SessionStatus.canceled) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final isLive = effective.status ==
+                                          SessionStatus.live;
+                                      final disableStatusChange =
+                                          statusState.loading ||
+                                              statusState.updating;
+                                      return Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          20,
+                                          16,
+                                          20,
+                                          12,
+                                        ),
+                                        child: _QuickActionsCard(
+                                          isLive: isLive,
+                                          disableStatusChange:
+                                              disableStatusChange,
+                                          eventID: widget.eventID,
+                                          sessionID: selectedSession.id,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  SelectedSessionPanel(
+                                    key: ValueKey<String>(selectedSession.id),
+                                    eventID: widget.eventID,
+                                    roomName: selectedRoomName,
+                                    session: selectedSession,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   )
                 : state.loading
