@@ -94,6 +94,7 @@ final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
   String? _flashLabel;
   String? _flashDetail;
   Timer? _flashTimer;
+  Timer? _scanCooldown;
 
   @override
   void initState() {
@@ -115,6 +116,7 @@ final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
   @override
   void dispose() {
     _flashTimer?.cancel();
+    _scanCooldown?.cancel();
     unawaited(_controller.dispose());
     super.dispose();
   }
@@ -153,6 +155,9 @@ final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
     if (!widget.enabled) {
       return;
     }
+    if (_scanCooldown != null) {
+      return;
+    }
 
     for (final barcode in capture.barcodes) {
       final rawValue = barcode.rawValue;
@@ -161,6 +166,9 @@ final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
       }
 
       widget.onUserIDDetected(rawValue.trim());
+      _scanCooldown = Timer(const Duration(milliseconds: 900), () {
+        _scanCooldown = null;
+      });
       break;
     }
   }

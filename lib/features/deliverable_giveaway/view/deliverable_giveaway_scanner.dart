@@ -40,7 +40,12 @@ final class DeliverableGiveawayScanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final errorText = scanErrorMessage?.trim();
-    final showError = enabled && errorText != null && errorText.isNotEmpty;
+    final showError = errorText != null && errorText.isNotEmpty;
+    final isAlreadyDelivered = errorText
+            ?.toLowerCase()
+            .contains('already delivered') ??
+        false;
+    final scannerEnabled = enabled && !isAlreadyDelivered;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,7 +55,7 @@ final class DeliverableGiveawayScanner extends StatelessWidget {
           processingLabel: 'Recording giveaway…',
           successHeading: 'Delivered',
           semanticsSuccessPrefix: 'Delivered ',
-          enabled: enabled,
+          enabled: scannerEnabled,
           lastSuccess: lastGiveaway,
           formatSuccessDetail: formatDeliverableGiveawaySuccess,
           onClose: onClose,

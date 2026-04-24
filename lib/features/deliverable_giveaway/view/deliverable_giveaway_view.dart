@@ -221,7 +221,8 @@ Future<void> _openGiveawayScannerModal(BuildContext context) {
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: DeliverableGiveawayScanner(
-                enabled: !state.loadingGiveaway,
+                enabled: !state.loadingGiveaway &&
+                    state.pendingGiveawayRetryUserID == null,
                 lastGiveaway: state.latestGiveaway,
                 scanErrorMessage: state.giveawayScanError,
                 onClose: () => Navigator.of(sheetContext).pop(),
