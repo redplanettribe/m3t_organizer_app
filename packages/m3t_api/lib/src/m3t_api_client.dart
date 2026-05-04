@@ -4,6 +4,7 @@ import 'package:m3t_api/src/data_sources/events_data_source.dart';
 import 'package:m3t_api/src/data_sources/sessions_data_source.dart';
 import 'package:m3t_api/src/data_sources/user_data_source.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
+import 'package:m3t_api/src/models/agenda_ws_ticket.dart';
 import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
@@ -28,10 +29,10 @@ class M3tApiClient {
     String? baseUrl,
     Uri? objectStoreBaseUrl,
     TokenProvider? tokenProvider,
-  }) {
+  }) : _baseUrl = baseUrl ?? 'http://10.0.2.2:8080' {
     final executor = ApiHttpExecutor(
       httpClient: httpClient ?? http.Client(),
-      baseUrl: baseUrl ?? 'http://10.0.2.2:8080',
+      baseUrl: _baseUrl,
       objectStoreBaseUrl: objectStoreBaseUrl,
       tokenProvider: tokenProvider,
     );
@@ -40,6 +41,11 @@ class M3tApiClient {
     _events = EventsDataSource(executor: executor);
     _sessions = SessionsDataSource(executor: executor);
   }
+
+  /// REST API root (same host/scheme as WebSocket, different path).
+  String get baseUrl => _baseUrl;
+
+  final String _baseUrl;
 
   late final AuthDataSource _auth;
   late final UserDataSource _user;
@@ -128,6 +134,10 @@ class M3tApiClient {
         eventID: eventID,
         sessionID: sessionID,
       );
+
+  Future<AgendaWsTicket> getOrganizerAgendaWebSocketTicket({
+    required String eventID,
+  }) => _events.getOrganizerAgendaWebSocketTicket(eventID: eventID);
 
   // ── Sessions ─────────────────────────────────────────────────────────────
 

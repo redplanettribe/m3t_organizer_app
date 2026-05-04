@@ -10,7 +10,7 @@ Use this checklist when reviewing code in this repo. The app uses a three-layer 
 
 - [ ] New code lives in the correct layer: UI in `lib/features/*/view/`, business logic in `lib/**/bloc/`, domain in `packages/domain/`, data in `packages/auth_repository/` or `packages/m3t_api/`.
 - [ ] Dependencies flow correctly: presentation → domain; data packages → domain; no package depends on `lib/`.
-- [ ] No `M3tApiClient` or other data-layer types used directly in `lib/` (use repository interfaces from domain).
+- [ ] No `M3tApiClient`, `WebSocket`, or `web_socket_channel` used directly in `lib/` for backend I/O (use repository interfaces; organizer agenda realtime uses `EventsRepository.connectOrganizerAgendaRealtime`).
 - [ ] `packages/` do not import `package:flutter/...` or `dart:ui`.
 
 ### BLoC / Cubit
@@ -27,7 +27,7 @@ Use this checklist when reviewing code in this repo. The app uses a three-layer 
 
 ### API and data
 
-- [ ] New API usage follows `docs/api/swagger.json` and the m3t_api client patterns (envelope, typed exceptions).
+- [ ] New API usage follows `docs/api_rest/swagger.json` and the m3t_api client patterns (envelope, typed exceptions). WebSocket work follows `docs/organizer-agenda-websocket-subscribe.md` / `docs/api_ws/asyncapi.json` and m3t-api-usage (ticket + controller in `m3t_api`, surface via `EventsRepository`).
 - [ ] New models in `packages/m3t_api` use `@JsonSerializable(fieldRename: FieldRename.snake)`, Equatable, and generated `.g.dart`; build_runner has been run.
 - [ ] Repository implementations map client exceptions to domain failures.
 

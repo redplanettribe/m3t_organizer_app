@@ -195,3 +195,13 @@ final class ReleaseSessionBookingsFailure extends M3tApiException {
     super.showToUser,
   });
 }
+
+/// Thrown when requesting a WebSocket ticket for organizer agenda fails.
+final class GetOrganizerAgendaWsTicketFailure extends M3tApiException {
+  GetOrganizerAgendaWsTicketFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}

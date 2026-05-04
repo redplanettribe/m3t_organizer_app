@@ -24,6 +24,9 @@ abstract final class EventPaths {
     required String deliverableID,
   }) =>
       '/events/$eventID/deliverables/$deliverableID/giveaways';
+
+  static String agendaWebSocketTicket(String eventID) =>
+      '/events/$eventID/agenda/ws/ticket';
 }
 
 abstract final class SessionPaths {

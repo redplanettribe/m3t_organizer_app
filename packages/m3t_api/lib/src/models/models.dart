@@ -1,3 +1,4 @@
+export 'agenda_ws_ticket.dart';
 export 'api_error.dart';
 export 'deliverable_giveaway.dart';
 export 'event.dart';
@@ -5,6 +6,7 @@ export 'event_check_in.dart';
 export 'event_deliverable.dart';
 export 'get_event_by_id_response.dart';
 export 'login_response.dart';
+export 'organizer_agenda_session_status_payload.dart';
 export 'pagination_meta.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';

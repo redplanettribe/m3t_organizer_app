@@ -85,7 +85,20 @@ One named subclass per endpoint so repositories can pattern-match:
 | `GetSessionByIdFailure` | Fetching session details fails |
 | `UpdateSessionStatusFailure` | Updating a session's lifecycle status fails |
 
-Repositories catch these (often via `on M3tApiException catch`) and map them to domain failures. Always **branch on `errorCode` first**, fall back to `statusCode`. Known codes are enumerated per endpoint in `docs/api/swagger.json`.
+Repositories catch these (often via `on M3tApiException catch`) and map them to domain failures. Always **branch on `errorCode` first**, fall back to `statusCode`. Known codes are enumerated per endpoint in `docs/api_rest/swagger.json`.
+
+---
+
+## WebSocket (organizer agenda)
+
+Live pushes for session lifecycle on topic `organizer.agenda.{event_id}` use a **separate contract** from REST:
+
+- **Docs:** `docs/organizer-agenda-websocket-subscribe.md` (hand-authored flow), `docs/api_ws/asyncapi.json` (AsyncAPI for `/ws`).
+- **REST helper:** `getOrganizerAgendaWebSocketTicket(eventID: …)` → `AgendaWsTicket` (`ticket`, `expires_at`). Short TTL; fetch a new ticket before each WebSocket connect/reconnect.
+- **URL:** Same host as `M3tApiClient.baseUrl`; `organizerAgendaWebSocketUri` maps `http`→`ws`, `https`→`wss`, path `/ws`, query `ticket`.
+- **Client:** `OrganizerAgendaWebSocketController` in `lib/src/realtime/` — connects with ticket, sends `subscribe`, parses `session.status_changed`, reconnects with backoff.
+
+The Flutter app does **not** use this package from UI directly for realtime: `EventsRepository.connectOrganizerAgendaRealtime` (domain) + `EventsRepositoryImpl` wire the controller and map payloads. See `.cursor/skills/m3t-api-usage/SKILL.md`.
 
 ---
 

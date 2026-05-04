@@ -174,6 +174,50 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
       throw domain.EventsUnknownError();
     }
   }
+
+  @override
+  domain.OrganizerAgendaHandle connectOrganizerAgendaRealtime({
+    required String eventID,
+    required void Function(domain.OrganizerSessionStatusChanged change)
+    onSessionStatusChanged,
+    void Function(Object error)? onError,
+  }) {
+    final controller = api.OrganizerAgendaWebSocketController(
+      apiBaseUrl: _apiClient.baseUrl,
+      eventID: eventID,
+      getTicket: () => _apiClient.getOrganizerAgendaWebSocketTicket(
+        eventID: eventID,
+      ),
+      onSessionStatusChanged: (payload) {
+        final domain.SessionStatus newStatus;
+        try {
+          newStatus = domain.sessionStatusFromApiValue(payload.newStatusRaw);
+        } on Object catch (e) {
+          onError?.call(e);
+          return;
+        }
+        onSessionStatusChanged(
+          domain.OrganizerSessionStatusChanged(
+            sessionId: payload.sessionId,
+            newStatus: newStatus,
+            eventId: payload.eventId,
+            title: payload.title,
+          ),
+        );
+      },
+      onError: onError,
+    )..start();
+    return _OrganizerAgendaHandleImpl(controller);
+  }
+}
+
+final class _OrganizerAgendaHandleImpl implements domain.OrganizerAgendaHandle {
+  _OrganizerAgendaHandleImpl(this._controller);
+
+  final api.OrganizerAgendaWebSocketController _controller;
+
+  @override
+  void cancel() => _controller.cancel();
 }
 
 /// Maps every transport-layer [api.M3tApiException] to a domain

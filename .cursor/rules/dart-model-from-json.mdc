@@ -36,6 +36,6 @@ When creating or modifying data models that map to JSON (e.g. API DTOs in `m3t_a
 
 ## References
 
-- `docs/api/swagger.json` — backend API spec; use definitions/schemas for request/response field names and types when creating new models.
+- `docs/api_rest/swagger.json` — backend API spec; use definitions/schemas for request/response field names and types when creating new models.
 - `packages/m3t_api/lib/src/models/user.dart`
 - `packages/m3t_api/lib/src/models/login_response.dart`

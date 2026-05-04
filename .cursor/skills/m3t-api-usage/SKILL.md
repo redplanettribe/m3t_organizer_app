@@ -1,6 +1,6 @@
 ---
 name: m3t-api-usage
-description: How to call and use the backend API via packages/m3t_api — client construction, endpoints, response envelope, typed exceptions with business error codes, repository mapping, adding new endpoints. Use when calling the API, adding endpoints, handling API errors, or wiring a repository to the client.
+description: How to call and use the backend API via packages/m3t_api — REST client, organizer-agenda WebSocket (ticket + multiplexed /ws), response envelope, typed exceptions, repository mapping. Use when calling the API, adding endpoints, realtime session status, handling API errors, or wiring a repository to the client.
 ---
 
 # m3t_api — Backend API Usage
@@ -9,6 +9,7 @@ description: How to call and use the backend API via packages/m3t_api — client
 
 - Calling the backend API from the app.
 - Adding a new API endpoint or wiring a repository to the client.
+- Organizer agenda WebSocket (live `session.status_changed` for an event).
 - Handling API errors or mapping business error codes to domain failures.
 
 ## Instructions
@@ -45,8 +46,23 @@ description: How to call and use the backend API via packages/m3t_api — client
 | `releaseUncheckedInSessionBookings({required eventID, sessionID})` | `Future<int>` | Yes |
 | `getSessionById({required sessionID})` | `Future<Session>` | Yes |
 | `updateSessionStatus({required eventID, sessionID, status})` | `Future<Session>` | Yes |
+| `getOrganizerAgendaWebSocketTicket({required eventID})` | `Future<AgendaWsTicket>` | Yes |
+| `baseUrl` (getter) | `String` — same origin as REST; used to build `ws`/`wss` URLs | — |
 
-### 4. Response envelope
+### 4. WebSocket — organizer agenda (live session status)
+
+- **Human spec:** `docs/organizer-agenda-websocket-subscribe.md` — ticket TTL, subscribe frame, `session.status_changed` payload.
+- **Machine spec:** `docs/api_ws/asyncapi.json` (AsyncAPI 3.1 for `/ws`).
+- **Flow:** `POST /events/{eventID}/agenda/ws/ticket` (normal REST envelope) → short-lived JWT → `GET` WebSocket to same host as [baseUrl] with `?ticket=` → after connect, send `subscribe` for topic `organizer.agenda.{event-uuid-lowercase}`. **Fresh ticket on every connect/reconnect.**
+- **Code (data layer only):**
+  - `AgendaWsTicket` — `packages/m3t_api/lib/src/models/agenda_ws_ticket.dart`
+  - `organizerAgendaWebSocketUri` — builds `ws`/`wss` + `/ws` + query `ticket` (`packages/m3t_api/lib/src/realtime/ws_uri.dart`)
+  - `OrganizerAgendaWebSocketController` — ticket loop, subscribe, parse `session.status_changed`, reconnect with backoff (`packages/m3t_api/lib/src/realtime/organizer_agenda_websocket_controller.dart`)
+  - `GetOrganizerAgendaWsTicketFailure` — ticket HTTP failures
+- **Domain / app:** Do **not** open WebSockets from widgets or BLoCs directly. Use `EventsRepository.connectOrganizerAgendaRealtime` (`packages/domain`) implemented in `EventsRepositoryImpl` — it wires the controller and maps payloads to `OrganizerSessionStatusChanged`. Presentation (e.g. `SessionSelectorCubit`) subscribes via the repository and cancels the returned `OrganizerAgendaHandle` on dispose or before reloading the event.
+- **REST spec gap:** The ticket path may not appear in `docs/api_rest/swagger.json` yet; trust `organizer-agenda-websocket-subscribe.md` for path and envelope.
+
+### 5. Response envelope
 
 The backend returns every JSON response inside the standard `helpers.APIResponse` shape:
 
@@ -76,7 +92,7 @@ Both helpers:
 2. Treat non-2xx status codes as failures when the body has no `error`.
 3. Surface malformed bodies via the same exception factory.
 
-### 5. Typed exceptions — `M3tApiException`
+### 6. Typed exceptions — `M3tApiException`
 
 All api-layer failures extend the abstract `M3tApiException` (`packages/m3t_api/lib/src/exceptions.dart`) with a uniform shape:
 
@@ -91,7 +107,7 @@ abstract class M3tApiException implements Exception {
 
 One named subclass per endpoint (e.g. `GiveDeliverableFailure`, `CheckInAttendeeToSessionFailure`, `UpdateSessionStatusFailure`, …) so repositories can still pattern-match with `on <Specific>Failure catch`. Use `on M3tApiException catch` when the mapping logic is identical across endpoints (as in `EventsRepositoryImpl`).
 
-### 6. Mapping to domain failures — code first, status fallback
+### 7. Mapping to domain failures — code first, status fallback
 
 Repositories translate transport failures into domain failures at the boundary. **Always branch on `errorCode` first** and fall back to `statusCode` only when the code is unknown or missing:
 
@@ -146,13 +162,13 @@ Known backend error codes (see swagger for the authoritative list):
 
 `showToUser` never appears in domain failures. If UI needs to show raw backend copy, surface that via a separate channel (e.g. a debug snackbar fed by the api layer).
 
-### 7. API specification
+### 8. API specification
 
-- Source of truth: **`docs/api/swagger.json`** (OpenAPI/Swagger 2.0). Each endpoint enumerates its error codes under the response descriptions (e.g. `error.code: session_full | schedule_conflict`). When adding or changing client methods, align with the spec.
+- Source of truth: **`docs/api_rest/swagger.json`** (OpenAPI/Swagger 2.0). Each endpoint enumerates its error codes under the response descriptions (e.g. `error.code: session_full | schedule_conflict`). When adding or changing client methods, align with the spec.
 
-### 8. Adding a new endpoint
+### 9. Adding a new endpoint
 
-1. Check **`docs/api/swagger.json`** for the path, verb, parameters, response schema, and the list of `error.code` values per status.
+1. Check **`docs/api_rest/swagger.json`** for the path, verb, parameters, response schema, and the list of `error.code` values per status.
 2. If the success payload needs a new DTO, add it under `packages/m3t_api/lib/src/models/` (see `dart-model-from-json` skill) and run build_runner.
 3. Add a dedicated exception class in `exceptions.dart` that extends `M3tApiException` with the standard fields:
 
@@ -174,13 +190,17 @@ Known backend error codes (see swagger for the authoritative list):
 
 ## References
 
-- `docs/api/swagger.json` — backend API specification (paths, schemas, auth, per-endpoint error codes)
-- `packages/m3t_api/README.md` — usage summary, envelope, exception base
+- `docs/api_rest/swagger.json` — REST API specification (paths, schemas, auth, per-endpoint error codes)
+- `docs/organizer-agenda-websocket-subscribe.md` — organizer WebSocket ticket, subscribe, `session.status_changed`
+- `docs/api_ws/asyncapi.json` — WebSocket AsyncAPI contract for `/ws`
+- `packages/m3t_api/README.md` — usage summary, envelope, exception base, WebSocket overview
 - `packages/m3t_api/lib/src/http/api_http_executor.dart` — `parseEnvelope` / `parseListEnvelope`
 - `packages/m3t_api/lib/src/m3t_api_client.dart` — client facade
 - `packages/m3t_api/lib/src/exceptions.dart` — `M3tApiException` and per-endpoint subclasses
 - `packages/m3t_api/lib/src/models/api_error.dart` — `ApiError` with `code`, `message`, `showToUser`
 - `packages/auth_repository/lib/src/auth_repository.dart` — code-first auth error mapping
-- `packages/auth_repository/lib/src/events_repository_impl.dart` — `_throwEventsFailure` helper
+- `packages/auth_repository/lib/src/events_repository_impl.dart` — `_throwEventsFailure` helper; `connectOrganizerAgendaRealtime`
+- `packages/domain/lib/src/repositories/events_repository.dart` — `connectOrganizerAgendaRealtime`, `OrganizerAgendaHandle`
+- `lib/features/session_selector/bloc/session_selector_cubit.dart` — loads event, connects realtime, merges status into list
 - `packages/domain/lib/src/failures/events_failure.dart` — domain failures keyed to business codes
 - `lib/bootstrap.dart` — how the client is constructed and passed to the repository

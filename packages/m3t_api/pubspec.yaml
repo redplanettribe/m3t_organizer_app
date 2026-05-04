@@ -1,6 +1,6 @@
 name: m3t_api
 description: "API client for the m3t Organizer Backend."
-version: 0.1.0
+version: 1.0.0
 publish_to: "none"
 
 environment:
@@ -10,6 +10,7 @@ dependencies:
   equatable: ^2.0.8
   http: ^1.2.2
   json_annotation: ^4.11.0
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   build_runner: ^2.11.1

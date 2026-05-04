@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/http/api_paths.dart';
+import 'package:m3t_api/src/models/agenda_ws_ticket.dart';
 import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
@@ -302,5 +303,41 @@ final class EventsDataSource {
     }
 
     return releasedValue.toInt();
+  }
+
+  /// Short-lived JWT for `GET /ws?ticket=…` (organizer agenda).
+  Future<AgendaWsTicket> getOrganizerAgendaWebSocketTicket({
+    required String eventID,
+  }) async {
+    final response = await _executor.client.post(
+      _executor.uri(EventPaths.agendaWebSocketTicket(eventID)),
+      headers: await _executor.authHeaders(),
+      body: jsonEncode(<String, dynamic>{}),
+    );
+
+    final data = _executor.parseEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => GetOrganizerAgendaWsTicketFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    if (data == null) {
+      throw GetOrganizerAgendaWsTicketFailure(
+        'Missing data field in response',
+        statusCode: response.statusCode,
+      );
+    }
+
+    return AgendaWsTicket.fromJson(data);
   }
 }

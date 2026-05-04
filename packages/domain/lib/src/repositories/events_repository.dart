@@ -3,9 +3,11 @@ import 'package:domain/src/entities/event.dart';
 import 'package:domain/src/entities/event_check_in.dart';
 import 'package:domain/src/entities/event_deliverable.dart';
 import 'package:domain/src/entities/event_with_rooms.dart';
+import 'package:domain/src/entities/organizer_session_status_changed.dart';
 import 'package:domain/src/entities/session.dart';
 import 'package:domain/src/entities/session_check_in.dart';
 import 'package:domain/src/enums/session_status.dart';
+import 'package:domain/src/repositories/organizer_agenda_handle.dart';
 
 /// Repository interface for events-related operations.
 abstract interface class EventsRepository {
@@ -61,6 +63,18 @@ abstract interface class EventsRepository {
     required String eventID,
     required String sessionID,
     required SessionStatus status,
+  });
+
+  /// WebSocket stream for `organizer.agenda.{eventID}` —
+  /// `session.status_changed`.
+  ///
+  /// Call [OrganizerAgendaHandle.cancel] when leaving event scope
+  /// (e.g. dispose).
+  OrganizerAgendaHandle connectOrganizerAgendaRealtime({
+    required String eventID,
+    required void Function(OrganizerSessionStatusChanged change)
+        onSessionStatusChanged,
+    void Function(Object error)? onError,
   });
 }
 

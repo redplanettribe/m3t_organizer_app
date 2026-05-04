@@ -2,12 +2,14 @@
 
 ## Overview
 
-Add a new backend API endpoint to the app: extend `M3tApiClient` in `packages/m3t_api`, add a typed exception, add or reuse models, and call it from a repository. Follow the m3t-api-usage skill and dart-model-from-json rule. Use `docs/api/swagger.json` as the source of truth for paths, parameters, and response shapes.
+Add a new backend API endpoint to the app: extend `M3tApiClient` in `packages/m3t_api`, add a typed exception, add or reuse models, and call it from a repository. Follow the m3t-api-usage skill and dart-model-from-json rule. Use `docs/api_rest/swagger.json` as the source of truth for paths, parameters, and response shapes.
+
+**WebSocket / multiplexed `/ws`:** Not the same as adding a REST route. Use `docs/organizer-agenda-websocket-subscribe.md` and `docs/api_ws/asyncapi.json`; wire ticket + `OrganizerAgendaWebSocketController` in `m3t_api`, expose lifecycle via `EventsRepository` (see existing organizer agenda implementation).
 
 ## Steps
 
 1. **Check the API spec**
-   - Open `docs/api/swagger.json` and find the path, HTTP method, parameters (path, query, body), and response schema. Note whether the endpoint uses Bearer auth (`security: BearerAuth`).
+   - Open `docs/api_rest/swagger.json` and find the path, HTTP method, parameters (path, query, body), and response schema. Note whether the endpoint uses Bearer auth (`security: BearerAuth`).
 
 2. **Add or reuse models**
    - If the response has a new shape, add a model in `packages/m3t_api/lib/src/models/` following project conventions: `final class`, `Equatable`, `@JsonSerializable(fieldRename: FieldRename.snake)`, `part '*.g.dart'`, `fromJson`/`toJson`. Run `dart run build_runner build --delete-conflicting-outputs` in the package. Export from `models/models.dart`.
@@ -26,7 +28,7 @@ Add a new backend API endpoint to the app: extend `M3tApiClient` in `packages/m3
 
 ## Checklist
 
-- [ ] Path, verb, and response shape confirmed from `docs/api/swagger.json`
+- [ ] Path, verb, and response shape confirmed from `docs/api_rest/swagger.json`
 - [ ] New model(s) in `packages/m3t_api/lib/src/models/` and build_runner run
 - [ ] New exception in `packages/m3t_api/lib/src/exceptions.dart`
 - [ ] New method on `M3tApiClient` with envelope handling and typed exception

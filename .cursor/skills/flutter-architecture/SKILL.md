@@ -19,6 +19,7 @@ description: Layered architecture (presentation, domain, data), dependency direc
 4. **Packages never depend on `lib/`.** The app depends on packages, not the other way around.
 5. **Feature structure:** Each feature under `lib/features/<feature_name>/` with `bloc/`, `view/`, and a barrel file `<feature>.dart` that exports `bloc/bloc.dart` and `view/view.dart`. App shell (router, auth BLoC) lives under `lib/app/`.
 6. **DI:** No get_it or injectable. Compose in `bootstrap()` — token storage → API client (with token provider) → repository impl → `authRepository.initialize()` → `runApp(App(authRepository: ...))`. In the tree, `App` provides `AuthRepository` via `RepositoryProvider<AuthRepository>.value`; BLoCs get it with `context.read<AuthRepository>()` in `BlocProvider` create.
+7. **Realtime (WebSocket):** Transport and ticket HTTP live in `packages/m3t_api`; long-lived subscription is exposed on **domain** `EventsRepository.connectOrganizerAgendaRealtime` and implemented in `auth_repository`. BLoCs (e.g. `SessionSelectorCubit`) call the repository, not `M3tApiClient` or `WebSocket` directly. Cancel the returned `OrganizerAgendaHandle` when leaving scope. See m3t-api-usage skill and `docs/organizer-agenda-websocket-subscribe.md`.
 
 ## References
 
@@ -26,4 +27,5 @@ description: Layered architecture (presentation, domain, data), dependency direc
 - `lib/app/view/app.dart` — app shell, router, providers
 - `lib/app/routes.dart` — route constants
 - `packages/domain/lib/src/repositories/auth_repository.dart` — repository interface
+- `packages/domain/lib/src/repositories/events_repository.dart` — includes `connectOrganizerAgendaRealtime`
 - `.cursor/rules/flutter-architecture.mdc` — full rule

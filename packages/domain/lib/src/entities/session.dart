@@ -36,6 +36,42 @@ final class Session extends Equatable {
   final List<Speaker> speakers;
   final List<Tag> tags;
 
+  static const _sentinel = Object();
+
+  Session copyWith({
+    String? id,
+    String? roomID,
+    String? title,
+    int? eventDay,
+    String? startTime,
+    String? endTime,
+    Object? status = _sentinel,
+    Object? description = _sentinel,
+    Object? source = _sentinel,
+    Object? sourceSessionId = _sentinel,
+    List<Speaker>? speakers,
+    List<Tag>? tags,
+  }) {
+    return Session(
+      id: id ?? this.id,
+      roomID: roomID ?? this.roomID,
+      title: title ?? this.title,
+      eventDay: eventDay ?? this.eventDay,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      status: status == _sentinel ? this.status : status as SessionStatus?,
+      description: description == _sentinel
+          ? this.description
+          : description as String?,
+      source: source == _sentinel ? this.source : source as String?,
+      sourceSessionId: sourceSessionId == _sentinel
+          ? this.sourceSessionId
+          : sourceSessionId as String?,
+      speakers: speakers ?? this.speakers,
+      tags: tags ?? this.tags,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,

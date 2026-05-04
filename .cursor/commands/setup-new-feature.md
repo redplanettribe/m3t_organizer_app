@@ -33,5 +33,5 @@ Set up a new feature in this Flutter app following the project's layered archite
 - [ ] BLoC or Cubit follows project conventions (sealed events, Equatable state, part files, repository injection)
 - [ ] View exports via `view/view.dart`; feature barrel exports bloc and view
 - [ ] If new screen: route constant in `AppRoutes` and `GoRoute` in app router
-- [ ] No business logic in widgets; no direct use of `M3tApiClient` in lib/ (use repository interfaces)
+- [ ] No business logic in widgets; no direct use of `M3tApiClient` or low-level WebSocket clients in `lib/` (use repository interfaces, including `EventsRepository` for organizer agenda realtime)
 - [ ] Project builds and has no errors

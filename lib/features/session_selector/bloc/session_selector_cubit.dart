@@ -17,7 +17,12 @@ final class SessionSelectorCubit extends Cubit<SessionSelectorState> {
   final String _eventID;
   final EventsRepository _eventsRepository;
 
+  OrganizerAgendaHandle? _organizerAgendaHandle;
+
   Future<void> loadEvent() async {
+    _organizerAgendaHandle?.cancel();
+    _organizerAgendaHandle = null;
+
     emit(
       state.copyWith(
         loading: true,
@@ -44,6 +49,7 @@ final class SessionSelectorCubit extends Cubit<SessionSelectorState> {
           errorMessage: null,
         ),
       );
+      _restartOrganizerAgendaSubscription();
     } on EventsFailure catch (failure, stackTrace) {
       addError(failure, stackTrace);
       emit(
@@ -126,5 +132,47 @@ final class SessionSelectorCubit extends Cubit<SessionSelectorState> {
             )
           : state.copyWith(rooms: newRooms),
     );
+  }
+
+  void _restartOrganizerAgendaSubscription() {
+    _organizerAgendaHandle?.cancel();
+    _organizerAgendaHandle = _eventsRepository.connectOrganizerAgendaRealtime(
+      eventID: _eventID,
+      onSessionStatusChanged: _applyOrganizerRealtime,
+      onError: addError,
+    );
+  }
+
+  void _applyOrganizerRealtime(OrganizerSessionStatusChanged change) {
+    Session? found;
+    outer:
+    for (final roomWithSessions in state.rooms) {
+      for (final s in roomWithSessions.sessions) {
+        if (s.id == change.sessionId) {
+          found = s;
+          break outer;
+        }
+      }
+    }
+    if (found == null) return;
+
+    final nextTitle = change.title ?? found.title;
+    if (found.status == change.newStatus && nextTitle == found.title) {
+      return;
+    }
+
+    applySessionUpdate(
+      found.copyWith(
+        status: change.newStatus,
+        title: change.title ?? found.title,
+      ),
+    );
+  }
+
+  @override
+  Future<void> close() {
+    _organizerAgendaHandle?.cancel();
+    _organizerAgendaHandle = null;
+    return super.close();
   }
 }
