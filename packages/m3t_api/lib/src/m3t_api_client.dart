@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:m3t_api/src/data_sources/auth_data_source.dart';
 import 'package:m3t_api/src/data_sources/events_data_source.dart';
+import 'package:m3t_api/src/data_sources/remote_config_data_source.dart';
 import 'package:m3t_api/src/data_sources/sessions_data_source.dart';
 import 'package:m3t_api/src/data_sources/user_data_source.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
@@ -11,6 +12,7 @@ import 'package:m3t_api/src/models/event_check_in.dart';
 import 'package:m3t_api/src/models/event_deliverable.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
+import 'package:m3t_api/src/models/mobile_remote_config_response.dart';
 import 'package:m3t_api/src/models/session.dart';
 import 'package:m3t_api/src/models/session_check_in.dart';
 import 'package:m3t_api/src/models/user.dart';
@@ -40,6 +42,7 @@ class M3tApiClient {
     _user = UserDataSource(executor: executor);
     _events = EventsDataSource(executor: executor);
     _sessions = SessionsDataSource(executor: executor);
+    _remoteConfig = RemoteConfigDataSource(executor: executor);
   }
 
   /// REST API root (same host/scheme as WebSocket, different path).
@@ -51,6 +54,7 @@ class M3tApiClient {
   late final UserDataSource _user;
   late final EventsDataSource _events;
   late final SessionsDataSource _sessions;
+  late final RemoteConfigDataSource _remoteConfig;
 
   // ── Auth ─────────────────────────────────────────────────────────────────
 
@@ -153,4 +157,11 @@ class M3tApiClient {
     sessionID: sessionID,
     status: status,
   );
+
+  // ── Mobile ────────────────────────────────────────────────────────────────
+
+  Future<MobileRemoteConfigResponse> getMobileRemoteConfig({
+    required String app,
+    required String platform,
+  }) => _remoteConfig.getMobileRemoteConfig(app: app, platform: platform);
 }

@@ -1,0 +1,1 @@
+enum MobileAppPlatform { android, ios }

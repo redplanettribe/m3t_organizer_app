@@ -25,8 +25,11 @@ dependencies:
   m3t_api:
     path: packages/m3t_api
   mobile_scanner: ^7.2.0
+  package_info_plus: ^9.0.1
   pinput: ^6.0.2
   qr_flutter: ^4.1.0
+  remote_config_repository:
+    path: packages/remote_config_repository
   screen_brightness: ^2.1.7
   url_launcher: ^6.3.2
 

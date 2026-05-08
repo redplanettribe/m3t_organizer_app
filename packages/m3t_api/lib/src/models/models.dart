@@ -6,6 +6,7 @@ export 'event_check_in.dart';
 export 'event_deliverable.dart';
 export 'get_event_by_id_response.dart';
 export 'login_response.dart';
+export 'mobile_remote_config_response.dart';
 export 'organizer_agenda_session_status_payload.dart';
 export 'pagination_meta.dart';
 export 'room.dart';

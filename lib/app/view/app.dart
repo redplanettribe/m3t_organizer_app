@@ -8,6 +8,8 @@ import 'package:m3t_organizer/app/bloc/auth_bloc.dart';
 import 'package:m3t_organizer/app/router.dart';
 import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/app/theme/app_theme.dart';
+import 'package:m3t_organizer/core/remote_config/remote_config_cubit.dart';
+import 'package:m3t_organizer/core/remote_config/view/app_update_gate.dart';
 import 'package:m3t_organizer/features/login/login.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
 import 'package:m3t_organizer/features/user/user.dart';
@@ -22,44 +24,72 @@ final class App extends StatelessWidget {
   const App({
     required AuthRepository authRepository,
     required EventsRepository eventsRepository,
+    required RemoteConfigRepository remoteConfigRepository,
+    required int? currentBuild,
+    required MobileAppPlatform remoteConfigPlatform,
+    required bool useIosStoreUrl,
     super.key,
   }) : _authRepository = authRepository,
-       _eventsRepository = eventsRepository;
+       _eventsRepository = eventsRepository,
+       _remoteConfigRepository = remoteConfigRepository,
+       _currentBuild = currentBuild,
+       _remoteConfigPlatform = remoteConfigPlatform,
+       _useIosStoreUrl = useIosStoreUrl;
 
   final AuthRepository _authRepository;
   final EventsRepository _eventsRepository;
+  final RemoteConfigRepository _remoteConfigRepository;
+  final int? _currentBuild;
+  final MobileAppPlatform _remoteConfigPlatform;
+  final bool _useIosStoreUrl;
 
   @override
   Widget build(BuildContext context) {
+    final currentBuild = _currentBuild;
     return RepositoryProvider<AuthRepository>.value(
       value: _authRepository,
       child: RepositoryProvider<EventsRepository>.value(
         value: _eventsRepository,
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<AuthBloc>(
-              create: (context) => AuthBloc(authRepository: context.read()),
-            ),
-            BlocProvider<UserCubit>(
-              create: (context) {
-                final cubit = UserCubit(authRepository: context.read());
-                unawaited(cubit.loadCurrentUser());
-                return cubit;
+        child: RepositoryProvider<RemoteConfigRepository>.value(
+          value: _remoteConfigRepository,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthBloc>(
+                create: (context) => AuthBloc(authRepository: context.read()),
+              ),
+              BlocProvider<UserCubit>(
+                create: (context) {
+                  final cubit = UserCubit(authRepository: context.read());
+                  unawaited(cubit.loadCurrentUser());
+                  return cubit;
+                },
+              ),
+              if (currentBuild != null)
+                BlocProvider<RemoteConfigCubit>(
+                  create: (context) => RemoteConfigCubit(
+                    remoteConfigRepository: context.read(),
+                    currentBuild: currentBuild,
+                    app: 'organizer',
+                    platform: _remoteConfigPlatform,
+                    useIosStoreUrl: _useIosStoreUrl,
+                  ),
+                ),
+            ],
+            child: BlocListener<AuthBloc, AuthState>(
+              listener: (context, state) {
+                switch (state.status) {
+                  case .authenticated:
+                    unawaited(context.read<UserCubit>().loadCurrentUser());
+                  case .unauthenticated:
+                    context.read<UserCubit>().reset();
+                  case .unknown:
+                    break;
+                }
               },
+              child: currentBuild == null
+                  ? const _AppView()
+                  : const AppUpdateGate(child: _AppView()),
             ),
-          ],
-          child: BlocListener<AuthBloc, AuthState>(
-            listener: (context, state) {
-              switch (state.status) {
-                case .authenticated:
-                  unawaited(context.read<UserCubit>().loadCurrentUser());
-                case .unauthenticated:
-                  context.read<UserCubit>().reset();
-                case .unknown:
-                  break;
-              }
-            },
-            child: const _AppView(),
           ),
         ),
       ),
@@ -111,7 +141,8 @@ final class _AppViewState extends State<_AppView> {
           path: AppRoutes.event,
           builder: (context, state) {
             final eventID = state.pathParameters['eventID'] ?? '';
-            final event = state.extra is Event ? state.extra! as Event : null;
+            final extra = state.extra;
+            final event = extra is Event ? extra : null;
             return OrganizerEventPage(
               eventID: eventID,
               eventName: event?.name,

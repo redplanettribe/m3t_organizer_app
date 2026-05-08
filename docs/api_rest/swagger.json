@@ -4,6 +4,10 @@
         "description": "This is the backend API for a conference ticketing system.",
         "title": "Multi-Track Ticketing API",
         "contact": {},
+        "license": {
+            "name": "RedPlanetTribe Community License",
+            "url": "https://raw.githubusercontent.com/redplanettribe/m3t_ber/main/LICENSE"
+        },
         "version": "1.0"
     },
     "host": "localhost:8080",
@@ -61,6 +65,39 @@
                         "description": "error.code: internal_error",
                         "schema": {
                             "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/attendee/events/{eventID}/agenda/ws/ticket": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "attendee"
+                ],
+                "summary": "Issue short-lived JWT for agenda WebSocket (when Bearer header unavailable)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.AgendaStreamTicketSuccessResponse"
                         }
                     }
                 }
@@ -1002,6 +1039,64 @@
                 }
             }
         },
+        "/events/{eventID}/agenda/ws/ticket": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Same ticket shape as attendee issuance; caller must be event owner or team member. Use when browser cannot send `Authorization` on WebSocket handshake (`GET /ws?ticket=...`).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Issue short-lived JWT for agenda WebSocket (organizer app)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.AgendaStreamTicketSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/events/{eventID}/attendee-schedule": {
             "get": {
                 "security": [
@@ -1111,6 +1206,90 @@
                     },
                     "400": {
                         "description": "error.code: missing_path_param | invalid_path_param | invalid_request_body",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "error.code: unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "error.code: not_event_owner",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "error.code: event_not_found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "error.code: internal_error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{eventID}/check-ins/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates a Bevy-compatible CSV file containing checked-in attendees for an event. Caller must be the event owner or a team member.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Export event check-ins (Bevy CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "bevy"
+                        ],
+                        "type": "string",
+                        "description": "Export format",
+                        "name": "format",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "csv"
+                        ],
+                        "type": "string",
+                        "description": "File type",
+                        "name": "file_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error.code: missing_path_param | invalid_path_param | invalid_query_param",
                         "schema": {
                             "$ref": "#/definitions/helpers.APIResponse"
                         }
@@ -1673,7 +1852,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Send invitation emails to register for the event. Body contains a string of emails separated by commas or spaces. Only the event owner can invite. Each invitation is persisted and emailed; duplicates for the same event are skipped. Returns count of sent and list of failed addresses.",
+                "description": "Enqueue invitation emails for asynchronous delivery. Body contains a string of emails separated by commas or spaces. Only the event owner can invite. Each invitation is persisted immediately; a background worker then sends via SES, retrying on transient errors and persisting the error on terminal failures so nothing is silently dropped. Returns the count of invitations queued and the list of emails rejected (duplicates for this event or storage errors). Observe final delivery status via GET /events/{eventID}/invitations.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1683,7 +1862,7 @@
                 "tags": [
                     "events"
                 ],
-                "summary": "Send event invitation emails",
+                "summary": "Enqueue event invitation emails",
                 "parameters": [
                     {
                         "type": "string",
@@ -1704,7 +1883,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "data contains sent count and failed list",
+                        "description": "data contains queued count and rejected list",
                         "schema": {
                             "$ref": "#/definitions/controllers.SendEventInvitationsSuccessResponse"
                         }
@@ -1742,6 +1921,128 @@
                 }
             }
         },
+        "/events/{eventID}/live/status/stream": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "**Pre-stream errors** use the normal JSON envelope (401/403/404/500) before `Content-Type: text/event-stream` is set.\\n\\n**Auth:** `Authorization: Bearer` or `?ticket=` JWT from `POST /events/{eventID}/live/status/ticket`. When using `ticket`, its `event_id` claim must match `{eventID}` in the path or the server responds 403.\\n\\n**Stream body:** not `APIResponse`. Each frame is `event:` then `data:` (single JSON object) then blank line.\\n\\n**Event types:**\\n- `snapshot` — `data` is `EventStatusLiveSnapshot`: `event_check_in_count` (int), `sessions` (**live-only**; array of `{session_id, title, check_in_count, room: {name, capacity}}`), `deliverables` (array of `{deliverable_id, name, delivered_count}`).\\n- `error` — `data` is `{code, message}`; connection ends after this frame.\\n\\n**Heartbeats:** comment lines `: ping` every ~20s; ignore (no `event`/`data`).\\n\\n**First frame:** immediate `snapshot` after connect (same shape as above).\\n\\n**Reconnect:** clients may reconnect with exponential backoff; server closes stream on shutdown.\\n\\n**Ops:** place stream path behind `proxy_buffering off` and a large `proxy_read_timeout` if using nginx.",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "SSE stream of event check-in and deliverable stats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Short-lived stream JWT (alternative to Bearer)",
+                        "name": "ticket",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "text/event-stream sequence (not JSON envelope)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{eventID}/live/status/ticket": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a JWT usable as `?ticket=` on `GET /events/{eventID}/live/status/stream` for EventSource (cannot send Authorization). Caller must be event owner or team member. Ticket TTL is at most 60 seconds.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Issue short-lived SSE stream ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID (UUID)",
+                        "name": "eventID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.EventStatusStreamTicketSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/events/{eventID}/registrations": {
             "get": {
                 "security": [
@@ -1769,6 +2070,12 @@
                         "type": "string",
                         "description": "Filter attendees by name or email substring (case-insensitive)",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter attendees by assigned event tier id (UUID)",
+                        "name": "tier_id",
                         "in": "query"
                     },
                     {
@@ -5266,6 +5573,56 @@
                 }
             }
         },
+        "/mobile/remote-config": {
+            "get": {
+                "description": "Returns minimum required and latest app versions/build numbers and store URLs for attendee/organizer apps. Clients should enforce forced update when their build number is below min_build.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mobile"
+                ],
+                "summary": "Get mobile remote configuration (minimum supported versions)",
+                "parameters": [
+                    {
+                        "enum": [
+                            "attendee",
+                            "organizer"
+                        ],
+                        "type": "string",
+                        "description": "Mobile app identifier",
+                        "name": "app",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "android",
+                            "ios"
+                        ],
+                        "type": "string",
+                        "description": "Client platform",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.MobileRemoteConfigSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/sessions/{sessionID}": {
             "get": {
                 "security": [
@@ -5659,6 +6016,28 @@
                 }
             }
         },
+        "controllers.AgendaStreamTicketResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "ticket": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.AgendaStreamTicketSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/controllers.AgendaStreamTicketResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/helpers.APIError"
+                }
+            }
+        },
         "controllers.AssignTierUsersRequest": {
             "type": "object",
             "properties": {
@@ -6045,6 +6424,28 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "controllers.EventStatusStreamTicketResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "ticket": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.EventStatusStreamTicketSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/controllers.EventStatusStreamTicketResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/helpers.APIError"
                 }
             }
         },
@@ -6529,6 +6930,46 @@
                 }
             }
         },
+        "controllers.MobileRemoteConfigResponse": {
+            "type": "object",
+            "properties": {
+                "android_store_url": {
+                    "type": "string"
+                },
+                "app": {
+                    "type": "string"
+                },
+                "ios_store_url": {
+                    "type": "string"
+                },
+                "latest_build": {
+                    "type": "integer"
+                },
+                "latest_version": {
+                    "type": "string"
+                },
+                "min_build": {
+                    "type": "integer"
+                },
+                "min_version": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.MobileRemoteConfigSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/controllers.MobileRemoteConfigResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/helpers.APIError"
+                }
+            }
+        },
         "controllers.RegisterForEventByCodeRequest": {
             "type": "object",
             "properties": {
@@ -6627,14 +7068,14 @@
         "controllers.SendEventInvitationsResponse": {
             "type": "object",
             "properties": {
-                "failed": {
+                "queued": {
+                    "type": "integer"
+                },
+                "rejected": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
-                },
-                "sent": {
-                    "type": "integer"
                 }
             }
         },
@@ -7133,6 +7574,12 @@
         "domain.EventInvitation": {
             "type": "object",
             "properties": {
+                "attempts": {
+                    "type": "integer"
+                },
+                "delivered_at": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -7142,7 +7589,17 @@
                 "id": {
                     "type": "string"
                 },
+                "last_attempt_at": {
+                    "type": "string"
+                },
+                "last_error": {
+                    "type": "string"
+                },
                 "sent_at": {
+                    "description": "enqueued-at timestamp",
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

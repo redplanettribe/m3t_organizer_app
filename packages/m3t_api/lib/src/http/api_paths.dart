@@ -48,3 +48,7 @@ abstract final class SessionPaths {
     required String sessionID,
   }) => '/events/$eventID/sessions/$sessionID/status';
 }
+
+abstract final class MobilePaths {
+  static const remoteConfig = '/mobile/remote-config';
+}

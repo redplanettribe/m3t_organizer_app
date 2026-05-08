@@ -205,3 +205,13 @@ final class GetOrganizerAgendaWsTicketFailure extends M3tApiException {
     super.showToUser,
   });
 }
+
+/// Thrown when fetching the mobile remote config fails.
+final class GetMobileRemoteConfigFailure extends M3tApiException {
+  GetMobileRemoteConfigFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
