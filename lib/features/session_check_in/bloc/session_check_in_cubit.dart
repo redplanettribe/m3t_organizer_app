@@ -26,6 +26,11 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
       return;
     }
 
+    if (normalizedUserID == state.lastScannedUserId &&
+        state.errorMessage == null) {
+      return;
+    }
+
     emit(
       state.copyWith(
         loading: true,

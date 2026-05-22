@@ -55,6 +55,7 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
   String? _flashMessage;
   _FlashKind _flashKind = _FlashKind.success;
   Timer? _flashTimer;
+  String? _lastDispatchedUserId;
 
   @override
   void initState() {
@@ -122,7 +123,12 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
         continue;
       }
 
-      widget.onUserIDDetected(rawValue.trim());
+      final userId = rawValue.trim();
+      if (userId == _lastDispatchedUserId) {
+        continue;
+      }
+      _lastDispatchedUserId = userId;
+      widget.onUserIDDetected(userId);
       break;
     }
   }
@@ -374,6 +380,16 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
           ),
         ],
       ],
+    );
+
+    scannerColumn = BlocListener<SessionCheckInCubit, SessionCheckInState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage &&
+          current.errorMessage != null,
+      listener: (context, state) {
+        _lastDispatchedUserId = null;
+      },
+      child: scannerColumn,
     );
 
     // Fresh check-in success: a new check-in record was created (id changed)

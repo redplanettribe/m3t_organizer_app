@@ -3419,7 +3419,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates a session's title and/or description. Only the event owner can update. Optional fields omitted from body are unchanged. Requires authentication.",
+                "description": "Updates a session's title, description, and/or technical_difficulty. Only the event owner can update. Optional fields omitted from body are unchanged. Requires authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -6295,6 +6295,9 @@
                         "type": "string"
                     }
                 },
+                "technical_difficulty": {
+                    "type": "string"
+                },
                 "title": {
                     "type": "string"
                 }
@@ -7250,6 +7253,9 @@
                 "description": {
                     "type": "string"
                 },
+                "technical_difficulty": {
+                    "type": "string"
+                },
                 "title": {
                     "type": "string"
                 }
@@ -7798,6 +7804,14 @@
                         "$ref": "#/definitions/domain.Tag"
                     }
                 },
+                "technical_difficulty": {
+                    "description": "TechnicalDifficulty indicates how technical the session content is (snake_case JSON values).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.SessionTechnicalDifficulty"
+                        }
+                    ]
+                },
                 "title": {
                     "type": "string"
                 },
@@ -7867,6 +7881,23 @@
                 "SessionStatusCompleted",
                 "SessionStatusDraft",
                 "SessionStatusCanceled"
+            ]
+        },
+        "domain.SessionTechnicalDifficulty": {
+            "type": "string",
+            "enum": [
+                "non_technical",
+                "beginner",
+                "intermediate",
+                "advanced",
+                "beginner"
+            ],
+            "x-enum-varnames": [
+                "SessionTechnicalDifficultyNonTechnical",
+                "SessionTechnicalDifficultyBeginner",
+                "SessionTechnicalDifficultyIntermediate",
+                "SessionTechnicalDifficultyAdvanced",
+                "DefaultSessionTechnicalDifficulty"
             ]
         },
         "domain.Speaker": {
