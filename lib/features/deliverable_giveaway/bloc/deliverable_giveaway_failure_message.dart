@@ -6,7 +6,7 @@ extension DeliverableGiveawayFailureMessage on EventsFailure {
   String toDeliverableGiveawayLoadMessage() => switch (this) {
     EventsNotFound() =>
       'We could not load deliverables. This event or list may no longer '
-      'be available.',
+          'be available.',
     EventsInvalidInput() =>
       'We could not load the deliverable list. Please try again.',
     _ => toDisplayMessage(),
@@ -19,10 +19,10 @@ extension DeliverableGiveawayFailureMessage on EventsFailure {
     // `session_not_found` all collapse into [EventsNotFound].
     EventsNotFound() =>
       'We could not find this deliverable, event, or attendee. '
-      'Check the QR code.',
+          'Check the QR code.',
     EventsUnprocessableEntity() =>
       'This attendee must be registered and checked in to the event '
-      'before they can receive this item.',
+          'before they can receive this item.',
     EventsNotRegisteredForEvent() =>
       'This attendee is not registered for this event.',
     // Backend code `not_event_team_member` collapses into [EventsForbidden].

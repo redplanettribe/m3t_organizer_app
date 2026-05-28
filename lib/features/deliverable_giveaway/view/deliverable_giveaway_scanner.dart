@@ -41,10 +41,8 @@ final class DeliverableGiveawayScanner extends StatelessWidget {
     final theme = Theme.of(context);
     final errorText = scanErrorMessage?.trim();
     final showError = errorText != null && errorText.isNotEmpty;
-    final isAlreadyDelivered = errorText
-            ?.toLowerCase()
-            .contains('already delivered') ??
-        false;
+    final isAlreadyDelivered =
+        errorText?.toLowerCase().contains('already delivered') ?? false;
     final scannerEnabled = enabled && !isAlreadyDelivered;
 
     return Column(

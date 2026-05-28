@@ -14,8 +14,8 @@ extension AuthFailureMessage on AuthFailure {
     // Intentionally no "try again" — retrying with blank fields always fails.
     InvalidProfileInput() => 'Enter at least a first or last name.',
     AccountDeleteConflict() =>
-        'You cannot delete your account while you own an active event. '
-        'Wait until the event has ended or transfer ownership first.',
+      'You cannot delete your account while you own an active event. '
+          'Wait until the event has ended or transfer ownership first.',
     UnknownError() => 'An unexpected error occurred. Please try again.',
   };
 }

@@ -5,7 +5,7 @@ import 'package:remote_config_repository/src/mappers/mobile_remote_config_mapper
 final class RemoteConfigRepositoryImpl
     implements domain.RemoteConfigRepository {
   RemoteConfigRepositoryImpl({required api.M3tApiClient apiClient})
-      : _apiClient = apiClient;
+    : _apiClient = apiClient;
 
   final api.M3tApiClient _apiClient;
 

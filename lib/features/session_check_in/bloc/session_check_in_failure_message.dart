@@ -17,12 +17,10 @@ extension SessionCheckInFailureMessage on EventsFailure {
       'Attendee is already checked in to an overlapping session.',
     EventsSessionAllAttend() =>
       'Attendee has already checked in to every session in their ticket tier.',
-    EventsForbidden() =>
-      "Attendee's ticket tier does not allow this session.",
+    EventsForbidden() => "Attendee's ticket tier does not allow this session.",
     EventsNotRegisteredForEvent() =>
       'Attendee is not registered for this event.',
-    EventsNotFound() =>
-      'Session or attendee not found. Check the QR code.',
+    EventsNotFound() => 'Session or attendee not found. Check the QR code.',
     EventsInvalidInput() =>
       'This QR code is not valid for check-in. Try another one.',
     EventsUnprocessableEntity() =>

@@ -53,12 +53,12 @@ final class RemoteConfigState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        minBuild,
-        minVersion,
-        latestBuild,
-        latestVersion,
-        updateUrl,
-        errorMessage,
-      ];
+    status,
+    minBuild,
+    minVersion,
+    latestBuild,
+    latestVersion,
+    updateUrl,
+    errorMessage,
+  ];
 }

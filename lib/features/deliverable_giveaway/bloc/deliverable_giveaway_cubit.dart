@@ -35,8 +35,8 @@ final class DeliverableGiveawayCubit extends Cubit<DeliverableGiveawayState> {
         eventID: _eventID,
       );
       final selected = state.selectedDeliverable;
-      final stillValid = selected != null &&
-          list.any((d) => d.id == selected.id);
+      final stillValid =
+          selected != null && list.any((d) => d.id == selected.id);
       emit(
         state.copyWith(
           loadingList: false,

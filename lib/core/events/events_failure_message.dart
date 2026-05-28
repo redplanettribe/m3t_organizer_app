@@ -9,10 +9,10 @@ extension EventsFailureMessage on EventsFailure {
     EventsForbidden() => 'You do not have permission to perform this action.',
     EventsConflict() =>
       'This session cannot be activated because the room already '
-      'has a live session.',
+          'has a live session.',
     EventsLiveSessionConflict() =>
       'This session cannot be activated because the room already '
-      'has a live session.',
+          'has a live session.',
     EventsDeliverableAlreadyGiven() =>
       'This item was already marked as delivered for this attendee.',
     EventsUnprocessableEntity() =>
@@ -29,7 +29,7 @@ extension EventsFailureMessage on EventsFailure {
       'This attendee is not registered for this event.',
     EventsSessionAllAttend() =>
       'The attendee has already checked in to every available session '
-      'in their ticket tier.',
+          'in their ticket tier.',
     EventsUnknownError() => 'An unexpected error occurred. Please try again.',
   };
 }

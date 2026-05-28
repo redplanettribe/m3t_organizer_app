@@ -11,8 +11,7 @@ extension ApiSessionMapper on api.Session {
     eventDay: eventDay,
     startTime: startTime,
     endTime: endTime,
-    status:
-        status != null ? domain.sessionStatusFromApiValue(status!) : null,
+    status: status != null ? domain.sessionStatusFromApiValue(status!) : null,
     description: description,
     source: source,
     sourceSessionId: sourceSessionId,

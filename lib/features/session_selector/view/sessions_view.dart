@@ -142,8 +142,9 @@ final class _SessionsViewState extends State<SessionsView>
                       },
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final bottomSafe =
-                              MediaQuery.paddingOf(context).bottom;
+                          final bottomSafe = MediaQuery.paddingOf(
+                            context,
+                          ).bottom;
                           return SingleChildScrollView(
                             padding: EdgeInsets.only(bottom: bottomSafe + 12),
                             child: ConstrainedBox(
@@ -161,18 +162,19 @@ final class _SessionsViewState extends State<SessionsView>
                                     builder: (context, statusState) {
                                       final effective =
                                           statusState.session ??
-                                              selectedSession;
+                                          selectedSession;
                                       if (effective.status ==
                                               SessionStatus.completed ||
                                           effective.status ==
                                               SessionStatus.canceled) {
                                         return const SizedBox.shrink();
                                       }
-                                      final isLive = effective.status ==
+                                      final isLive =
+                                          effective.status ==
                                           SessionStatus.live;
                                       final disableStatusChange =
                                           statusState.loading ||
-                                              statusState.updating;
+                                          statusState.updating;
                                       return Padding(
                                         padding: const EdgeInsets.fromLTRB(
                                           20,

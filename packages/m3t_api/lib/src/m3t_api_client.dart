@@ -133,11 +133,10 @@ class M3tApiClient {
   Future<int> releaseUncheckedInSessionBookings({
     required String eventID,
     required String sessionID,
-  }) =>
-      _events.releaseUncheckedInSessionBookings(
-        eventID: eventID,
-        sessionID: sessionID,
-      );
+  }) => _events.releaseUncheckedInSessionBookings(
+    eventID: eventID,
+    sessionID: sessionID,
+  );
 
   Future<AgendaWsTicket> getOrganizerAgendaWebSocketTicket({
     required String eventID,

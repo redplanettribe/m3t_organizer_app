@@ -127,7 +127,8 @@ final class _DeliverableGiveawayBody extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
                 FilledButton.icon(
-                  onPressed: state.loadingList ||
+                  onPressed:
+                      state.loadingList ||
                           state.selectedDeliverable == null ||
                           state.loadingGiveaway
                       ? null
@@ -150,9 +151,7 @@ final class _DeliverableGiveawayBody extends StatelessWidget {
                     color: theme.colorScheme.onPrimary,
                   ),
                   label: Text(
-                    state.loadingGiveaway
-                        ? 'Recording…'
-                        : 'Scan recipient QR',
+                    state.loadingGiveaway ? 'Recording…' : 'Scan recipient QR',
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
@@ -221,7 +220,8 @@ Future<void> _openGiveawayScannerModal(BuildContext context) {
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: DeliverableGiveawayScanner(
-                enabled: !state.loadingGiveaway &&
+                enabled:
+                    !state.loadingGiveaway &&
                     state.pendingGiveawayRetryUserID == null,
                 lastGiveaway: state.latestGiveaway,
                 scanErrorMessage: state.giveawayScanError,

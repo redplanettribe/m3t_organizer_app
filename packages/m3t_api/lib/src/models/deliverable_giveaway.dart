@@ -23,8 +23,7 @@ final class DeliverableGiveaway extends Equatable {
 
   factory DeliverableGiveaway.fromJson(Map<String, dynamic> json) {
     final normalized = Map<String, dynamic>.from(json);
-    if (normalized['created_at'] == null &&
-        normalized['given_at'] != null) {
+    if (normalized['created_at'] == null && normalized['given_at'] != null) {
       normalized['created_at'] = normalized['given_at'];
     }
     return _$DeliverableGiveawayFromJson(normalized);

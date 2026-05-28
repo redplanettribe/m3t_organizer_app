@@ -351,7 +351,8 @@ final class _EventQrScannerState<T> extends State<EventQrScanner<T>> {
           const SizedBox(height: 12),
           Semantics(
             liveRegion: true,
-            label: '${widget.semanticsSuccessPrefix}'
+            label:
+                '${widget.semanticsSuccessPrefix}'
                 '${widget.formatSuccessDetail(success)}',
             child: Material(
               color: theme.colorScheme.tertiaryContainer,

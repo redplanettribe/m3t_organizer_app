@@ -91,15 +91,15 @@ Future<void> _openEventScannerModal(BuildContext context) {
             final latest = state.latestCheckIn;
             final infoDetail =
                 latest != null && latest.userID == state.lastScannedUserId
-                    ? formatEventCheckInSuccess(
-                        eventCheckInToDisplay(
-                          userID: latest.userID,
-                          name: latest.name,
-                          lastName: latest.lastName,
-                          email: latest.email,
-                        ),
-                      )
-                    : null;
+                ? formatEventCheckInSuccess(
+                    eventCheckInToDisplay(
+                      userID: latest.userID,
+                      name: latest.name,
+                      lastName: latest.lastName,
+                      email: latest.email,
+                    ),
+                  )
+                : null;
 
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),

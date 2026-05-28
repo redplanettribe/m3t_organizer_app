@@ -108,10 +108,9 @@ final class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resolvedIconSize = iconSize ??
-        (label == null
-            ? (compact ? 17.0 : 21.0)
-            : (compact ? 10.0 : 12.0));
+    final resolvedIconSize =
+        iconSize ??
+        (label == null ? (compact ? 17.0 : 21.0) : (compact ? 10.0 : 12.0));
     final textStyle = compact
         ? theme.textTheme.labelMedium?.copyWith(
             color: foreground,

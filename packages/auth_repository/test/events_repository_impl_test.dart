@@ -114,32 +114,34 @@ void main() {
     });
 
     group('giveDeliverableToUser() code-first mapping', () {
-      test('maps deliverable_already_given to EventsDeliverableAlreadyGiven',
-          () async {
-        when(
-          () => apiClient.giveDeliverableToUser(
-            eventID: any(named: 'eventID'),
-            deliverableID: any(named: 'deliverableID'),
-            userID: any(named: 'userID'),
-            giveAnyway: any(named: 'giveAnyway'),
-          ),
-        ).thenThrow(
-          GiveDeliverableFailure(
-            'already',
-            statusCode: 409,
-            errorCode: 'deliverable_already_given',
-          ),
-        );
+      test(
+        'maps deliverable_already_given to EventsDeliverableAlreadyGiven',
+        () async {
+          when(
+            () => apiClient.giveDeliverableToUser(
+              eventID: any(named: 'eventID'),
+              deliverableID: any(named: 'deliverableID'),
+              userID: any(named: 'userID'),
+              giveAnyway: any(named: 'giveAnyway'),
+            ),
+          ).thenThrow(
+            GiveDeliverableFailure(
+              'already',
+              statusCode: 409,
+              errorCode: 'deliverable_already_given',
+            ),
+          );
 
-        await expectLater(
-          repository.giveDeliverableToUser(
-            eventID: eventID,
-            deliverableID: deliverableID,
-            userID: userID,
-          ),
-          throwsA(isA<EventsDeliverableAlreadyGiven>()),
-        );
-      });
+          await expectLater(
+            repository.giveDeliverableToUser(
+              eventID: eventID,
+              deliverableID: deliverableID,
+              userID: userID,
+            ),
+            throwsA(isA<EventsDeliverableAlreadyGiven>()),
+          );
+        },
+      );
 
       test('maps deliverable_not_found to EventsNotFound', () async {
         when(

@@ -40,8 +40,9 @@ final class RemoteConfigCubit extends Cubit<RemoteConfigState> {
       );
 
       if (_currentBuild < config.minBuild) {
-        final updateUrl =
-            _useIosStoreUrl ? config.iosStoreUrl : config.androidStoreUrl;
+        final updateUrl = _useIosStoreUrl
+            ? config.iosStoreUrl
+            : config.androidStoreUrl;
         emit(
           state.copyWith(
             status: RemoteConfigStatus.forced,

@@ -2,10 +2,10 @@ name: m3t_organizer
 description: "Flutter app for m3t event organizers."
 publish_to: 'none'
 
-version: 1.3.0+1000000013
+version: 1.5.0+1000000015
 
 environment:
-  sdk: '>=3.10.0 <4.0.0'
+  sdk: '>=3.10.0 <4.0.0' 
 
 dependencies:
   auth_repository:

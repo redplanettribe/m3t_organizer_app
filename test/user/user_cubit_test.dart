@@ -267,8 +267,7 @@ void main() {
         expect: () => <UserState>[
           const UserState(deletingAccount: true),
           const UserState(
-            errorMessage:
-                'A network error occurred. Please try again.',
+            errorMessage: 'A network error occurred. Please try again.',
           ),
         ],
       );

@@ -5,7 +5,7 @@ import 'package:m3t_api/src/models/mobile_remote_config_response.dart';
 
 final class RemoteConfigDataSource {
   const RemoteConfigDataSource({required ApiHttpExecutor executor})
-      : _executor = executor;
+    : _executor = executor;
 
   final ApiHttpExecutor _executor;
 
@@ -24,17 +24,18 @@ final class RemoteConfigDataSource {
 
     final data = _executor.parseEnvelope(
       response,
-      onError: ({
-        required message,
-        required statusCode,
-        errorCode,
-        showToUser = false,
-      }) => GetMobileRemoteConfigFailure(
-        message,
-        statusCode: statusCode,
-        errorCode: errorCode,
-        showToUser: showToUser,
-      ),
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => GetMobileRemoteConfigFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
     );
 
     if (data == null) {

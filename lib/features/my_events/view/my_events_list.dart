@@ -29,8 +29,7 @@ final class MyEventsList extends StatelessWidget {
           final theme = Theme.of(context);
           final cubit = context.read<MyEventsCubit>();
 
-          Future<void> onPullToRefresh() =>
-              cubit.loadMyEvents(silent: true);
+          Future<void> onPullToRefresh() => cubit.loadMyEvents(silent: true);
 
           if (state.loading) {
             return ListView.separated(

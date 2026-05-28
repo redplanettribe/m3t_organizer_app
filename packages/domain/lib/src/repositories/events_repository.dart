@@ -73,7 +73,7 @@ abstract interface class EventsRepository {
   OrganizerAgendaHandle connectOrganizerAgendaRealtime({
     required String eventID,
     required void Function(OrganizerSessionStatusChanged change)
-        onSessionStatusChanged,
+    onSessionStatusChanged,
     void Function(Object error)? onError,
   });
 }

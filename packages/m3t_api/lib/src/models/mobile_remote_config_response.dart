@@ -54,13 +54,13 @@ final class MobileRemoteConfigResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-        androidStoreUrl,
-        app,
-        iosStoreUrl,
-        latestBuild,
-        latestVersion,
-        minBuild,
-        minVersion,
-        platform,
-      ];
+    androidStoreUrl,
+    app,
+    iosStoreUrl,
+    latestBuild,
+    latestVersion,
+    minBuild,
+    minVersion,
+    platform,
+  ];
 }

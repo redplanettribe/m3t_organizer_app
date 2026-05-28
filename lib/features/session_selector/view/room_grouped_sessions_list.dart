@@ -80,8 +80,7 @@ final class _RoomCard extends StatelessWidget {
                 selected: room.sessions[index].id == selectedSessionID,
                 onTap: () => onSelectSession(room.sessions[index]),
               ),
-              if (index != room.sessions.length - 1)
-                const SizedBox(height: 8),
+              if (index != room.sessions.length - 1) const SizedBox(height: 8),
             ],
           ],
         ),

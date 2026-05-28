@@ -18,8 +18,10 @@ final class DeliverableGiveawayState extends Equatable {
   final bool loadingGiveaway;
   final DeliverableGiveaway? latestGiveaway;
   final String? errorMessage;
+
   /// Shown inline on the giveaway scanner (not the deliverable list).
   final String? giveawayScanError;
+
   /// Set when the API returns 409; UI shows “give anyway?” for this user.
   final String? pendingGiveawayRetryUserID;
 

@@ -16,14 +16,12 @@ abstract final class EventPaths {
 
   static String checkIns(String eventID) => '/events/$eventID/check-ins';
 
-  static String deliverables(String eventID) =>
-      '/events/$eventID/deliverables';
+  static String deliverables(String eventID) => '/events/$eventID/deliverables';
 
   static String deliverableGiveaways({
     required String eventID,
     required String deliverableID,
-  }) =>
-      '/events/$eventID/deliverables/$deliverableID/giveaways';
+  }) => '/events/$eventID/deliverables/$deliverableID/giveaways';
 
   static String agendaWebSocketTicket(String eventID) =>
       '/events/$eventID/agenda/ws/ticket';
@@ -40,8 +38,7 @@ abstract final class SessionPaths {
   static String releaseUncheckedInSessionBookings({
     required String eventID,
     required String sessionID,
-  }) =>
-      '/events/$eventID/sessions/$sessionID/bookings';
+  }) => '/events/$eventID/sessions/$sessionID/bookings';
 
   static String updateStatus({
     required String eventID,

@@ -104,8 +104,7 @@ void main() {
           ),
           const SessionCheckInState(
             lastScannedUserId: userID,
-            errorMessage:
-                'A network error occurred. Please try again.',
+            errorMessage: 'A network error occurred. Please try again.',
           ),
           const SessionCheckInState(
             loading: true,

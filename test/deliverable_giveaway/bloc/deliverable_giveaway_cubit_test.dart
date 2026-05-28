@@ -68,8 +68,7 @@ void main() {
         expect: () => <DeliverableGiveawayState>[
           const DeliverableGiveawayState(loadingList: true),
           const DeliverableGiveawayState(
-            errorMessage:
-                'A network error occurred. Please try again.',
+            errorMessage: 'A network error occurred. Please try again.',
           ),
         ],
       );

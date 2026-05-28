@@ -46,8 +46,7 @@ Future<void> bootstrap() async {
     // Backend only supports android/ios query param; desktop uses android.
     TargetPlatform.linux ||
     TargetPlatform.macOS ||
-    TargetPlatform.windows =>
-      MobileAppPlatform.android,
+    TargetPlatform.windows => MobileAppPlatform.android,
     TargetPlatform.fuchsia => MobileAppPlatform.android,
   };
   final useIosStoreUrl = defaultTargetPlatform == TargetPlatform.iOS;
