@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io' show HttpClient, HttpOverrides, SecurityContext;
 
 import 'package:auth_repository/auth_repository.dart';
@@ -21,12 +22,14 @@ Future<void> bootstrap() async {
   ]);
 
   const tokenStorage = FlutterSecureTokenStorage();
+  late final AuthRepositoryImpl authRepository;
   final apiClient = M3tApiClient(
     tokenProvider: tokenStorage.read,
     baseUrl: AppConfig.baseUrl,
     objectStoreBaseUrl: Uri.parse(AppConfig.objectStoreUrl),
+    onSessionExpired: () => unawaited(authRepository.logout()),
   );
-  final authRepository = AuthRepositoryImpl(
+  authRepository = AuthRepositoryImpl(
     apiClient: apiClient,
     tokenStorage: tokenStorage,
   );

@@ -20,6 +20,9 @@ import 'package:m3t_api/src/models/user.dart';
 /// Signature for a callback that returns the stored auth token (or null).
 typedef TokenProvider = Future<String?> Function();
 
+/// Invoked when the backend returns `error.code: invalid_or_expired_token`.
+typedef SessionExpiredCallback = void Function();
+
 /// Facade that delegates every API call to a typed per-domain data source.
 ///
 /// Call sites are unchanged — all method signatures are preserved exactly.
@@ -31,12 +34,14 @@ class M3tApiClient {
     String? baseUrl,
     Uri? objectStoreBaseUrl,
     TokenProvider? tokenProvider,
+    SessionExpiredCallback? onSessionExpired,
   }) : _baseUrl = baseUrl ?? 'http://10.0.2.2:8080' {
     final executor = ApiHttpExecutor(
       httpClient: httpClient ?? http.Client(),
       baseUrl: _baseUrl,
       objectStoreBaseUrl: objectStoreBaseUrl,
       tokenProvider: tokenProvider,
+      onSessionExpired: onSessionExpired,
     );
     _auth = AuthDataSource(executor: executor);
     _user = UserDataSource(executor: executor);

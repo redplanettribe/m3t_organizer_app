@@ -17,6 +17,8 @@ typedef ApiErrorFactory =
       bool showToUser,
     });
 
+const _invalidOrExpiredTokenCode = 'invalid_or_expired_token';
+
 /// Low-level HTTP infrastructure shared by all data sources.
 ///
 /// Owns the [http.Client], base URL, object-store URL, and token provider.
@@ -32,15 +34,18 @@ final class ApiHttpExecutor {
     required String baseUrl,
     Uri? objectStoreBaseUrl,
     TokenProvider? tokenProvider,
+    SessionExpiredCallback? onSessionExpired,
   }) : _httpClient = httpClient,
        _baseUrl = baseUrl,
        _objectStoreBaseUrl = objectStoreBaseUrl,
-       _tokenProvider = tokenProvider;
+       _tokenProvider = tokenProvider,
+       _onSessionExpired = onSessionExpired;
 
   final http.Client _httpClient;
   final String _baseUrl;
   final Uri? _objectStoreBaseUrl;
   final TokenProvider? _tokenProvider;
+  final SessionExpiredCallback? _onSessionExpired;
 
   /// Returns the [_objectStoreBaseUrl], used when rewriting presigned URLs
   /// for emulator or local device reachability.
@@ -92,6 +97,7 @@ final class ApiHttpExecutor {
     final errorJson = body?['error'];
     if (errorJson is Map<String, dynamic>) {
       final err = ApiError.fromJson(errorJson);
+      _maybeNotifySessionExpired(err.code);
       throw onError(
         message: err.message,
         statusCode: response.statusCode,
@@ -149,6 +155,7 @@ final class ApiHttpExecutor {
     final errorJson = body?['error'];
     if (errorJson is Map<String, dynamic>) {
       final err = ApiError.fromJson(errorJson);
+      _maybeNotifySessionExpired(err.code);
       throw onError(
         message: err.message,
         statusCode: response.statusCode,
@@ -178,6 +185,12 @@ final class ApiHttpExecutor {
       onError: onError,
       itemKeys: itemKeys,
     );
+  }
+
+  void _maybeNotifySessionExpired(String? errorCode) {
+    if (errorCode == _invalidOrExpiredTokenCode) {
+      _onSessionExpired?.call();
+    }
   }
 
   Map<String, dynamic>? _safeDecodeObject(String source) {
