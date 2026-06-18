@@ -10,6 +10,7 @@ environment:
 dependencies:
   auth_repository:
     path: packages/auth_repository
+  cupertino_icons: ^1.0.9
   domain:
     path: packages/domain  
   equatable: ^2.0.8

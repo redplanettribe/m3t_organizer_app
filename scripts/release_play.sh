@@ -14,6 +14,7 @@ set -euo pipefail
 # Load deployment env vars from project root if present.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
 ENV_FILE="${PROJECT_ROOT}/.env.deployment"
 if [[ -f "${ENV_FILE}" ]]; then
   set -a
@@ -45,10 +46,17 @@ if ! command -v fvm >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v fastlane >/dev/null 2>&1; then
-  echo "fastlane is required but not installed."
+if ! command -v bundle >/dev/null 2>&1; then
+  echo "bundler is required but not installed (gem install bundler)."
   exit 1
 fi
+
+if [[ ! -f "${PROJECT_ROOT}/Gemfile" ]]; then
+  echo "Missing Gemfile at ${PROJECT_ROOT}/Gemfile"
+  exit 1
+fi
+
+bundle check >/dev/null 2>&1 || bundle install --quiet
 
 echo "Building signed Android App Bundle..."
 fvm flutter clean
@@ -62,7 +70,7 @@ if [[ ! -f "${AAB_PATH}" ]]; then
 fi
 
 echo "Uploading ${AAB_PATH} to Google Play track '${PLAY_TRACK}'..."
-fastlane supply \
+bundle exec fastlane supply \
   --aab "${AAB_PATH}" \
   --package_name "${PLAY_PACKAGE_NAME}" \
   --json_key "${PLAY_SERVICE_ACCOUNT_JSON}" \
