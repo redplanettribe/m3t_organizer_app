@@ -252,6 +252,8 @@ Never _throwEventsFailure(api.M3tApiException e) {
       throw domain.EventsConflict();
     case 'unauthorized':
       throw domain.EventsUnauthorized();
+    case 'not_invited':
+      throw domain.EventsNotInvited();
     case 'tier_not_allowed':
     case 'not_event_owner':
     case 'not_event_team_member':

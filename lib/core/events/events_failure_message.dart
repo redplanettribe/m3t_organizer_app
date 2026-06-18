@@ -27,6 +27,8 @@ extension EventsFailureMessage on EventsFailure {
       'The attendee is already checked in to another overlapping session.',
     EventsNotRegisteredForEvent() =>
       'This attendee is not registered for this event.',
+    EventsNotInvited() =>
+      'This attendee has not been invited to this event.',
     EventsSessionAllAttend() =>
       'The attendee has already checked in to every available session '
           'in their ticket tier.',

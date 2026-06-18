@@ -41,6 +41,9 @@ final class EventsLiveSessionConflict extends EventsFailure {}
 /// (backend error code `not_registered_for_event`).
 final class EventsNotRegisteredForEvent extends EventsFailure {}
 
+/// Attendee was not invited to the event (backend error code `not_invited`).
+final class EventsNotInvited extends EventsFailure {}
+
 /// Session check-in rejected because the attendee has already checked in to
 /// every assignable session in their ticket tier (backend error code
 /// `session_all_attend`).

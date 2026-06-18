@@ -25,6 +25,7 @@ extension DeliverableGiveawayFailureMessage on EventsFailure {
           'before they can receive this item.',
     EventsNotRegisteredForEvent() =>
       'This attendee is not registered for this event.',
+    EventsNotInvited() => toDisplayMessage(),
     // Backend code `not_event_team_member` collapses into [EventsForbidden].
     EventsForbidden() => "You are not on this event's team.",
     EventsUnauthorized() => toDisplayMessage(),

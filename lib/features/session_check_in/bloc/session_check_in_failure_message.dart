@@ -20,6 +20,7 @@ extension SessionCheckInFailureMessage on EventsFailure {
     EventsForbidden() => "Attendee's ticket tier does not allow this session.",
     EventsNotRegisteredForEvent() =>
       'Attendee is not registered for this event.',
+    EventsNotInvited() => toDisplayMessage(),
     EventsNotFound() => 'Session or attendee not found. Check the QR code.',
     EventsInvalidInput() =>
       'This QR code is not valid for check-in. Try another one.',

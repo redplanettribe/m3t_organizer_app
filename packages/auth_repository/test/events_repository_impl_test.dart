@@ -21,6 +21,29 @@ void main() {
       repository = EventsRepositoryImpl(apiClient: apiClient);
     });
 
+    group('checkInAttendee() code-first mapping', () {
+      test('maps not_invited to EventsNotInvited', () async {
+        when(
+          () => apiClient.checkInAttendee(
+            eventID: any(named: 'eventID'),
+            userID: any(named: 'userID'),
+          ),
+        ).thenThrow(
+          CheckInAttendeeFailure(
+            'not invited to this event',
+            statusCode: 403,
+            errorCode: 'not_invited',
+            showToUser: true,
+          ),
+        );
+
+        await expectLater(
+          repository.checkInAttendee(eventID: eventID, userID: userID),
+          throwsA(isA<EventsNotInvited>()),
+        );
+      });
+    });
+
     group('checkInAttendeeToSession() code-first mapping', () {
       final codeCases = <String, Matcher>{
         'session_full': isA<EventsSessionFull>(),
