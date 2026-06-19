@@ -23,10 +23,12 @@ Future<void> bootstrap() async {
 
   const tokenStorage = FlutterSecureTokenStorage();
   late final AuthRepositoryImpl authRepository;
+  final apiBaseUrl = _resolveApiBaseUrl();
+  final objectStoreBaseUrl = _resolveObjectStoreBaseUrl();
   final apiClient = M3tApiClient(
     tokenProvider: tokenStorage.read,
-    baseUrl: AppConfig.baseUrl,
-    objectStoreBaseUrl: Uri.parse(AppConfig.objectStoreUrl),
+    baseUrl: apiBaseUrl,
+    objectStoreBaseUrl: objectStoreBaseUrl,
     onSessionExpired: () => unawaited(authRepository.logout()),
   );
   authRepository = AuthRepositoryImpl(
@@ -41,7 +43,12 @@ Future<void> bootstrap() async {
   );
 
   final packageInfo = await PackageInfo.fromPlatform();
-  final currentBuild = int.tryParse(packageInfo.buildNumber);
+  final currentBuild = int.tryParse(packageInfo.buildNumber.trim());
+  if (currentBuild == null && packageInfo.buildNumber.isNotEmpty) {
+    debugPrint(
+      'bootstrap: could not parse build number "${packageInfo.buildNumber}"',
+    );
+  }
 
   final platformForQuery = switch (defaultTargetPlatform) {
     TargetPlatform.android => MobileAppPlatform.android,
@@ -71,6 +78,31 @@ Future<void> bootstrap() async {
       useIosStoreUrl: useIosStoreUrl,
     ),
   );
+}
+
+String _resolveApiBaseUrl() {
+  const envUrl = String.fromEnvironment('M3T_API_URL');
+  if (envUrl.isNotEmpty) {
+    return envUrl;
+  }
+
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android => AppConfig.defaultAndroidEmulatorApiBaseUrl,
+    _ => AppConfig.defaultDesktopApiBaseUrl,
+  };
+}
+
+Uri _resolveObjectStoreBaseUrl() {
+  const envUrl = String.fromEnvironment('OBJECT_STORE_URL');
+  if (envUrl.isNotEmpty) {
+    return Uri.parse(envUrl);
+  }
+
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android =>
+      Uri.parse(AppConfig.defaultAndroidEmulatorObjectStoreUrl),
+    _ => Uri.parse(AppConfig.defaultDesktopObjectStoreUrl),
+  };
 }
 
 /// Workaround for physical Android devices whose CA trust store is missing

@@ -64,16 +64,16 @@ final class App extends StatelessWidget {
                   return cubit;
                 },
               ),
-              if (currentBuild != null)
-                BlocProvider<RemoteConfigCubit>(
-                  create: (context) => RemoteConfigCubit(
-                    remoteConfigRepository: context.read(),
-                    currentBuild: currentBuild,
-                    app: 'organizer',
-                    platform: _remoteConfigPlatform,
-                    useIosStoreUrl: _useIosStoreUrl,
-                  ),
+              BlocProvider<RemoteConfigCubit>(
+                lazy: false,
+                create: (context) => RemoteConfigCubit(
+                  remoteConfigRepository: context.read(),
+                  currentBuild: currentBuild,
+                  app: 'organizer',
+                  platform: _remoteConfigPlatform,
+                  useIosStoreUrl: _useIosStoreUrl,
                 ),
+              ),
             ],
             child: BlocListener<AuthBloc, AuthState>(
               listener: (context, state) {
@@ -86,9 +86,7 @@ final class App extends StatelessWidget {
                     break;
                 }
               },
-              child: currentBuild == null
-                  ? const _AppView()
-                  : const AppUpdateGate(child: _AppView()),
+              child: const AppUpdateGate(child: _AppView()),
             ),
           ),
         ),

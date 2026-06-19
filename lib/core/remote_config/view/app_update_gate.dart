@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/app/theme/app_theme.dart';
 import 'package:m3t_organizer/core/remote_config/remote_config_cubit.dart';
 import 'package:m3t_organizer/core/remote_config/view/force_update_page.dart';
 
@@ -18,8 +19,6 @@ final class _AppUpdateGateState extends State<AppUpdateGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    context.read<RemoteConfigCubit>().checkUnawaited();
   }
 
   @override
@@ -41,10 +40,14 @@ final class _AppUpdateGateState extends State<AppUpdateGate>
       builder: (context, state) {
         if (state.status == RemoteConfigStatus.forced &&
             state.updateUrl != null) {
-          return ForceUpdatePage(
-            updateUrl: state.updateUrl!,
-            minVersion: state.minVersion,
-            latestVersion: state.latestVersion,
+          return MaterialApp(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            home: ForceUpdatePage(
+              updateUrl: state.updateUrl!,
+              minVersion: state.minVersion,
+              latestVersion: state.latestVersion,
+            ),
           );
         }
         return widget.child;

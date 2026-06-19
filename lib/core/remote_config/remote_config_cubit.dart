@@ -9,7 +9,7 @@ part 'remote_config_state.dart';
 final class RemoteConfigCubit extends Cubit<RemoteConfigState> {
   RemoteConfigCubit({
     required RemoteConfigRepository remoteConfigRepository,
-    required int currentBuild,
+    required int? currentBuild,
     required String app,
     required MobileAppPlatform platform,
     required bool useIosStoreUrl,
@@ -18,10 +18,12 @@ final class RemoteConfigCubit extends Cubit<RemoteConfigState> {
        _app = app,
        _platform = platform,
        _useIosStoreUrl = useIosStoreUrl,
-       super(const RemoteConfigState());
+       super(const RemoteConfigState()) {
+    checkUnawaited();
+  }
 
   final RemoteConfigRepository _remoteConfigRepository;
-  final int _currentBuild;
+  final int? _currentBuild;
   final String _app;
   final MobileAppPlatform _platform;
   final bool _useIosStoreUrl;
@@ -39,7 +41,8 @@ final class RemoteConfigCubit extends Cubit<RemoteConfigState> {
         platform: _platform,
       );
 
-      if (_currentBuild < config.minBuild) {
+      final currentBuild = _currentBuild;
+      if (currentBuild != null && currentBuild < config.minBuild) {
         final updateUrl = _useIosStoreUrl
             ? config.iosStoreUrl
             : config.androidStoreUrl;
