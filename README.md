@@ -76,6 +76,17 @@ packages/
 fvm flutter pub get
 ```
 
+### Linux desktop
+
+Flutter native assets need a linker next to `clang++`. On Ubuntu, install it:
+
+```bash
+sudo apt-get install -y lld-18
+```
+
+If you cannot install system packages, run `./scripts/setup_linux_toolchain.sh`
+and put `~/.local/llvm-bin` on `PATH` before `fvm flutter run -d linux`.
+
 The API base URL is injected at compile time via `--dart-define`. If the flag
 is omitted the app falls back to `http://10.0.2.2:8080` (Android emulator
 loopback — useful for local development).
