@@ -19,6 +19,7 @@ final class Session extends Equatable {
     this.description,
     this.source,
     this.sourceSessionId,
+    this.sessionNumber,
     this.speakers = const <Speaker>[],
     this.tags = const <Tag>[],
   });
@@ -33,6 +34,7 @@ final class Session extends Equatable {
   final String? description;
   final String? source;
   final String? sourceSessionId;
+  final int? sessionNumber;
   final List<Speaker> speakers;
   final List<Tag> tags;
 
@@ -49,6 +51,7 @@ final class Session extends Equatable {
     Object? description = _sentinel,
     Object? source = _sentinel,
     Object? sourceSessionId = _sentinel,
+    Object? sessionNumber = _sentinel,
     List<Speaker>? speakers,
     List<Tag>? tags,
   }) {
@@ -67,6 +70,9 @@ final class Session extends Equatable {
       sourceSessionId: sourceSessionId == _sentinel
           ? this.sourceSessionId
           : sourceSessionId as String?,
+      sessionNumber: sessionNumber == _sentinel
+          ? this.sessionNumber
+          : sessionNumber as int?,
       speakers: speakers ?? this.speakers,
       tags: tags ?? this.tags,
     );
@@ -84,6 +90,7 @@ final class Session extends Equatable {
     description,
     source,
     sourceSessionId,
+    sessionNumber,
     speakers,
     tags,
   ];

@@ -18,6 +18,7 @@ final class Session extends Equatable {
     this.description,
     this.source,
     this.sourceSessionId,
+    this.sessionNumber,
     this.status,
     this.speakers,
     this.tags,
@@ -37,6 +38,7 @@ final class Session extends Equatable {
   final String? description;
   final String? source;
   final String? sourceSessionId;
+  final int? sessionNumber;
   final String? status;
   final List<Speaker>? speakers;
   final List<Tag>? tags;
@@ -56,6 +58,7 @@ final class Session extends Equatable {
     description,
     source,
     sourceSessionId,
+    sessionNumber,
     status,
     speakers,
     tags,

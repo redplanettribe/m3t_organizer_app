@@ -16,6 +16,7 @@ Session _$SessionFromJson(Map<String, dynamic> json) => Session(
   description: json['description'] as String?,
   source: json['source'] as String?,
   sourceSessionId: json['source_session_id'] as String?,
+  sessionNumber: (json['session_number'] as num?)?.toInt(),
   status: json['status'] as String?,
   speakers: (json['speakers'] as List<dynamic>?)
       ?.map((e) => Speaker.fromJson(e as Map<String, dynamic>))
@@ -37,6 +38,7 @@ Map<String, dynamic> _$SessionToJson(Session instance) => <String, dynamic>{
   'description': instance.description,
   'source': instance.source,
   'source_session_id': instance.sourceSessionId,
+  'session_number': instance.sessionNumber,
   'status': instance.status,
   'speakers': instance.speakers,
   'tags': instance.tags,

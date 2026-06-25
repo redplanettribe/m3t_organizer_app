@@ -154,6 +154,42 @@ final class _SessionsViewState extends State<SessionsView>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
+                                  BlocBuilder<
+                                    SessionStatusCubit,
+                                    SessionStatusState
+                                  >(
+                                    builder: (context, statusState) {
+                                      final effective =
+                                          statusState.session ??
+                                          selectedSession;
+                                      final sessionNumber =
+                                          effective.sessionNumber;
+                                      if (sessionNumber == null) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          20,
+                                          16,
+                                          20,
+                                          0,
+                                        ),
+                                        child: Text(
+                                          '$sessionNumber',
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                   // Quick actions only use intrinsic height.
                                   BlocBuilder<
                                     SessionStatusCubit,

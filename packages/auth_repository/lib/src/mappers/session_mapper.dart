@@ -15,6 +15,7 @@ extension ApiSessionMapper on api.Session {
     description: description,
     source: source,
     sourceSessionId: sourceSessionId,
+    sessionNumber: sessionNumber,
     speakers: (speakers ?? const <api.Speaker>[])
         .map((s) => s.toDomain())
         .toList(),
