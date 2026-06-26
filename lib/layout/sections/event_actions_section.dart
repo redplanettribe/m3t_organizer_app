@@ -19,7 +19,6 @@ final class EventActionsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           EventCheckInView(eventID: eventID),
-          const SizedBox(height: 28),
           DeliverableGiveawayView(eventID: eventID),
         ],
       ),

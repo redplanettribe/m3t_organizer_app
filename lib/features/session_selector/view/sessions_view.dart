@@ -410,27 +410,13 @@ final class _ReleaseUncheckedInBookingsButtonState
 
     return FilledButton.icon(
       onPressed: _loading ? null : _confirmAndRelease,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 14,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      icon: Icon(
+      icon: const Icon(
         Icons.restore_rounded,
         size: 22,
-        color: theme.colorScheme.onPrimary,
       ),
       label: Text(
         _loading ? 'Releasing…' : 'Release unchecked-in bookings',
         style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.onPrimary,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -464,27 +450,13 @@ final class _ChangeSessionStatusButton extends StatelessWidget {
       onPressed: disabled
           ? null
           : () => context.read<SessionStatusCubit>().changeStatus(targetStatus),
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 14,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 0,
-        shadowColor: Colors.transparent,
-      ),
       icon: Icon(
         icon,
         size: 22,
-        color: theme.colorScheme.onPrimary,
       ),
       label: Text(
         disabled ? 'Working…' : label,
         style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.onPrimary,
           fontWeight: FontWeight.w600,
         ),
       ),

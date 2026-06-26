@@ -33,27 +33,13 @@ final class SessionCheckInButton extends StatelessWidget {
 
           return FilledButton.icon(
             onPressed: state.loading ? null : () => _openScannerModal(context),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 0,
-              shadowColor: Colors.transparent,
-            ),
-            icon: Icon(
+            icon: const Icon(
               Icons.qr_code_scanner_rounded,
               size: 22,
-              color: theme.colorScheme.onPrimary,
             ),
             label: Text(
               state.loading ? 'Checking in…' : 'Scan attendee QR',
               style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),

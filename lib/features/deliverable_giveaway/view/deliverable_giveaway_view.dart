@@ -62,37 +62,28 @@ final class _DeliverableGiveawayBody extends StatelessWidget {
         },
         child: BlocBuilder<DeliverableGiveawayCubit, DeliverableGiveawayState>(
           builder: (context, state) {
+            if (state.loadingList || state.deliverables.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
             final cubit = context.read<DeliverableGiveawayCubit>();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Give a deliverable',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Select an item, then scan the attendee’s QR code.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (state.loadingList)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (state.deliverables.isEmpty)
+            return Padding(
+              padding: const EdgeInsets.only(top: 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Text(
-                    'No deliverables are set up for this event yet.',
+                    'Give a deliverable',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select an item, then scan the attendee’s QR code.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  )
-                else
+                  ),
+                  const SizedBox(height: 16),
                   InputDecorator(
                     decoration: InputDecoration(
                       labelText: 'Deliverable',
@@ -125,40 +116,28 @@ final class _DeliverableGiveawayBody extends StatelessWidget {
                       ),
                     ),
                   ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed:
-                      state.loadingList ||
-                          state.selectedDeliverable == null ||
-                          state.loadingGiveaway
-                      ? null
-                      : () => _openGiveawayScannerModal(context),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed:
+                        state.selectedDeliverable == null ||
+                            state.loadingGiveaway
+                        ? null
+                        : () => _openGiveawayScannerModal(context),
+                    icon: const Icon(
+                      Icons.qr_code_scanner_rounded,
+                      size: 22,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                    shadowColor: Colors.transparent,
-                  ),
-                  icon: Icon(
-                    Icons.qr_code_scanner_rounded,
-                    size: 22,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                  label: Text(
-                    state.loadingGiveaway ? 'Recording…' : 'Scan recipient QR',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
+                    label: Text(
+                      state.loadingGiveaway
+                          ? 'Recording…'
+                          : 'Scan recipient QR',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),

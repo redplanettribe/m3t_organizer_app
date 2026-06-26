@@ -16,7 +16,14 @@ import 'package:flutter/material.dart';
 /// feel precise, cards feel spacious. Both values are M3 canonical — changing
 /// one does not require changing the other.
 ///
-/// ## Text-input contract
+/// ## Filled-button contract
+/// [_filledButtonTheme] drives primary [FilledButton] surfaces:
+/// - **Active:** `primary` background, `onPrimary` foreground — high contrast
+///   CTA.
+/// - **Inactive:** `onSurface` @ 12% background, `onSurface` @ 38% foreground —
+///   M3 disabled tokens; readable in both light and dark.
+///
+/// Widgets must not override icon/label colours — let [ButtonStyle] resolve per state.
 /// [_inputDecorationTheme] drives **all** text-input surfaces:
 /// - Every [TextField] / [TextFormField] in the app inherits this style
 ///   automatically — no per-widget decoration overrides needed.
@@ -50,6 +57,7 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       inputDecorationTheme: _inputDecorationTheme(colorScheme),
       cardTheme: _cardTheme(colorScheme),
+      filledButtonTheme: _filledButtonTheme(colorScheme),
     );
   }
 
@@ -64,6 +72,7 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       inputDecorationTheme: _inputDecorationTheme(colorScheme),
       cardTheme: _cardTheme(colorScheme),
+      filledButtonTheme: _filledButtonTheme(colorScheme),
     );
   }
 
@@ -102,4 +111,22 @@ abstract final class AppTheme {
     color: colorScheme.surfaceContainerLow,
     shape: const RoundedRectangleBorder(borderRadius: cardBorderRadius),
   );
+
+  /// M3 filled-button palette: primary CTA when active, muted on-surface when
+  /// disabled. Opacity tokens are canonical M3 values and adapt to brightness.
+  static FilledButtonThemeData _filledButtonTheme(ColorScheme colorScheme) {
+    return FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        foregroundColor: colorScheme.onPrimary,
+        backgroundColor: colorScheme.primary,
+        disabledForegroundColor: colorScheme.onSurface.withValues(alpha: 0.38),
+        disabledBackgroundColor: colorScheme.onSurface.withValues(alpha: 0.12),
+        minimumSize: const Size(64, 52),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(borderRadius: cardBorderRadius),
+      ),
+    );
+  }
 }
