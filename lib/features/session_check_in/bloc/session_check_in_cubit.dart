@@ -20,7 +20,7 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
   final String _sessionID;
   final EventsRepository _eventsRepository;
 
-  void setOverrideCapacity(bool value) {
+  void setOverrideCapacity({required bool value}) {
     emit(state.copyWith(overrideCapacity: value));
   }
 

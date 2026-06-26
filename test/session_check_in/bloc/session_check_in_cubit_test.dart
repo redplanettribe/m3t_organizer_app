@@ -38,7 +38,7 @@ void main() {
       blocTest<SessionCheckInCubit, SessionCheckInState>(
         'updates overrideCapacity in state',
         build: buildCubit,
-        act: (cubit) => cubit.setOverrideCapacity(true),
+        act: (cubit) => cubit.setOverrideCapacity(value: true),
         expect: () => const <SessionCheckInState>[
           SessionCheckInState(overrideCapacity: true),
         ],
@@ -81,7 +81,6 @@ void main() {
               eventID: eventID,
               sessionID: sessionID,
               userID: userID,
-              overrideCapacity: false,
             ),
           ).called(1);
         },
@@ -103,7 +102,7 @@ void main() {
           );
         },
         act: (cubit) async {
-          cubit.setOverrideCapacity(true);
+          cubit.setOverrideCapacity(value: true);
           await cubit.onUserIDScanned(userID);
         },
         expect: () => <SessionCheckInState>[
@@ -179,7 +178,6 @@ void main() {
               eventID: eventID,
               sessionID: sessionID,
               userID: userID,
-              overrideCapacity: false,
             ),
           ).called(2);
         },

@@ -189,7 +189,7 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
                     ? null
                     : (value) => context
                           .read<SessionCheckInCubit>()
-                          .setOverrideCapacity(value),
+                          .setOverrideCapacity(value: value),
               ),
             );
           },
