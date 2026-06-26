@@ -212,6 +212,7 @@ final class EventsDataSource {
     required String eventID,
     required String sessionID,
     required String userID,
+    bool overrideCapacity = false,
   }) async {
     final response = await _executor.client.post(
       _executor.uri(
@@ -221,7 +222,10 @@ final class EventsDataSource {
         ),
       ),
       headers: await _executor.authHeaders(),
-      body: jsonEncode(<String, String>{'user_id': userID}),
+      body: jsonEncode(<String, dynamic>{
+        'user_id': userID,
+        if (overrideCapacity) 'override_capacity': true,
+      }),
     );
 
     final data = _executor.parseEnvelope(

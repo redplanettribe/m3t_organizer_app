@@ -106,12 +106,14 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     required String eventID,
     required String sessionID,
     required String userID,
+    bool overrideCapacity = false,
   }) async {
     try {
       final result = await _apiClient.checkInAttendeeToSession(
         eventID: eventID,
         sessionID: sessionID,
         userID: userID,
+        overrideCapacity: overrideCapacity,
       );
       return (
         checkIn: result.checkIn.toDomain(),

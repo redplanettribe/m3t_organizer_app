@@ -129,10 +129,12 @@ class M3tApiClient {
     required String eventID,
     required String sessionID,
     required String userID,
+    bool overrideCapacity = false,
   }) => _events.checkInAttendeeToSession(
     eventID: eventID,
     sessionID: sessionID,
     userID: userID,
+    overrideCapacity: overrideCapacity,
   );
 
   Future<int> releaseUncheckedInSessionBookings({

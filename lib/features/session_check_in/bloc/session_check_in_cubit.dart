@@ -20,6 +20,10 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
   final String _sessionID;
   final EventsRepository _eventsRepository;
 
+  void setOverrideCapacity(bool value) {
+    emit(state.copyWith(overrideCapacity: value));
+  }
+
   Future<void> onUserIDScanned(String userID) async {
     final normalizedUserID = userID.trim();
     if (normalizedUserID.isEmpty || state.loading) {
@@ -44,6 +48,7 @@ final class SessionCheckInCubit extends Cubit<SessionCheckInState> {
         eventID: _eventID,
         sessionID: _sessionID,
         userID: normalizedUserID,
+        overrideCapacity: state.overrideCapacity,
       );
       emit(
         state.copyWith(

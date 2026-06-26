@@ -46,6 +46,7 @@ abstract interface class EventsRepository {
     required String eventID,
     required String sessionID,
     required String userID,
+    bool overrideCapacity = false,
   });
 
   /// Releases all bookings for attendees who haven't checked in to the

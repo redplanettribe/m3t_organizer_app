@@ -69,6 +69,7 @@ void main() {
               eventID: any(named: 'eventID'),
               sessionID: any(named: 'sessionID'),
               userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
             ),
           ).thenThrow(
             CheckInAttendeeToSessionFailure(
@@ -97,6 +98,7 @@ void main() {
               eventID: any(named: 'eventID'),
               sessionID: any(named: 'sessionID'),
               userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
             ),
           ).thenThrow(
             CheckInAttendeeToSessionFailure('x', statusCode: 409),
@@ -121,6 +123,7 @@ void main() {
               eventID: any(named: 'eventID'),
               sessionID: any(named: 'sessionID'),
               userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
             ),
           ).thenThrow(CheckInAttendeeToSessionFailure('x'));
 

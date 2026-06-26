@@ -34,6 +34,17 @@ void main() {
       eventsRepository: eventsRepository,
     );
 
+    group('setOverrideCapacity', () {
+      blocTest<SessionCheckInCubit, SessionCheckInState>(
+        'updates overrideCapacity in state',
+        build: buildCubit,
+        act: (cubit) => cubit.setOverrideCapacity(true),
+        expect: () => const <SessionCheckInState>[
+          SessionCheckInState(overrideCapacity: true),
+        ],
+      );
+    });
+
     group('onUserIDScanned', () {
       blocTest<SessionCheckInCubit, SessionCheckInState>(
         'does not call repository again for duplicate user after success',
@@ -44,6 +55,7 @@ void main() {
               eventID: any(named: 'eventID'),
               sessionID: any(named: 'sessionID'),
               userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
             ),
           ).thenAnswer(
             (_) async => (checkIn: successCheckIn, alreadyCheckedIn: false),
@@ -69,6 +81,51 @@ void main() {
               eventID: eventID,
               sessionID: sessionID,
               userID: userID,
+              overrideCapacity: false,
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<SessionCheckInCubit, SessionCheckInState>(
+        'passes overrideCapacity true when enabled',
+        build: buildCubit,
+        setUp: () {
+          when(
+            () => eventsRepository.checkInAttendeeToSession(
+              eventID: any(named: 'eventID'),
+              sessionID: any(named: 'sessionID'),
+              userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
+            ),
+          ).thenAnswer(
+            (_) async => (checkIn: successCheckIn, alreadyCheckedIn: false),
+          );
+        },
+        act: (cubit) async {
+          cubit.setOverrideCapacity(true);
+          await cubit.onUserIDScanned(userID);
+        },
+        expect: () => <SessionCheckInState>[
+          const SessionCheckInState(overrideCapacity: true),
+          const SessionCheckInState(
+            loading: true,
+            lastScannedUserId: userID,
+            overrideCapacity: true,
+          ),
+          SessionCheckInState(
+            latestCheckIn: successCheckIn,
+            lastScannedUserId: userID,
+            overrideCapacity: true,
+          ),
+        ],
+        verify: (_) {
+          verify(
+            () => eventsRepository.checkInAttendeeToSession(
+              eventID: eventID,
+              sessionID: sessionID,
+              userID: userID,
+              overrideCapacity: true,
             ),
           ).called(1);
         },
@@ -84,6 +141,7 @@ void main() {
               eventID: any(named: 'eventID'),
               sessionID: any(named: 'sessionID'),
               userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
             ),
           ).thenAnswer((_) async {
             callCount++;
@@ -121,6 +179,7 @@ void main() {
               eventID: eventID,
               sessionID: sessionID,
               userID: userID,
+              overrideCapacity: false,
             ),
           ).called(2);
         },

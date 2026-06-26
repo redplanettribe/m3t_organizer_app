@@ -7,6 +7,7 @@ final class SessionCheckInState extends Equatable {
     this.errorMessage,
     this.lastScannedUserId,
     this.scanFeedbackNonce = 0,
+    this.overrideCapacity = false,
   });
 
   final bool loading;
@@ -14,6 +15,7 @@ final class SessionCheckInState extends Equatable {
   final String? errorMessage;
   final String? lastScannedUserId;
   final int scanFeedbackNonce;
+  final bool overrideCapacity;
 
   static const _sentinel = Object();
 
@@ -23,6 +25,7 @@ final class SessionCheckInState extends Equatable {
     Object? errorMessage = _sentinel,
     Object? lastScannedUserId = _sentinel,
     int? scanFeedbackNonce,
+    bool? overrideCapacity,
   }) {
     return SessionCheckInState(
       loading: loading ?? this.loading,
@@ -36,6 +39,7 @@ final class SessionCheckInState extends Equatable {
           ? this.lastScannedUserId
           : lastScannedUserId as String?,
       scanFeedbackNonce: scanFeedbackNonce ?? this.scanFeedbackNonce,
+      overrideCapacity: overrideCapacity ?? this.overrideCapacity,
     );
   }
 
@@ -46,5 +50,6 @@ final class SessionCheckInState extends Equatable {
     errorMessage,
     lastScannedUserId,
     scanFeedbackNonce,
+    overrideCapacity,
   ];
 }

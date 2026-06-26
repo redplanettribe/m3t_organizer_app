@@ -6066,7 +6066,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. Session must be Live. If the user has no booking and the session has capacity, they are auto-booked then checked in. If the session is not Live or is full and the user has no booking, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
+                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. Session must be Live. If the user has no booking and the session has capacity, they are auto-booked then checked in. When override_capacity is true and the session is full with no booking, records an overflow check-in (overflow=true) without creating a booking. If the session is not Live or is full and the user has no booking and override_capacity is false, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
                 "consumes": [
                     "application/json"
                 ],
@@ -10650,6 +10650,9 @@
         "controllers.CheckInAttendeeToSessionRequest": {
             "type": "object",
             "properties": {
+                "override_capacity": {
+                    "type": "boolean"
+                },
                 "user_id": {
                     "type": "string"
                 }
@@ -14074,6 +14077,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "overflow": {
+                    "type": "boolean"
                 },
                 "session_id": {
                     "type": "string"

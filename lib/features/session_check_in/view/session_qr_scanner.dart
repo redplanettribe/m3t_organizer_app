@@ -163,6 +163,37 @@ final class _SessionQrScannerState extends State<SessionQrScanner> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
+        const SizedBox(height: 8),
+        BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
+          buildWhen: (previous, current) =>
+              previous.overrideCapacity != current.overrideCapacity ||
+              previous.loading != current.loading,
+          builder: (context, state) {
+            return Semantics(
+              toggled: state.overrideCapacity,
+              label: 'Allow over capacity',
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  'Allow over capacity',
+                  style: theme.textTheme.titleSmall,
+                ),
+                subtitle: Text(
+                  'Check in attendees when the session room is full.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                value: state.overrideCapacity,
+                onChanged: state.loading
+                    ? null
+                    : (value) => context
+                          .read<SessionCheckInCubit>()
+                          .setOverrideCapacity(value),
+              ),
+            );
+          },
+        ),
         const SizedBox(height: 12),
         BlocBuilder<SessionCheckInCubit, SessionCheckInState>(
           buildWhen: (previous, current) =>
