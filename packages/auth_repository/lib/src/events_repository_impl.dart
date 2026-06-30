@@ -283,6 +283,8 @@ Never _throwEventsFailure(api.M3tApiException e) {
   switch (e.errorCode) {
     case 'session_full':
       throw domain.EventsSessionFull();
+    case 'unchecked_bookings_remain':
+      throw domain.EventsUncheckedBookingsRemain();
     case 'schedule_conflict':
       throw domain.EventsScheduleConflict();
     case 'live_session_conflict':

@@ -17,6 +17,7 @@ extension EventCheckInFailureMessage on EventsFailure {
     EventsConflict() ||
     EventsLiveSessionConflict() ||
     EventsSessionFull() ||
+    EventsUncheckedBookingsRemain() ||
     EventsScheduleConflict() ||
     EventsSessionAllAttend() ||
     EventsDeliverableAlreadyGiven() ||

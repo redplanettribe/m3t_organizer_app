@@ -47,6 +47,7 @@ void main() {
     group('checkInAttendeeToSession() code-first mapping', () {
       final codeCases = <String, Matcher>{
         'session_full': isA<EventsSessionFull>(),
+        'unchecked_bookings_remain': isA<EventsUncheckedBookingsRemain>(),
         'schedule_conflict': isA<EventsScheduleConflict>(),
         'session_all_attend': isA<EventsSessionAllAttend>(),
         'not_registered_for_event': isA<EventsNotRegisteredForEvent>(),

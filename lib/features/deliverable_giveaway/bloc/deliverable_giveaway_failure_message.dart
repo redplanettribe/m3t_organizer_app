@@ -34,6 +34,7 @@ extension DeliverableGiveawayFailureMessage on EventsFailure {
     EventsConflict() => toDisplayMessage(),
     EventsLiveSessionConflict() => toDisplayMessage(),
     EventsSessionFull() => toDisplayMessage(),
+    EventsUncheckedBookingsRemain() => toDisplayMessage(),
     EventsScheduleConflict() => toDisplayMessage(),
     EventsSessionAllAttend() => toDisplayMessage(),
     EventsNetworkError() => toDisplayMessage(),

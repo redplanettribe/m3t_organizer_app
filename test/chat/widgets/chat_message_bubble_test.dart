@@ -152,7 +152,7 @@ void main() {
         senderName: 'Alice',
         body: 'Hello world',
         createdAt: DateTime.utc(2026, 6, 8, 12),
-        replyTo: ChatReplyTo(
+        replyTo: const ChatReplyTo(
           messageId: 'msg-0',
           senderUserId: 'user-3',
           senderName: 'Bob',
@@ -182,7 +182,7 @@ void main() {
     ) async {
       await pumpBubble(
         tester,
-        widget: buildBubble(onReact: (_) {}, showSenderHeader: true),
+        widget: buildBubble(onReact: (_) {}),
       );
 
       expect(find.byType(ChatSenderAvatar), findsOneWidget);

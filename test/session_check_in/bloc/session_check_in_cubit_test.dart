@@ -131,6 +131,41 @@ void main() {
       );
 
       blocTest<SessionCheckInCubit, SessionCheckInState>(
+        'surfaces unchecked bookings message on overflow failure',
+        build: buildCubit,
+        setUp: () {
+          when(
+            () => eventsRepository.checkInAttendeeToSession(
+              eventID: any(named: 'eventID'),
+              sessionID: any(named: 'sessionID'),
+              userID: any(named: 'userID'),
+              overrideCapacity: any(named: 'overrideCapacity'),
+            ),
+          ).thenThrow(EventsUncheckedBookingsRemain());
+        },
+        act: (cubit) async {
+          cubit.setOverrideCapacity(value: true);
+          await cubit.onUserIDScanned(userID);
+        },
+        expect: () => <SessionCheckInState>[
+          const SessionCheckInState(overrideCapacity: true),
+          const SessionCheckInState(
+            loading: true,
+            lastScannedUserId: userID,
+            overrideCapacity: true,
+          ),
+          const SessionCheckInState(
+            lastScannedUserId: userID,
+            overrideCapacity: true,
+            errorMessage:
+                'Release unchecked-in bookings before checking in over '
+                'capacity. Use Release unchecked-in bookings on the Sessions '
+                'screen, then scan again.',
+          ),
+        ],
+      );
+
+      blocTest<SessionCheckInCubit, SessionCheckInState>(
         'allows retry for same user after failure',
         build: buildCubit,
         setUp: () {

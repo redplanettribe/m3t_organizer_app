@@ -32,9 +32,15 @@ void main() {
         'selects persisted event when id is in list',
         build: buildCubit,
         setUp: () {
-          when(() => eventsRepository.getMyEvents()).thenAnswer((_) async => events);
-          when(() => selectedEventStorage.read()).thenAnswer((_) async => 'event-b');
-          when(() => selectedEventStorage.write(any())).thenAnswer((_) async {});
+          when(
+            () => eventsRepository.getMyEvents(),
+          ).thenAnswer((_) async => events);
+          when(
+            () => selectedEventStorage.read(),
+          ).thenAnswer((_) async => 'event-b');
+          when(
+            () => selectedEventStorage.write(any()),
+          ).thenAnswer((_) async {});
         },
         act: (cubit) => cubit.loadEvents(),
         expect: () => <SelectedEventState>[
@@ -53,9 +59,15 @@ void main() {
         'falls back to first event when persisted id is missing',
         build: buildCubit,
         setUp: () {
-          when(() => eventsRepository.getMyEvents()).thenAnswer((_) async => events);
-          when(() => selectedEventStorage.read()).thenAnswer((_) async => null);
-          when(() => selectedEventStorage.write(any())).thenAnswer((_) async {});
+          when(
+            () => eventsRepository.getMyEvents(),
+          ).thenAnswer((_) async => events);
+          when(
+            () => selectedEventStorage.read(),
+          ).thenAnswer((_) async => null);
+          when(
+            () => selectedEventStorage.write(any()),
+          ).thenAnswer((_) async {});
         },
         act: (cubit) => cubit.loadEvents(),
         expect: () => <SelectedEventState>[
@@ -74,11 +86,15 @@ void main() {
         'falls back to first event when persisted id is invalid',
         build: buildCubit,
         setUp: () {
-          when(() => eventsRepository.getMyEvents()).thenAnswer((_) async => events);
+          when(
+            () => eventsRepository.getMyEvents(),
+          ).thenAnswer((_) async => events);
           when(
             () => selectedEventStorage.read(),
           ).thenAnswer((_) async => 'unknown-event');
-          when(() => selectedEventStorage.write(any())).thenAnswer((_) async {});
+          when(
+            () => selectedEventStorage.write(any()),
+          ).thenAnswer((_) async {});
         },
         act: (cubit) => cubit.loadEvents(),
         expect: () => <SelectedEventState>[
@@ -100,13 +116,15 @@ void main() {
           when(
             () => eventsRepository.getMyEvents(),
           ).thenAnswer((_) async => const <Event>[]);
-          when(() => selectedEventStorage.read()).thenAnswer((_) async => 'event-a');
+          when(
+            () => selectedEventStorage.read(),
+          ).thenAnswer((_) async => 'event-a');
           when(() => selectedEventStorage.clear()).thenAnswer((_) async {});
         },
         act: (cubit) => cubit.loadEvents(),
         expect: () => <SelectedEventState>[
           const SelectedEventState(loading: true),
-          const SelectedEventState(events: []),
+          const SelectedEventState(),
         ],
         verify: (_) {
           verify(() => selectedEventStorage.clear()).called(1);
@@ -124,7 +142,9 @@ void main() {
           selectedEvent: eventA,
         ),
         setUp: () {
-          when(() => selectedEventStorage.write(any())).thenAnswer((_) async {});
+          when(
+            () => selectedEventStorage.write(any()),
+          ).thenAnswer((_) async {});
         },
         act: (cubit) => cubit.selectEvent(eventB),
         expect: () => <SelectedEventState>[

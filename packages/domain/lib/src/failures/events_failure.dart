@@ -29,6 +29,10 @@ final class EventsUnprocessableEntity extends EventsFailure {}
 /// (backend error code `session_full`).
 final class EventsSessionFull extends EventsFailure {}
 
+/// Session overflow check-in rejected because unchecked-in bookings
+/// still hold capacity (backend error code `unchecked_bookings_remain`).
+final class EventsUncheckedBookingsRemain extends EventsFailure {}
+
 /// Session check-in rejected because the attendee is already checked in to
 /// another overlapping session (backend error code `schedule_conflict`).
 final class EventsScheduleConflict extends EventsFailure {}

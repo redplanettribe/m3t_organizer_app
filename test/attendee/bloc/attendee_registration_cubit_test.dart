@@ -11,7 +11,7 @@ void main() {
     const eventId = 'evt-1';
     const userId = 'user-2';
 
-    final registration = EventRegistration(
+    const registration = EventRegistration(
       registrationId: 'reg-1',
       eventId: eventId,
       userId: userId,
@@ -48,7 +48,7 @@ void main() {
         const AttendeeRegistrationState(
           status: AttendeeRegistrationStatus.loading,
         ),
-        AttendeeRegistrationState(
+        const AttendeeRegistrationState(
           status: AttendeeRegistrationStatus.ready,
           registration: registration,
         ),

@@ -156,7 +156,8 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
       (c) => c.conversationId == conversationId,
     );
     final existing = index >= 0 ? conversations[index] : null;
-    final otherUserId = existing?.otherUserId ?? _otherUserIdFromMessage(message);
+    final otherUserId =
+        existing?.otherUserId ?? _otherUserIdFromMessage(message);
     final displayName = _displayNameForOther(
       otherUserId: otherUserId,
       lastMessage: message,
@@ -194,7 +195,8 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
           return ChatConversation(
             conversationId: conversation.conversationId,
             otherUserId: conversation.otherUserId,
-            otherParticipantDisplayName: conversation.otherParticipantDisplayName,
+            otherParticipantDisplayName:
+                conversation.otherParticipantDisplayName,
           );
         })
         .toList();

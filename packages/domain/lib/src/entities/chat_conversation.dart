@@ -16,7 +16,7 @@ final class ChatConversation extends Equatable {
   final String? otherParticipantDisplayName;
 
   String get displayTitle =>
-      otherParticipantDisplayName?.trim().isNotEmpty == true
+      (otherParticipantDisplayName?.trim().isNotEmpty ?? false)
       ? otherParticipantDisplayName!
       : otherUserId;
 

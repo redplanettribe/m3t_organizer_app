@@ -13,6 +13,10 @@ extension SessionCheckInFailureMessage on EventsFailure {
     EventsConflict() =>
       'This session is not live. Start it before checking in attendees.',
     EventsSessionFull() => 'Session is full. The attendee cannot be added.',
+    EventsUncheckedBookingsRemain() =>
+      'Release unchecked-in bookings before checking in over capacity. '
+          'Use Release unchecked-in bookings on the Sessions screen, then '
+          'scan again.',
     EventsScheduleConflict() =>
       'Attendee is already checked in to an overlapping session.',
     EventsSessionAllAttend() =>

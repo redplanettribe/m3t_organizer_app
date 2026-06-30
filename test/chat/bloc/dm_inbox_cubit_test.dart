@@ -15,14 +15,14 @@ void main() {
     const eventId = 'evt-1';
     const currentUserId = 'user-self';
 
-    final selfRegistration = EventRegistration(
+    const selfRegistration = EventRegistration(
       registrationId: 'reg-self',
       eventId: eventId,
       userId: currentUserId,
       name: 'Me',
       lastName: 'Organizer',
     );
-    final otherRegistration = EventRegistration(
+    const otherRegistration = EventRegistration(
       registrationId: 'reg-2',
       eventId: eventId,
       userId: 'user-2',
@@ -47,7 +47,7 @@ void main() {
           cursor: any(named: 'cursor'),
         ),
       ).thenAnswer(
-        (_) async => const ChatConversationPage(items: [], nextCursor: null),
+        (_) async => const ChatConversationPage(items: []),
       );
     });
 
@@ -90,7 +90,7 @@ void main() {
           pageSize: 20,
         ),
       ).thenAnswer(
-        (_) async => EventRegistrationPage(
+        (_) async => const EventRegistrationPage(
           items: [otherRegistration, selfRegistration],
         ),
       );
@@ -152,7 +152,6 @@ void main() {
           () => chatRepository.getDmConversations(
             eventID: eventId,
             limit: 50,
-            cursor: null,
           ),
         ).thenAnswer(
           (_) async => ChatConversationPage(
@@ -172,7 +171,9 @@ void main() {
             pageSize: 100,
           ),
         ).thenAnswer(
-          (_) async => EventRegistrationPage(items: [otherRegistration]),
+          (_) async => const EventRegistrationPage(
+            items: [otherRegistration],
+          ),
         );
         await cubit.loadConversations();
       },

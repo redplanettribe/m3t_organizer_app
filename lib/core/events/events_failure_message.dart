@@ -23,6 +23,8 @@ extension EventsFailureMessage on EventsFailure {
       'This QR code is not valid for check-in. Please try another one.',
     EventsSessionFull() =>
       'This session is already full. The attendee cannot be checked in.',
+    EventsUncheckedBookingsRemain() =>
+      'Release unchecked-in bookings before checking in over capacity.',
     EventsScheduleConflict() =>
       'The attendee is already checked in to another overlapping session.',
     EventsNotRegisteredForEvent() =>

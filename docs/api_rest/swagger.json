@@ -2067,7 +2067,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Books the given session for the authenticated attendee. The user must be registered for the event. If the session overlaps with other booked sessions, returns 409 unless override=true (then removes overlapping bookings and books this session). Room capacity is enforced. Idempotent: returns 200 when already booked.",
+                "description": "Books the given session for the authenticated attendee. The user must be registered for the event. If the session overlaps with other booked sessions, returns 409 unless override=true (then removes overlapping bookings and books this session). Room capacity is enforced. New bookings are not allowed while the session is Live. Idempotent: returns 200 when already booked.",
                 "produces": [
                     "application/json"
                 ],
@@ -2135,7 +2135,7 @@
                         }
                     },
                     "409": {
-                        "description": "error.code: session_full | schedule_conflict",
+                        "description": "error.code: session_full | schedule_conflict | session_live_no_bookings",
                         "schema": {
                             "$ref": "#/definitions/helpers.APIResponse"
                         }
@@ -6676,7 +6676,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. Session must be Live. If the user has no booking and the session has capacity, they are auto-booked then checked in. When override_capacity is true and the session is full with no booking, records an overflow check-in (overflow=true) without creating a booking. If the session is not Live or is full and the user has no booking and override_capacity is false, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
+                "description": "Records check-in of an attendee to a specific session. Caller must be the event owner or a team member. User must be registered for the event. Session must be Live. If the user has no booking and the session has capacity, they are auto-booked then checked in. When override_capacity is true and the session is full with no booking, records an overflow check-in (overflow=true) without creating a booking; unchecked-in bookings must be released first via DELETE .../bookings. If the session is not Live or is full and the user has no booking and override_capacity is false, returns 409. Idempotent: returns 201 when a new check-in is created, 200 when already checked in.",
                 "consumes": [
                     "application/json"
                 ],
@@ -6750,7 +6750,7 @@
                         }
                     },
                     "409": {
-                        "description": "error.code: session_full | session_not_live",
+                        "description": "error.code: session_full | session_not_live | unchecked_bookings_remain",
                         "schema": {
                             "$ref": "#/definitions/helpers.APIResponse"
                         }
