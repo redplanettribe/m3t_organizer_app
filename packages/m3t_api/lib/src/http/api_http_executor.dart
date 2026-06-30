@@ -257,4 +257,76 @@ final class ApiHttpExecutor {
       );
     }).toList();
   }
+
+  /// Parses `{data: {items, next_cursor}}` cursor-paginated list envelopes.
+  ({List<Map<String, dynamic>> items, String? nextCursor}) parseCursorEnvelope(
+    http.Response response, {
+    required ApiErrorFactory onError,
+  }) {
+    final data = parseEnvelope(response, onError: onError);
+    if (data == null) {
+      return (items: const [], nextCursor: null);
+    }
+
+    final itemsRaw = data['items'];
+    final items = itemsRaw is List
+        ? _mapList(itemsRaw, statusCode: response.statusCode, onError: onError)
+        : const <Map<String, dynamic>>[];
+
+    final nextCursor = data['next_cursor'] as String?;
+    return (items: items, nextCursor: nextCursor);
+  }
+
+  /// Parses success responses with no JSON body (e.g. HTTP 204).
+  void parseVoidEnvelope(
+    http.Response response, {
+    required ApiErrorFactory onError,
+  }) {
+    final body = _safeDecodeObject(response.body);
+
+    final errorJson = body?['error'];
+    if (errorJson is Map<String, dynamic>) {
+      final err = ApiError.fromJson(errorJson);
+      _maybeNotifySessionExpired(err.code);
+      throw onError(
+        message: err.message,
+        statusCode: response.statusCode,
+        errorCode: err.code,
+        showToUser: err.showToUser,
+      );
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw onError(
+        message: 'Request failed with status ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  /// Parses `{data: {items, pagination}}` page-based list envelopes.
+  ({
+    List<Map<String, dynamic>> items,
+    Map<String, dynamic>? pagination,
+  })
+  parsePaginatedEnvelope(
+    http.Response response, {
+    required ApiErrorFactory onError,
+  }) {
+    final data = parseEnvelope(response, onError: onError);
+    if (data == null) {
+      return (items: const [], pagination: null);
+    }
+
+    final itemsRaw = data['items'];
+    final items = itemsRaw is List
+        ? _mapList(itemsRaw, statusCode: response.statusCode, onError: onError)
+        : const <Map<String, dynamic>>[];
+
+    final pagination = data['pagination'];
+    return (
+      items: items,
+      pagination: pagination is Map<String, dynamic> ? pagination : null,
+    );
+  }
 }

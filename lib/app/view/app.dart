@@ -24,6 +24,7 @@ final class App extends StatelessWidget {
   const App({
     required AuthRepository authRepository,
     required EventsRepository eventsRepository,
+    required ChatRepository chatRepository,
     required RemoteConfigRepository remoteConfigRepository,
     required int? currentBuild,
     required MobileAppPlatform remoteConfigPlatform,
@@ -31,6 +32,7 @@ final class App extends StatelessWidget {
     super.key,
   }) : _authRepository = authRepository,
        _eventsRepository = eventsRepository,
+       _chatRepository = chatRepository,
        _remoteConfigRepository = remoteConfigRepository,
        _currentBuild = currentBuild,
        _remoteConfigPlatform = remoteConfigPlatform,
@@ -38,6 +40,7 @@ final class App extends StatelessWidget {
 
   final AuthRepository _authRepository;
   final EventsRepository _eventsRepository;
+  final ChatRepository _chatRepository;
   final RemoteConfigRepository _remoteConfigRepository;
   final int? _currentBuild;
   final MobileAppPlatform _remoteConfigPlatform;
@@ -50,43 +53,46 @@ final class App extends StatelessWidget {
       value: _authRepository,
       child: RepositoryProvider<EventsRepository>.value(
         value: _eventsRepository,
-        child: RepositoryProvider<RemoteConfigRepository>.value(
-          value: _remoteConfigRepository,
-          child: MultiBlocProvider(
-            providers: [
-              BlocProvider<AuthBloc>(
-                create: (context) => AuthBloc(authRepository: context.read()),
-              ),
-              BlocProvider<UserCubit>(
-                create: (context) {
-                  final cubit = UserCubit(authRepository: context.read());
-                  unawaited(cubit.loadCurrentUser());
-                  return cubit;
-                },
-              ),
-              BlocProvider<RemoteConfigCubit>(
-                lazy: false,
-                create: (context) => RemoteConfigCubit(
-                  remoteConfigRepository: context.read(),
-                  currentBuild: currentBuild,
-                  app: 'organizer',
-                  platform: _remoteConfigPlatform,
-                  useIosStoreUrl: _useIosStoreUrl,
+        child: RepositoryProvider<ChatRepository>.value(
+          value: _chatRepository,
+          child: RepositoryProvider<RemoteConfigRepository>.value(
+            value: _remoteConfigRepository,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<AuthBloc>(
+                  create: (context) => AuthBloc(authRepository: context.read()),
                 ),
+                BlocProvider<UserCubit>(
+                  create: (context) {
+                    final cubit = UserCubit(authRepository: context.read());
+                    unawaited(cubit.loadCurrentUser());
+                    return cubit;
+                  },
+                ),
+                BlocProvider<RemoteConfigCubit>(
+                  lazy: false,
+                  create: (context) => RemoteConfigCubit(
+                    remoteConfigRepository: context.read(),
+                    currentBuild: currentBuild,
+                    app: 'organizer',
+                    platform: _remoteConfigPlatform,
+                    useIosStoreUrl: _useIosStoreUrl,
+                  ),
+                ),
+              ],
+              child: BlocListener<AuthBloc, AuthState>(
+                listener: (context, state) {
+                  switch (state.status) {
+                    case .authenticated:
+                      unawaited(context.read<UserCubit>().loadCurrentUser());
+                    case .unauthenticated:
+                      context.read<UserCubit>().reset();
+                    case .unknown:
+                      break;
+                  }
+                },
+                child: const AppUpdateGate(child: _AppView()),
               ),
-            ],
-            child: BlocListener<AuthBloc, AuthState>(
-              listener: (context, state) {
-                switch (state.status) {
-                  case .authenticated:
-                    unawaited(context.read<UserCubit>().loadCurrentUser());
-                  case .unauthenticated:
-                    context.read<UserCubit>().reset();
-                  case .unknown:
-                    break;
-                }
-              },
-              child: const AppUpdateGate(child: _AppView()),
             ),
           ),
         ),
@@ -94,10 +100,6 @@ final class App extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// _AppView (router host)
-// ---------------------------------------------------------------------------
 
 final class _AppView extends StatefulWidget {
   const _AppView();

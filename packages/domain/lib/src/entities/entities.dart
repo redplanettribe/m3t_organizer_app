@@ -1,4 +1,13 @@
 export 'auth_user.dart';
+export 'chat_ban.dart';
+export 'chat_ban_page.dart';
+export 'chat_conversation.dart';
+export 'chat_conversation_page.dart';
+export 'chat_message.dart';
+export 'chat_message_page.dart';
+export 'chat_reaction.dart';
+export 'chat_realtime_event.dart';
+export 'chat_reply_to.dart';
 export 'deliverable_giveaway.dart';
 export 'event.dart';
 export 'event_check_in.dart';

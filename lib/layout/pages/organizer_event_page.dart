@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m3t_organizer/features/chat/chat.dart';
 import 'package:m3t_organizer/features/session_selector/session_selector.dart';
 import 'package:m3t_organizer/layout/sections/event_actions_section.dart';
 
@@ -80,6 +81,7 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
             eventID: widget.eventID,
             onSheetExpanded: _onSessionSheetExpansionChanged,
           ),
+          ChatHomePage(eventID: widget.eventID),
         ],
       ),
       bottomNavigationBar: DecoratedBox(
@@ -101,6 +103,10 @@ final class _OrganizerEventPageState extends State<OrganizerEventPage>
             NavigationDestination(
               icon: Icon(Icons.view_agenda_rounded),
               label: 'Sessions',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.chat_bubble_outline),
+              label: 'Chat',
             ),
           ],
         ),

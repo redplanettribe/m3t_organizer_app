@@ -49,3 +49,51 @@ abstract final class SessionPaths {
 abstract final class MobilePaths {
   static const remoteConfig = '/mobile/remote-config';
 }
+
+abstract final class ChatPaths {
+  static String generalMessages(String eventID) =>
+      '/attendee/events/$eventID/chat/general/messages';
+
+  static String dmMessages({
+    required String eventID,
+    required String recipientUserID,
+  }) => '/attendee/events/$eventID/chat/dm/$recipientUserID/messages';
+
+  static String dmConversations(String eventID) =>
+      '/attendee/events/$eventID/chat/dm/conversations';
+
+  static String attendeeMessage({
+    required String eventID,
+    required String messageID,
+  }) => '/attendee/events/$eventID/chat/messages/$messageID';
+
+  static String attendeeMessageReactions({
+    required String eventID,
+    required String messageID,
+  }) => '/attendee/events/$eventID/chat/messages/$messageID/reactions';
+
+  static String organizerMessages(String eventID) =>
+      '/events/$eventID/chat/organizers/messages';
+
+  static String organizerMessage({
+    required String eventID,
+    required String messageID,
+  }) => '/events/$eventID/chat/organizers/messages/$messageID';
+
+  static String organizerMessageReactions({
+    required String eventID,
+    required String messageID,
+  }) => '/events/$eventID/chat/organizers/messages/$messageID/reactions';
+
+  static String organizerDeleteGeneralMessage({
+    required String eventID,
+    required String messageID,
+  }) => '/events/$eventID/chat/messages/$messageID';
+
+  static String chatBans(String eventID) => '/events/$eventID/chat/bans';
+
+  static String chatBan({
+    required String eventID,
+    required String userID,
+  }) => '/events/$eventID/chat/bans/$userID';
+}

@@ -215,3 +215,173 @@ final class GetMobileRemoteConfigFailure extends M3tApiException {
     super.showToUser,
   });
 }
+
+/// Thrown when fetching DM inbox conversations fails.
+final class GetDmConversationsFailure extends M3tApiException {
+  GetDmConversationsFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when fetching DM thread history fails.
+final class GetDmMessagesFailure extends M3tApiException {
+  GetDmMessagesFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when sending a DM fails.
+final class SendDmMessageFailure extends M3tApiException {
+  SendDmMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when organizer chat history fetch fails.
+final class GetOrganizerChatMessagesFailure extends M3tApiException {
+  GetOrganizerChatMessagesFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when sending an organizer chat message fails.
+final class SendOrganizerChatMessageFailure extends M3tApiException {
+  SendOrganizerChatMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when deleting an organizer chat message fails.
+final class DeleteOrganizerChatMessageFailure extends M3tApiException {
+  DeleteOrganizerChatMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when setting an organizer chat reaction fails.
+final class SetOrganizerChatReactionFailure extends M3tApiException {
+  SetOrganizerChatReactionFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when removing an organizer chat reaction fails.
+final class RemoveOrganizerChatReactionFailure extends M3tApiException {
+  RemoveOrganizerChatReactionFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when organizer moderation delete of a general message fails.
+final class DeleteGeneralChatMessageFailure extends M3tApiException {
+  DeleteGeneralChatMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when banning a user from chat fails.
+final class BanChatUserFailure extends M3tApiException {
+  BanChatUserFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when unbanning a user from chat fails.
+final class UnbanChatUserFailure extends M3tApiException {
+  UnbanChatUserFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when listing chat bans fails.
+final class ListChatBansFailure extends M3tApiException {
+  ListChatBansFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when listing general chat messages fails.
+final class GetGeneralChatMessagesFailure extends M3tApiException {
+  GetGeneralChatMessagesFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when sending a general chat message fails.
+final class SendGeneralChatMessageFailure extends M3tApiException {
+  SendGeneralChatMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when deleting an attendee chat message fails.
+final class DeleteAttendeeChatMessageFailure extends M3tApiException {
+  DeleteAttendeeChatMessageFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when setting a chat message reaction fails.
+final class SetChatMessageReactionFailure extends M3tApiException {
+  SetChatMessageReactionFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when removing a chat message reaction fails.
+final class RemoveChatMessageReactionFailure extends M3tApiException {
+  RemoveChatMessageReactionFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}

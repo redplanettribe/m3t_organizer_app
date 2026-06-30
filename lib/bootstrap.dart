@@ -38,6 +38,9 @@ Future<void> bootstrap() async {
   final eventsRepository = EventsRepositoryImpl(
     apiClient: apiClient,
   );
+  final chatRepository = ChatRepositoryImpl(
+    apiClient: apiClient,
+  );
   final remoteConfigRepository = RemoteConfigRepositoryImpl(
     apiClient: apiClient,
   );
@@ -72,6 +75,7 @@ Future<void> bootstrap() async {
     App(
       authRepository: authRepository,
       eventsRepository: eventsRepository,
+      chatRepository: chatRepository,
       remoteConfigRepository: remoteConfigRepository,
       currentBuild: currentBuild,
       remoteConfigPlatform: platformForQuery,

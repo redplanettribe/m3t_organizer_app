@@ -3,6 +3,21 @@ import 'package:m3t_api/src/realtime/ws_uri.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('bearerWebSocketUri', () {
+    test('maps http to ws without ticket query', () {
+      final u = bearerWebSocketUri(apiBaseUrl: 'http://10.0.2.2:8080');
+      expect(u.scheme, 'ws');
+      expect(u.path, '/ws');
+      expect(u.queryParameters, isEmpty);
+    });
+
+    test('maps https to wss', () {
+      final u = bearerWebSocketUri(apiBaseUrl: 'https://api.example.com/v1');
+      expect(u.scheme, 'wss');
+      expect(u.path, '/v1/ws');
+    });
+  });
+
   group('parseSessionStatusChangedPayload', () {
     test('parses valid envelope', () {
       final payload = parseSessionStatusChangedPayload(<String, dynamic>{

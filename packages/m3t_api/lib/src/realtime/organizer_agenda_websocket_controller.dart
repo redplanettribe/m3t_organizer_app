@@ -1,131 +1,62 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:m3t_api/src/models/agenda_ws_ticket.dart';
 import 'package:m3t_api/src/models/organizer_agenda_session_status_payload.dart';
-import 'package:m3t_api/src/realtime/ws_uri.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:m3t_api/src/realtime/ws_frame.dart';
+import 'package:m3t_api/src/realtime/ws_multiplexer.dart';
 
 const _sessionStatusChangedType = 'session.status_changed';
 
-/// Multiplexed WS: ticket auth, subscribe organizer agenda topic, status push.
+/// Multiplexed WS: subscribe organizer agenda topic, status push.
 final class OrganizerAgendaWebSocketController {
   OrganizerAgendaWebSocketController({
-    required this.apiBaseUrl,
+    required WsMultiplexer multiplexer,
     required this.eventID,
-    required this.getTicket,
     required this.onSessionStatusChanged,
     this.onError,
-  });
+  }) : _multiplexer = multiplexer;
 
-  final String apiBaseUrl;
+  final WsMultiplexer _multiplexer;
   final String eventID;
-  final Future<AgendaWsTicket> Function() getTicket;
   final void Function(OrganizerAgendaSessionStatusPayload payload)
   onSessionStatusChanged;
   final void Function(Object error)? onError;
 
   bool _cancelled = false;
-  WebSocketChannel? _channel;
-  static const _initialReconnectDelay = Duration(seconds: 1);
-  static const _maxReconnectDelay = Duration(seconds: 30);
+  StreamSubscription<WsFrame>? _subscription;
+  late final String _topic = 'organizer.agenda.${eventID.toLowerCase()}';
 
-  /// Starts reconnect loop until [cancel] is called.
+  /// Subscribes to the agenda topic until [cancel] is called.
   void start() {
-    unawaited(_runLoop());
+    _multiplexer
+      ..connect()
+      ..subscribe(_topic);
+    _subscription = _multiplexer.frames(_topic).listen(
+      _handleFrame,
+      onError: onError,
+    );
   }
 
-  Future<void> _runLoop() async {
-    var delay = _initialReconnectDelay;
-    while (!_cancelled) {
-      try {
-        final ticketRow = await getTicket();
-        if (_cancelled) return;
+  void _handleFrame(WsFrame frame) {
+    if (_cancelled) return;
+    if (frame.type != _sessionStatusChangedType) return;
 
-        final uri = organizerAgendaWebSocketUri(
-          apiBaseUrl: apiBaseUrl,
-          ticket: ticketRow.ticket,
-        );
-        final channel = WebSocketChannel.connect(uri);
-        _channel = channel;
-        delay = _initialReconnectDelay;
-
-        _sendSubscribe(channel);
-
-        await for (final message in channel.stream) {
-          if (_cancelled) break;
-          _handleRawMessage(message);
-        }
-      } on Object catch (e, _) {
-        if (_cancelled) return;
-        onError?.call(e);
-      } finally {
-        await _channel?.sink.close();
-        _channel = null;
-      }
-
-      if (_cancelled) return;
-      await Future<void>.delayed(delay);
-      final nextMs = (delay.inMilliseconds * 2).clamp(
-        _initialReconnectDelay.inMilliseconds,
-        _maxReconnectDelay.inMilliseconds,
-      );
-      delay = Duration(milliseconds: nextMs);
-    }
-  }
-
-  void _sendSubscribe(WebSocketChannel channel) {
-    final topic = 'organizer.agenda.${eventID.toLowerCase()}';
-    final frame = jsonEncode(<String, dynamic>{
-      'type': 'subscribe',
-      'topic': topic,
-      'id': 'sub-${DateTime.now().microsecondsSinceEpoch}',
+    final payload = parseSessionStatusChangedPayload(<String, dynamic>{
+      'type': frame.type,
+      'topic': frame.topic,
+      'data': frame.data,
+      'id': frame.id,
+      'ts': frame.ts,
     });
-    channel.sink.add(frame);
-  }
-
-  void _handleRawMessage(dynamic message) {
-    final text = switch (message) {
-      final String s => s,
-      final List<int> bytes => utf8.decode(bytes),
-      _ => message.toString(),
-    };
-
-    try {
-      final decoded = jsonDecode(text);
-      if (decoded is! Map<String, dynamic>) return;
-
-      final type = decoded['type'] as String?;
-      if (type == 'pong') return;
-
-      if (type == 'error') {
-        final data = decoded['data'];
-        if (data is Map<String, dynamic>) {
-          onError?.call(
-            StateError(
-              '${data['code']}: ${data['message']}',
-            ),
-          );
-        } else {
-          onError?.call(StateError('websocket error frame'));
-        }
-        return;
-      }
-
-      if (type == _sessionStatusChangedType) {
-        final payload = parseSessionStatusChangedPayload(decoded);
-        if (payload != null) {
-          onSessionStatusChanged(payload);
-        }
-      }
-    } on Object catch (e) {
-      onError?.call(e);
+    if (payload != null) {
+      onSessionStatusChanged(payload);
     }
   }
 
   void cancel() {
     _cancelled = true;
-    unawaited(_channel?.sink.close() ?? Future<void>.value());
+    _multiplexer.unsubscribe(_topic);
+    unawaited(_subscription?.cancel());
+    _subscription = null;
   }
 }
 

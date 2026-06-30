@@ -185,11 +185,8 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
     void Function(Object error)? onError,
   }) {
     final controller = api.OrganizerAgendaWebSocketController(
-      apiBaseUrl: _apiClient.baseUrl,
+      multiplexer: _apiClient.wsMultiplexer,
       eventID: eventID,
-      getTicket: () => _apiClient.getOrganizerAgendaWebSocketTicket(
-        eventID: eventID,
-      ),
       onSessionStatusChanged: (payload) {
         final domain.SessionStatus newStatus;
         try {
