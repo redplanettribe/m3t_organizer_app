@@ -16,7 +16,6 @@ final class ChatReplyPreview extends StatelessWidget {
     ].whereType<String>().where((s) => s.isNotEmpty).join(' ');
 
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.5),

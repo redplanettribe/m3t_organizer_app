@@ -7,7 +7,7 @@ import 'package:m3t_organizer/core/chat/chat_failure_message.dart';
 
 part 'organizers_chat_state.dart';
 
-/// Organizers backstage chat: history, send, reactions, moderation tools.
+/// Organizers team chat: history, send, reactions.
 final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
   OrganizersChatCubit({
     required ChatRepository chatRepository,
@@ -239,83 +239,6 @@ final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
       emit(
         state.copyWith(
           messages: _updateReactions(state.messages, messageID, reactions),
-        ),
-      );
-    } on ChatFailure catch (failure, stackTrace) {
-      addError(failure, stackTrace);
-      emit(state.copyWith(errorMessage: failure.toDisplayMessage()));
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(
-        state.copyWith(
-          errorMessage: ChatUnknownError().toDisplayMessage(),
-        ),
-      );
-    }
-  }
-
-  Future<void> deleteGeneralMessage(String messageId) async {
-    final trimmed = messageId.trim();
-    if (trimmed.isEmpty) return;
-
-    try {
-      await _chatRepository.deleteGeneralMessageAsOrganizer(
-        eventID: _eventID,
-        messageID: trimmed,
-      );
-    } on ChatFailure catch (failure, stackTrace) {
-      addError(failure, stackTrace);
-      emit(state.copyWith(errorMessage: failure.toDisplayMessage()));
-      rethrow;
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(
-        state.copyWith(
-          errorMessage: ChatUnknownError().toDisplayMessage(),
-        ),
-      );
-      rethrow;
-    }
-  }
-
-  Future<void> loadBans() async {
-    emit(state.copyWith(loadingBans: true, errorMessage: null));
-    try {
-      final page = await _chatRepository.listChatBans(eventID: _eventID);
-      emit(
-        state.copyWith(
-          loadingBans: false,
-          bans: page.items,
-        ),
-      );
-    } on ChatFailure catch (failure, stackTrace) {
-      addError(failure, stackTrace);
-      emit(
-        state.copyWith(
-          loadingBans: false,
-          errorMessage: failure.toDisplayMessage(),
-        ),
-      );
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(
-        state.copyWith(
-          loadingBans: false,
-          errorMessage: ChatUnknownError().toDisplayMessage(),
-        ),
-      );
-    }
-  }
-
-  Future<void> unbanUser(String userId) async {
-    try {
-      await _chatRepository.unbanChatUser(
-        eventID: _eventID,
-        userID: userId,
-      );
-      emit(
-        state.copyWith(
-          bans: state.bans.where((b) => b.userId != userId).toList(),
         ),
       );
     } on ChatFailure catch (failure, stackTrace) {

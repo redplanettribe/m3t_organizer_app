@@ -176,6 +176,16 @@ final class GetEventDeliverablesFailure extends M3tApiException {
   });
 }
 
+/// Thrown when listing event registrations fails.
+final class ListEventRegistrationsFailure extends M3tApiException {
+  ListEventRegistrationsFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
 /// Thrown when recording a deliverable giveaway fails.
 final class GiveDeliverableFailure extends M3tApiException {
   GiveDeliverableFailure(

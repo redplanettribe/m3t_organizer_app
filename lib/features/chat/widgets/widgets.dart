@@ -1,7 +1,9 @@
 export 'chat_message_bubble.dart';
 export 'chat_message_bubble_content.dart';
+export 'chat_message_grouping.dart';
 export 'chat_message_reactions.dart';
 export 'chat_reply_preview.dart';
+export 'chat_sender_avatar.dart';
 export 'emoji_picker_sheet.dart';
 export 'message_actions_overlay.dart';
 export 'quick_reaction_emojis.dart';

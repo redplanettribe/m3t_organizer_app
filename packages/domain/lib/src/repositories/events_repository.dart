@@ -2,6 +2,7 @@ import 'package:domain/src/entities/deliverable_giveaway.dart';
 import 'package:domain/src/entities/event.dart';
 import 'package:domain/src/entities/event_check_in.dart';
 import 'package:domain/src/entities/event_deliverable.dart';
+import 'package:domain/src/entities/event_registration.dart';
 import 'package:domain/src/entities/event_with_rooms.dart';
 import 'package:domain/src/entities/organizer_session_status_changed.dart';
 import 'package:domain/src/entities/session.dart';
@@ -27,6 +28,22 @@ abstract interface class EventsRepository {
 
   Future<List<EventDeliverable>> getEventDeliverables({
     required String eventID,
+  });
+
+  Future<EventRegistrationPage> listEventRegistrations({
+    required String eventID,
+    String? search,
+    int? page,
+    int? pageSize,
+  });
+
+  /// Returns the registration for [userID], or `null` when not registered.
+  ///
+  /// Pages through [listEventRegistrations] because the API has no
+  /// single-user lookup. A future `user_id` query param would avoid scanning.
+  Future<EventRegistration?> getEventRegistrationByUserId({
+    required String eventID,
+    required String userID,
   });
 
   Future<DeliverableGiveaway> giveDeliverableToUser({

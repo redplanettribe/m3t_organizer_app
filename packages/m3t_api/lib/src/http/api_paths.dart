@@ -18,6 +18,9 @@ abstract final class EventPaths {
 
   static String deliverables(String eventID) => '/events/$eventID/deliverables';
 
+  static String registrations(String eventID) =>
+      '/events/$eventID/registrations';
+
   static String deliverableGiveaways({
     required String eventID,
     required String deliverableID,

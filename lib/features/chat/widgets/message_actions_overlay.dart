@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:m3t_organizer/features/chat/widgets/chat_message_bubble.dart';
@@ -15,24 +17,26 @@ enum MessageAction {
 Future<MessageAction?> showMessageActions({
   required BuildContext context,
   required Rect messageRect,
+  required double bubbleHeight,
   required ChatMessage message,
   required bool isOwn,
-  required bool showSenderName,
+  required bool showSenderHeader,
   required bool canDelete,
   required void Function(String emoji) onReact,
 }) {
   return Navigator.of(context).push<MessageAction>(
     PageRouteBuilder(
       opaque: false,
-      barrierColor: Colors.black54,
+      barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 180),
       reverseTransitionDuration: const Duration(milliseconds: 140),
       pageBuilder: (context, animation, secondaryAnimation) {
         return _MessageActionsOverlay(
           messageRect: messageRect,
+          bubbleHeight: bubbleHeight,
           message: message,
           isOwn: isOwn,
-          showSenderName: showSenderName,
+          showSenderHeader: showSenderHeader,
           canDelete: canDelete,
           onReact: onReact,
           animation: animation,
@@ -48,18 +52,20 @@ Future<MessageAction?> showMessageActions({
 final class _MessageActionsOverlay extends StatefulWidget {
   const _MessageActionsOverlay({
     required this.messageRect,
+    required this.bubbleHeight,
     required this.message,
     required this.isOwn,
-    required this.showSenderName,
+    required this.showSenderHeader,
     required this.canDelete,
     required this.onReact,
     required this.animation,
   });
 
   final Rect messageRect;
+  final double bubbleHeight;
   final ChatMessage message;
   final bool isOwn;
-  final bool showSenderName;
+  final bool showSenderHeader;
   final bool canDelete;
   final void Function(String emoji) onReact;
   final Animation<double> animation;
@@ -70,7 +76,7 @@ final class _MessageActionsOverlay extends StatefulWidget {
 
 final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
   static const _reactionBarHeight = 52.0;
-  static const _menuHeight = 48.0;
+  static const _menuRowHeight = 48.0;
   static const _spacing = 8.0;
 
   void _pop([MessageAction? action]) {
@@ -88,22 +94,46 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
     final padding = MediaQuery.paddingOf(context);
     final maxBubbleWidth = screenSize.width * 0.78;
 
-    final reactionBarTop =
-        widget.messageRect.top - _reactionBarHeight - _spacing;
+    final menuItemCount = widget.canDelete ? 3 : 2;
+    final menuHeight = _menuRowHeight * menuItemCount;
+    final safeTop = padding.top + _reactionBarHeight + _spacing + 8;
+    final safeBottom = screenSize.height - padding.bottom - 8;
+
+    var bubbleTop = widget.messageRect.top;
+    final bubbleHeight = widget.bubbleHeight;
+
+    double menuAnchorFor(double top) {
+      final reactionTop = top - _reactionBarHeight - _spacing;
+      final reactionsAbove = reactionTop >= padding.top + 8;
+      if (reactionsAbove) {
+        return top + bubbleHeight + _spacing;
+      }
+      return top +
+          bubbleHeight +
+          _spacing +
+          _reactionBarHeight +
+          _spacing;
+    }
+
+    var menuAnchorY = menuAnchorFor(bubbleTop);
+    if (menuAnchorY + menuHeight > safeBottom) {
+      final maxLiftTop = widget.messageRect.top;
+      final stackBelowBubble = menuAnchorY - bubbleTop;
+      final desiredTop = safeBottom - menuHeight - stackBelowBubble;
+      if (safeTop < maxLiftTop) {
+        bubbleTop = desiredTop.clamp(safeTop, maxLiftTop);
+      } else {
+        bubbleTop = maxLiftTop;
+      }
+      menuAnchorY = menuAnchorFor(bubbleTop);
+    }
+
+    final reactionBarTop = bubbleTop - _reactionBarHeight - _spacing;
     final showReactionBarAbove = reactionBarTop >= padding.top + 8;
     final reactionBarY = showReactionBarAbove
         ? reactionBarTop
-        : widget.messageRect.bottom + _spacing;
-
-    final menuTop = widget.messageRect.bottom + _spacing;
-    final showMenuBelow =
-        menuTop + _menuHeight * (widget.canDelete ? 3 : 2) <=
-        screenSize.height - padding.bottom - 8;
-    final menuY = showMenuBelow
-        ? menuTop
-        : widget.messageRect.top -
-              _spacing -
-              _menuHeight * (widget.canDelete ? 3 : 2);
+        : bubbleTop + bubbleHeight + _spacing;
+    menuAnchorY = menuAnchorFor(bubbleTop);
 
     final bubbleCenterX = widget.messageRect.center.dx;
     final reactionBarLeft = (bubbleCenterX - 180).clamp(
@@ -122,6 +152,14 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
             screenSize.width - menuWidth - 8,
           );
 
+    final liftOffset = bubbleTop - widget.messageRect.top;
+    final liftAnimation = CurvedAnimation(
+      parent: widget.animation,
+      curve: Curves.easeOutCubic,
+    );
+    final menuYAtStart = menuAnchorFor(widget.messageRect.top);
+    final menuYAtEnd = menuAnchorY;
+
     return Material(
       type: MaterialType.transparency,
       child: Stack(
@@ -130,7 +168,12 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
             child: GestureDetector(
               onTap: _pop,
               behavior: HitTestBehavior.opaque,
-              child: const ColoredBox(color: Colors.transparent),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.38),
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -147,10 +190,18 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
               ),
             ),
           ),
-          Positioned(
-            left: widget.messageRect.left,
-            top: widget.messageRect.top,
-            width: widget.messageRect.width,
+          AnimatedBuilder(
+            animation: liftAnimation,
+            builder: (context, child) {
+              final top =
+                  widget.messageRect.top + liftOffset * liftAnimation.value;
+              return Positioned(
+                left: widget.messageRect.left,
+                top: top,
+                width: widget.messageRect.width,
+                child: child!,
+              );
+            },
             child: ScaleTransition(
               scale: Tween<double>(begin: 0.95, end: 1).animate(
                 CurvedAnimation(
@@ -162,15 +213,23 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
                 context: context,
                 message: widget.message,
                 isOwn: widget.isOwn,
-                showSenderName: widget.showSenderName,
+                showSenderHeader: widget.showSenderHeader,
                 maxWidth: maxBubbleWidth,
               ),
             ),
           ),
-          Positioned(
-            left: menuLeft,
-            top: menuY,
-            width: menuWidth,
+          AnimatedBuilder(
+            animation: liftAnimation,
+            builder: (context, child) {
+              final top = menuYAtStart +
+                  (menuYAtEnd - menuYAtStart) * liftAnimation.value;
+              return Positioned(
+                left: menuLeft,
+                top: top,
+                width: menuWidth,
+                child: child!,
+              );
+            },
             child: ScaleTransition(
               scale: CurvedAnimation(
                 parent: widget.animation,

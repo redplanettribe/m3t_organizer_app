@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_inbox_cubit.dart';
 import 'package:m3t_organizer/features/chat/general/view/general_chat_view.dart';
+import 'package:m3t_organizer/features/chat/view/chat_bans_view.dart';
 import 'package:m3t_organizer/features/chat/view/dm_inbox_view.dart';
 import 'package:m3t_organizer/features/chat/view/organizers_chat_view.dart';
 import 'package:m3t_organizer/features/user/user.dart';
@@ -51,6 +52,7 @@ final class _ChatHomeView extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: SegmentedButton<ChatChannelTab>(
+                showSelectedIcon: false,
                 segments: const [
                   ButtonSegment(
                     value: ChatChannelTab.general,
@@ -62,7 +64,11 @@ final class _ChatHomeView extends StatelessWidget {
                   ),
                   ButtonSegment(
                     value: ChatChannelTab.organizers,
-                    label: Text('Organizers'),
+                    label: Text('Team'),
+                  ),
+                  ButtonSegment(
+                    value: ChatChannelTab.banned,
+                    label: Text('Banned'),
                   ),
                 ],
                 selected: {state.selectedTab},
@@ -82,6 +88,7 @@ final class _ChatHomeView extends StatelessWidget {
                   eventID: eventID,
                   currentUserId: currentUserId,
                 ),
+                ChatChannelTab.banned => ChatBansView(eventID: eventID),
               },
             ),
           ],
@@ -118,6 +125,7 @@ final class _DmTabBody extends StatelessWidget {
     return BlocProvider(
       create: (context) => DmInboxCubit(
         chatRepository: context.read<ChatRepository>(),
+        eventsRepository: context.read<EventsRepository>(),
         eventID: eventID,
         currentUserId: currentUserId,
         realtimeEvents: context.read<ChatCubit>().realtimeEvents,

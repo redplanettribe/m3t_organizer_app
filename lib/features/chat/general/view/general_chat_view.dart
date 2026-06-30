@@ -4,6 +4,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/chat/general/bloc/general_chat_cubit.dart';
+import 'package:m3t_organizer/features/chat/view/open_attendee_registration.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
 
 final class GeneralChatTab extends StatelessWidget {
@@ -180,11 +181,25 @@ final class _MessageListState extends State<_MessageList> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = messages[messages.length - 1 - index];
+        final messageIndex = messages.length - 1 - index;
+        final message = messages[messageIndex];
         final isOwn = message.senderUserId == widget.state.currentUserId;
+        final previous =
+            messageIndex > 0 ? messages[messageIndex - 1] : null;
         return ChatMessageBubble(
           message: message,
           isOwn: isOwn,
+          showSenderHeader: showSenderHeaderForMessage(
+            message: message,
+            chronologicallyPreviousMessage: previous,
+          ),
+          onSenderTap: isOwn
+              ? null
+              : () => openAttendeeRegistration(
+                  context,
+                  eventID: message.eventId,
+                  message: message,
+                ),
           onReact: (emoji) => cubit.toggleReaction(
             messageId: message.messageId,
             emoji: emoji,

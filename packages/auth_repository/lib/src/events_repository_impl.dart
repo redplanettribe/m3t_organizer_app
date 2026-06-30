@@ -2,6 +2,7 @@ import 'package:auth_repository/src/mappers/deliverable_giveaway_mapper.dart';
 import 'package:auth_repository/src/mappers/event_check_in_mapper.dart';
 import 'package:auth_repository/src/mappers/event_deliverable_mapper.dart';
 import 'package:auth_repository/src/mappers/event_mapper.dart';
+import 'package:auth_repository/src/mappers/event_registration_mapper.dart';
 import 'package:auth_repository/src/mappers/get_event_by_id_response_mapper.dart';
 import 'package:auth_repository/src/mappers/session_check_in_mapper.dart';
 import 'package:auth_repository/src/mappers/session_mapper.dart';
@@ -75,6 +76,61 @@ final class EventsRepositoryImpl implements domain.EventsRepository {
       _throwEventsFailure(error);
     } on Object catch (_) {
       throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<domain.EventRegistrationPage> listEventRegistrations({
+    required String eventID,
+    String? search,
+    int? page,
+    int? pageSize,
+  }) async {
+    try {
+      final result = await _apiClient.listEventRegistrations(
+        eventID: eventID,
+        search: search,
+        page: page,
+        pageSize: pageSize,
+      );
+      return result.toDomain();
+    } on api.M3tApiException catch (error) {
+      _throwEventsFailure(error);
+    } on Object catch (_) {
+      throw domain.EventsUnknownError();
+    }
+  }
+
+  @override
+  Future<domain.EventRegistration?> getEventRegistrationByUserId({
+    required String eventID,
+    required String userID,
+  }) async {
+    const pageSize = 100;
+    var page = 1;
+
+    while (true) {
+      final result = await listEventRegistrations(
+        eventID: eventID,
+        page: page,
+        pageSize: pageSize,
+      );
+
+      for (final registration in result.items) {
+        if (registration.userId == userID) {
+          return registration;
+        }
+      }
+
+      final totalPages = result.totalPages;
+      if (result.items.length < pageSize) {
+        return null;
+      }
+      if (totalPages != null && page >= totalPages) {
+        return null;
+      }
+
+      page++;
     }
   }
 

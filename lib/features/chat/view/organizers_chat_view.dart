@@ -4,6 +4,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/chat/bloc/organizers_chat_cubit.dart';
+import 'package:m3t_organizer/features/chat/view/open_attendee_registration.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
 
 final class OrganizersChatView extends StatelessWidget {
@@ -41,164 +42,11 @@ final class OrganizersChatView extends StatelessWidget {
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _OrganizersChatToolbar(),
             Expanded(child: _OrganizersMessageList()),
             _OrganizersComposer(),
           ],
         ),
       ),
-    );
-  }
-}
-
-final class _OrganizersChatToolbar extends StatelessWidget {
-  const _OrganizersChatToolbar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-      child: Row(
-        children: [
-          Text(
-            'Backstage',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const Spacer(),
-          IconButton(
-            tooltip: 'Delete general message',
-            icon: const Icon(Icons.gavel_outlined),
-            onPressed: () => _showDeleteGeneralDialog(context),
-          ),
-          IconButton(
-            tooltip: 'Chat bans',
-            icon: const Icon(Icons.block_outlined),
-            onPressed: () => _showBansSheet(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showDeleteGeneralDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final cubit = context.read<OrganizersChatCubit>();
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete general message'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Message ID',
-            hintText: 'UUID of general chat message',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed ?? false) {
-      if (!context.mounted) return;
-      try {
-        await cubit.deleteGeneralMessage(controller.text);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('General message deleted'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } on Object {
-        // Error surfaced via BlocListener.
-      }
-    }
-    controller.dispose();
-  }
-
-  Future<void> _showBansSheet(BuildContext context) async {
-    final cubit = context.read<OrganizersChatCubit>();
-    await cubit.loadBans();
-    if (!context.mounted) return;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return BlocProvider.value(
-          value: cubit,
-          child: const _ChatBansSheet(),
-        );
-      },
-    );
-  }
-}
-
-final class _ChatBansSheet extends StatelessWidget {
-  const _ChatBansSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return BlocBuilder<OrganizersChatCubit, OrganizersChatState>(
-      builder: (context, state) {
-        if (state.loadingBans) {
-          return const SizedBox(
-            height: 160,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (state.bans.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'No chat bans for this event.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          itemCount: state.bans.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (context, index) {
-            final ban = state.bans[index];
-            final name = [
-              ban.userName,
-              ban.userLastName,
-            ].whereType<String>().where((s) => s.isNotEmpty).join(' ');
-            final label = name.isNotEmpty ? name : ban.userId;
-
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(label),
-              subtitle: Text(ban.userId, style: theme.textTheme.bodySmall),
-              trailing: IconButton(
-                tooltip: 'Unban',
-                icon: const Icon(Icons.undo_outlined),
-                onPressed: () =>
-                    context.read<OrganizersChatCubit>().unbanUser(ban.userId),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 }
@@ -254,7 +102,7 @@ final class _OrganizersMessageListState extends State<_OrganizersMessageList> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  state.errorMessage ?? 'Could not load backstage chat.',
+                  state.errorMessage ?? 'Could not load team chat.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
@@ -300,10 +148,23 @@ final class _OrganizersMessageListState extends State<_OrganizersMessageList> {
             final messageIndex = state.messages.length - 1 - index;
             final message = state.messages[messageIndex];
             final isOwn = cubit.isOwnMessage(message);
+            final previous =
+                messageIndex > 0 ? state.messages[messageIndex - 1] : null;
 
             return ChatMessageBubble(
               message: message,
               isOwn: isOwn,
+              showSenderHeader: showSenderHeaderForMessage(
+                message: message,
+                chronologicallyPreviousMessage: previous,
+              ),
+              onSenderTap: isOwn
+                  ? null
+                  : () => openAttendeeRegistration(
+                      context,
+                      eventID: message.eventId,
+                      message: message,
+                    ),
               onReact: (emoji) => cubit.toggleReaction(
                 messageID: message.messageId,
                 emoji: emoji,

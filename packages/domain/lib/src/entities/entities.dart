@@ -12,6 +12,7 @@ export 'deliverable_giveaway.dart';
 export 'event.dart';
 export 'event_check_in.dart';
 export 'event_deliverable.dart';
+export 'event_registration.dart';
 export 'event_with_rooms.dart';
 export 'mobile_remote_config.dart';
 export 'organizer_session_status_changed.dart';

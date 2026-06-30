@@ -8,7 +8,10 @@ import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
 import 'package:m3t_api/src/models/event_deliverable.dart';
+import 'package:m3t_api/src/models/event_registration.dart';
+import 'package:m3t_api/src/models/event_registration_page.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
+import 'package:m3t_api/src/models/pagination_meta.dart';
 import 'package:m3t_api/src/models/session_check_in.dart';
 
 /// Handles all events API calls.
@@ -152,6 +155,55 @@ final class EventsDataSource {
     );
 
     return items.map(EventDeliverable.fromJson).toList();
+  }
+
+  /// Returns paginated registrations for the event (organizer only).
+  Future<EventRegistrationPage> listEventRegistrations({
+    required String eventID,
+    String? search,
+    int? page,
+    int? pageSize,
+  }) async {
+    final query = <String, String>{};
+    if (search != null && search.isNotEmpty) {
+      query['search'] = search;
+    }
+    if (page != null) {
+      query['page'] = '$page';
+    }
+    if (pageSize != null) {
+      query['page_size'] = '$pageSize';
+    }
+
+    final response = await _executor.client.get(
+      _executor.uri(EventPaths.registrations(eventID)).replace(
+        queryParameters: query.isEmpty ? null : query,
+      ),
+      headers: await _executor.authHeaders(),
+    );
+
+    final pageData = _executor.parsePaginatedEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => ListEventRegistrationsFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+
+    return EventRegistrationPage(
+      items: pageData.items.map(EventRegistration.fromJson).toList(),
+      pagination: pageData.pagination != null
+          ? PaginationMeta.fromJson(pageData.pagination!)
+          : null,
+    );
   }
 
   /// Records giving a deliverable to the user identified by [userID].

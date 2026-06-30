@@ -165,7 +165,7 @@ final class _MessageList extends StatelessWidget {
         return ChatMessageBubble(
           message: message,
           isOwn: isMine,
-          showSenderName: false,
+          showSenderHeader: false,
           onReact: (emoji) => cubit.toggleReaction(
             messageId: message.messageId,
             emoji: emoji,

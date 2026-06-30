@@ -52,4 +52,5 @@ enum ChatChannelTab {
   general,
   dms,
   organizers,
+  banned,
 }

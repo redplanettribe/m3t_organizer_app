@@ -15,8 +15,6 @@ final class OrganizersChatState extends Equatable {
     this.loadingMore = false,
     this.sending = false,
     this.errorMessage,
-    this.bans = const [],
-    this.loadingBans = false,
     this.replyingTo,
   });
 
@@ -26,8 +24,6 @@ final class OrganizersChatState extends Equatable {
   final bool loadingMore;
   final bool sending;
   final String? errorMessage;
-  final List<ChatBan> bans;
-  final bool loadingBans;
   final ChatMessage? replyingTo;
 
   OrganizersChatState copyWith({
@@ -37,8 +33,6 @@ final class OrganizersChatState extends Equatable {
     bool? loadingMore,
     bool? sending,
     Object? errorMessage = _sentinel,
-    List<ChatBan>? bans,
-    bool? loadingBans,
     Object? replyingTo = _sentinel,
   }) {
     return OrganizersChatState(
@@ -52,8 +46,6 @@ final class OrganizersChatState extends Equatable {
       errorMessage: errorMessage == _sentinel
           ? this.errorMessage
           : errorMessage as String?,
-      bans: bans ?? this.bans,
-      loadingBans: loadingBans ?? this.loadingBans,
       replyingTo: replyingTo == _sentinel
           ? this.replyingTo
           : replyingTo as ChatMessage?,
@@ -70,8 +62,6 @@ final class OrganizersChatState extends Equatable {
     loadingMore,
     sending,
     errorMessage,
-    bans,
-    loadingBans,
     replyingTo,
   ];
 }

@@ -17,6 +17,7 @@ import 'package:m3t_api/src/models/deliverable_giveaway.dart';
 import 'package:m3t_api/src/models/event.dart';
 import 'package:m3t_api/src/models/event_check_in.dart';
 import 'package:m3t_api/src/models/event_deliverable.dart';
+import 'package:m3t_api/src/models/event_registration_page.dart';
 import 'package:m3t_api/src/models/get_event_by_id_response.dart';
 import 'package:m3t_api/src/models/login_response.dart';
 import 'package:m3t_api/src/models/mobile_remote_config_response.dart';
@@ -135,6 +136,18 @@ class M3tApiClient {
   Future<List<EventDeliverable>> getEventDeliverables({
     required String eventID,
   }) => _events.getEventDeliverables(eventID: eventID);
+
+  Future<EventRegistrationPage> listEventRegistrations({
+    required String eventID,
+    String? search,
+    int? page,
+    int? pageSize,
+  }) => _events.listEventRegistrations(
+    eventID: eventID,
+    search: search,
+    page: page,
+    pageSize: pageSize,
+  );
 
   Future<DeliverableGiveaway> giveDeliverableToUser({
     required String eventID,

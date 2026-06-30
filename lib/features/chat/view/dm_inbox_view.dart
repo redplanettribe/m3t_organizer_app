@@ -4,15 +4,108 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_inbox_cubit.dart';
-import 'package:m3t_organizer/features/chat/view/dm_thread_page.dart';
+import 'package:m3t_organizer/features/chat/view/open_dm_thread.dart';
 
 final class DmInboxView extends StatelessWidget {
   const DmInboxView({
     required this.eventID,
     required this.currentUserId,
     super.key,
+  });
+
+  final String eventID;
+  final String currentUserId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<DmInboxCubit, DmInboxState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage &&
+          current.errorMessage != null &&
+          current.conversations.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _DmInboxToolbar(
+            eventID: eventID,
+            currentUserId: currentUserId,
+          ),
+          Expanded(
+            child: _DmInboxBody(
+              eventID: eventID,
+              currentUserId: currentUserId,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+final class _DmInboxToolbar extends StatelessWidget {
+  const _DmInboxToolbar({
+    required this.eventID,
+    required this.currentUserId,
+  });
+
+  final String eventID;
+  final String currentUserId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+      child: Row(
+        children: [
+          Text(
+            'Direct messages',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const Spacer(),
+          IconButton(
+            tooltip: 'New message',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showNewDmSheet(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showNewDmSheet(BuildContext context) async {
+    final cubit = context.read<DmInboxCubit>();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return BlocProvider.value(
+          value: cubit,
+          child: _NewDmSheet(
+            eventID: eventID,
+            currentUserId: currentUserId,
+          ),
+        );
+      },
+    );
+  }
+}
+
+final class _DmInboxBody extends StatelessWidget {
+  const _DmInboxBody({
+    required this.eventID,
+    required this.currentUserId,
   });
 
   final String eventID;
@@ -67,35 +160,153 @@ final class DmInboxView extends StatelessWidget {
   }
 
   void _openThread(BuildContext context, ChatConversation conversation) {
-    final last = conversation.lastMessage;
-    final displayName = last == null
-        ? conversation.otherUserId
-        : _senderLabel(last, conversation.otherUserId);
-    final chatCubit = context.read<ChatCubit>();
-
-    unawaited(
-      Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (context) => BlocProvider.value(
-            value: chatCubit,
-            child: DmThreadPage(
-              eventID: eventID,
-              recipientUserId: conversation.otherUserId,
-              currentUserId: currentUserId,
-              recipientDisplayName: displayName,
-            ),
-          ),
-        ),
-      ),
+    openDmThread(
+      context,
+      eventID: eventID,
+      recipientUserId: conversation.otherUserId,
+      currentUserId: currentUserId,
+      recipientDisplayName: conversation.displayTitle,
     );
   }
+}
 
-  static String _senderLabel(ChatMessage message, String fallbackUserId) {
-    final name = [
-      message.senderName,
-      message.senderLastName,
-    ].whereType<String>().where((s) => s.trim().isNotEmpty).join(' ');
-    return name.isEmpty ? fallbackUserId : name;
+final class _NewDmSheet extends StatefulWidget {
+  const _NewDmSheet({
+    required this.eventID,
+    required this.currentUserId,
+  });
+
+  final String eventID;
+  final String currentUserId;
+
+  @override
+  State<_NewDmSheet> createState() => _NewDmSheetState();
+}
+
+final class _NewDmSheetState extends State<_NewDmSheet> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+  List<EventRegistration> _results = const [];
+  bool _searching = false;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () async {
+      if (!mounted) return;
+      setState(() => _searching = true);
+      final results = await context.read<DmInboxCubit>().searchAttendees(
+        value,
+      );
+      if (!mounted) return;
+      setState(() {
+        _results = results;
+        _searching = false;
+      });
+    });
+  }
+
+  void _openThread(EventRegistration registration) {
+    openDmThread(
+      context,
+      eventID: widget.eventID,
+      recipientUserId: registration.userId,
+      currentUserId: widget.currentUserId,
+      recipientDisplayName: registration.displayName,
+    );
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'New message',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Search by name or email',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: _onSearchChanged,
+          ),
+          const SizedBox(height: 12),
+          if (_searching)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_searchController.text.trim().isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'Type to search registered attendees.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          else if (_results.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No attendees match your search.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.4,
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _results.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final registration = _results[index];
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(registration.displayName),
+                    subtitle: Text(
+                      registration.email ?? registration.userId,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    onTap: () => _openThread(registration),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -116,11 +327,7 @@ final class _ConversationTile extends StatelessWidget {
     final last = conversation.lastMessage;
     final preview = last?.body ?? 'No messages yet';
     final time = last != null ? _formatTime(last.createdAt) : '';
-    final title = last == null
-        ? conversation.otherUserId
-        : (last.senderUserId == currentUserId
-              ? 'You'
-              : DmInboxView._senderLabel(last, conversation.otherUserId));
+    final title = conversation.displayTitle;
 
     return ListTile(
       onTap: onTap,
