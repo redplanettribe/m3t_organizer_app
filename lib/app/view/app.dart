@@ -10,9 +10,11 @@ import 'package:m3t_organizer/app/routes.dart';
 import 'package:m3t_organizer/app/theme/app_theme.dart';
 import 'package:m3t_organizer/core/remote_config/remote_config_cubit.dart';
 import 'package:m3t_organizer/core/remote_config/view/app_update_gate.dart';
+import 'package:m3t_organizer/features/event_selector/event_selector.dart';
 import 'package:m3t_organizer/features/login/login.dart';
 import 'package:m3t_organizer/features/session_status/session_status.dart';
 import 'package:m3t_organizer/features/user/user.dart';
+import 'package:m3t_organizer/infrastructure/secure_selected_event_storage.dart';
 import 'package:m3t_organizer/layout/layout.dart';
 
 // ---------------------------------------------------------------------------
@@ -49,6 +51,7 @@ final class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentBuild = _currentBuild;
+    const selectedEventStorage = SecureSelectedEventStorage();
     return RepositoryProvider<AuthRepository>.value(
       value: _authRepository,
       child: RepositoryProvider<EventsRepository>.value(
@@ -57,8 +60,10 @@ final class App extends StatelessWidget {
           value: _chatRepository,
           child: RepositoryProvider<RemoteConfigRepository>.value(
             value: _remoteConfigRepository,
-            child: MultiBlocProvider(
-              providers: [
+            child: RepositoryProvider<SelectedEventStorage>.value(
+              value: selectedEventStorage,
+              child: MultiBlocProvider(
+                providers: [
                 BlocProvider<AuthBloc>(
                   create: (context) => AuthBloc(authRepository: context.read()),
                 ),
@@ -79,19 +84,35 @@ final class App extends StatelessWidget {
                     useIosStoreUrl: _useIosStoreUrl,
                   ),
                 ),
-              ],
-              child: BlocListener<AuthBloc, AuthState>(
-                listener: (context, state) {
-                  switch (state.status) {
-                    case .authenticated:
-                      unawaited(context.read<UserCubit>().loadCurrentUser());
-                    case .unauthenticated:
-                      context.read<UserCubit>().reset();
-                    case .unknown:
-                      break;
-                  }
-                },
-                child: const AppUpdateGate(child: _AppView()),
+                BlocProvider<SelectedEventCubit>(
+                  lazy: false,
+                  create: (context) {
+                    final cubit = SelectedEventCubit(
+                      eventsRepository: context.read(),
+                      selectedEventStorage: context.read(),
+                    );
+                    unawaited(cubit.loadEvents());
+                    return cubit;
+                  },
+                ),
+                ],
+                child: BlocListener<AuthBloc, AuthState>(
+                  listener: (context, state) {
+                    switch (state.status) {
+                      case .authenticated:
+                        unawaited(context.read<UserCubit>().loadCurrentUser());
+                        unawaited(
+                          context.read<SelectedEventCubit>().loadEvents(),
+                        );
+                      case .unauthenticated:
+                        context.read<UserCubit>().reset();
+                        context.read<SelectedEventCubit>().reset();
+                      case .unknown:
+                        break;
+                    }
+                  },
+                  child: const AppUpdateGate(child: _AppView()),
+                ),
               ),
             ),
           ),
@@ -135,7 +156,7 @@ final class _AppViewState extends State<_AppView> {
         ),
         GoRoute(
           path: AppRoutes.home,
-          builder: (context, state) => const HomePage(),
+          builder: (context, state) => const EventHomePage(),
         ),
         GoRoute(
           path: AppRoutes.event,
