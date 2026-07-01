@@ -6,12 +6,14 @@ import 'package:m3t_organizer/core/push/foreground_chat_tab.dart';
 import 'package:m3t_organizer/core/push/push_navigation_intent.dart';
 import 'package:m3t_organizer/core/push/push_notification_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
+import 'package:m3t_organizer/features/chat/bloc/chat_unread_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_inbox_cubit.dart';
 import 'package:m3t_organizer/features/chat/general/view/general_chat_view.dart';
 import 'package:m3t_organizer/features/chat/view/chat_bans_view.dart';
 import 'package:m3t_organizer/features/chat/view/dm_inbox_view.dart';
 import 'package:m3t_organizer/features/chat/view/open_dm_thread.dart';
 import 'package:m3t_organizer/features/chat/view/organizers_chat_view.dart';
+import 'package:m3t_organizer/features/chat/widgets/unread_badge_label.dart';
 import 'package:m3t_organizer/features/user/user.dart';
 
 final class ChatHomePage extends StatelessWidget {
@@ -85,6 +87,7 @@ final class _ChatHomeViewState extends State<_ChatHomeView> {
       eventId: widget.eventID,
       tab: _foregroundTabFor(tab),
     );
+    context.read<ChatUnreadCubit>().setActiveSegmentedTab(tab);
   }
 
   @override
@@ -155,56 +158,71 @@ final class _ChatHomeViewState extends State<_ChatHomeView> {
       listener: (context, state) => _syncActiveChatTab(state.selectedTab),
       child: BlocBuilder<ChatCubit, ChatState>(
         builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: SegmentedButton<ChatChannelTab>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(
-                      value: ChatChannelTab.general,
-                      label: Text('General'),
+          return BlocBuilder<ChatUnreadCubit, ChatUnreadState>(
+            builder: (context, unreadState) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: SegmentedButton<ChatChannelTab>(
+                      showSelectedIcon: false,
+                      segments: [
+                        ButtonSegment(
+                          value: ChatChannelTab.general,
+                          label: unreadBadge(
+                            count: unreadState.generalUnread,
+                            child: const Text('General'),
+                          ),
+                        ),
+                        ButtonSegment(
+                          value: ChatChannelTab.dms,
+                          label: unreadBadge(
+                            count: unreadState.dmsUnread,
+                            child: const Text('DMs'),
+                          ),
+                        ),
+                        ButtonSegment(
+                          value: ChatChannelTab.organizers,
+                          label: unreadBadge(
+                            count: unreadState.organizersUnread,
+                            child: const Text('Team'),
+                          ),
+                        ),
+                        const ButtonSegment(
+                          value: ChatChannelTab.banned,
+                          label: Text('Banned'),
+                        ),
+                      ],
+                      selected: {state.selectedTab},
+                      onSelectionChanged: (selection) {
+                        context.read<ChatCubit>().selectChannel(
+                          selection.first,
+                        );
+                      },
                     ),
-                    ButtonSegment(
-                      value: ChatChannelTab.dms,
-                      label: Text('DMs'),
-                    ),
-                    ButtonSegment(
-                      value: ChatChannelTab.organizers,
-                      label: Text('Team'),
-                    ),
-                    ButtonSegment(
-                      value: ChatChannelTab.banned,
-                      label: Text('Banned'),
-                    ),
-                  ],
-                  selected: {state.selectedTab},
-                  onSelectionChanged: (selection) {
-                    context.read<ChatCubit>().selectChannel(selection.first);
-                  },
-                ),
-              ),
-              Expanded(
-                child: switch (state.selectedTab) {
-                  ChatChannelTab.general => GeneralChatTab(
-                    eventID: widget.eventID,
                   ),
-                  ChatChannelTab.dms => _DmTabBody(
-                    eventID: widget.eventID,
-                    currentUserId: widget.currentUserId,
+                  Expanded(
+                    child: switch (state.selectedTab) {
+                      ChatChannelTab.general => GeneralChatTab(
+                        eventID: widget.eventID,
+                      ),
+                      ChatChannelTab.dms => _DmTabBody(
+                        eventID: widget.eventID,
+                        currentUserId: widget.currentUserId,
+                      ),
+                      ChatChannelTab.organizers => OrganizersChatView(
+                        eventID: widget.eventID,
+                        currentUserId: widget.currentUserId,
+                      ),
+                      ChatChannelTab.banned => ChatBansView(
+                        eventID: widget.eventID,
+                      ),
+                    },
                   ),
-                  ChatChannelTab.organizers => OrganizersChatView(
-                    eventID: widget.eventID,
-                    currentUserId: widget.currentUserId,
-                  ),
-                  ChatChannelTab.banned => ChatBansView(
-                    eventID: widget.eventID,
-                  ),
-                },
-              ),
-            ],
+                ],
+              );
+            },
           );
         },
       ),

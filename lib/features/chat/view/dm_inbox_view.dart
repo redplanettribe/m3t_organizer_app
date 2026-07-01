@@ -4,8 +4,10 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m3t_organizer/features/chat/bloc/chat_unread_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_inbox_cubit.dart';
 import 'package:m3t_organizer/features/chat/view/open_dm_thread.dart';
+import 'package:m3t_organizer/features/chat/widgets/unread_badge_label.dart';
 
 final class DmInboxView extends StatelessWidget {
   const DmInboxView({
@@ -329,25 +331,31 @@ final class _ConversationTile extends StatelessWidget {
     final time = last != null ? _formatTime(last.createdAt) : '';
     final title = conversation.displayTitle;
 
-    return ListTile(
-      onTap: onTap,
-      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        preview,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: time.isEmpty
-          ? null
-          : Text(
-              time,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+    return BlocBuilder<ChatUnreadCubit, ChatUnreadState>(
+      builder: (context, unreadState) {
+        final unreadCount = unreadState.dmUnreadFor(
+          conversation.conversationId,
+        );
+        final trailing = _ConversationTrailing(
+          time: time,
+          unreadCount: unreadCount,
+          theme: theme,
+        );
+
+        return ListTile(
+          onTap: onTap,
+          title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: Text(
+            preview,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+          trailing: trailing,
+        );
+      },
     );
   }
 
@@ -357,6 +365,46 @@ final class _ConversationTile extends StatelessWidget {
       return DateFormat.jm().format(createdAt);
     }
     return DateFormat.MMMd().format(createdAt);
+  }
+}
+
+final class _ConversationTrailing extends StatelessWidget {
+  const _ConversationTrailing({
+    required this.time,
+    required this.unreadCount,
+    required this.theme,
+  });
+
+  final String time;
+  final int unreadCount;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    if (time.isEmpty && unreadCount == 0) {
+      return const SizedBox.shrink();
+    }
+
+    final timeStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    if (unreadCount == 0) {
+      return Text(time, style: timeStyle);
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (time.isNotEmpty) Text(time, style: timeStyle),
+        if (time.isNotEmpty) const SizedBox(height: 4),
+        unreadBadge(
+          count: unreadCount,
+          child: const SizedBox(width: 8, height: 8),
+        ),
+      ],
+    );
   }
 }
 

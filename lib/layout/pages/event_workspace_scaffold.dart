@@ -1,9 +1,11 @@
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/core/push/push_navigation_intent.dart';
 import 'package:m3t_organizer/core/push/push_notification_cubit.dart';
 import 'package:m3t_organizer/features/chat/chat.dart';
 import 'package:m3t_organizer/features/session_selector/session_selector.dart';
+import 'package:m3t_organizer/features/user/user.dart';
 import 'package:m3t_organizer/layout/sections/event_actions_section.dart';
 
 /// Event workspace with bottom navigation: actions, sessions, chat.
@@ -28,6 +30,7 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
   late int _selectedIndex;
   bool _isSessionSheetExpanded = false;
   PushNotificationCubit? _pushNotificationCubit;
+  ChatUnreadCubit? _chatUnreadCubit;
 
   @override
   void didChangeDependencies() {
@@ -98,10 +101,12 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
   }
 
   void _syncChatNavPresence() {
+    final chatNavActive = _selectedIndex == 2;
     _pushNotificationCubit?.setEventChatNavActive(
       eventId: widget.eventID,
-      active: _selectedIndex == 2,
+      active: chatNavActive,
     );
+    _chatUnreadCubit?.setChatNavActive(active: chatNavActive);
   }
 
   void _onSessionSheetExpansionChanged(bool expanded) {
@@ -118,48 +123,79 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
     final theme = Theme.of(context);
     final hideBottomDivider = _selectedIndex == 1 && _isSessionSheetExpanded;
 
-    return Scaffold(
+    return BlocProvider(
       key: ValueKey(widget.eventID),
-      appBar: widget.appBar,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          EventActionsSection(eventID: widget.eventID),
-          SessionsView(
-            eventID: widget.eventID,
-            onSheetExpanded: _onSessionSheetExpansionChanged,
+      create: (context) {
+        final cubit = ChatUnreadCubit(
+          chatRepository: context.read<ChatRepository>(),
+          eventID: widget.eventID,
+          currentUserId: context.read<UserCubit>().state.user?.id,
+        )..setChatNavActive(active: _selectedIndex == 2);
+        _chatUnreadCubit = cubit;
+        return cubit;
+      },
+      child: BlocListener<UserCubit, UserState>(
+        listenWhen: (previous, current) =>
+            previous.user?.id != current.user?.id,
+        listener: (context, state) {
+          context.read<ChatUnreadCubit>().setCurrentUserId(state.user?.id);
+        },
+        child: Scaffold(
+          key: ValueKey('scaffold-${widget.eventID}'),
+          appBar: widget.appBar,
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: [
+              EventActionsSection(eventID: widget.eventID),
+              SessionsView(
+                eventID: widget.eventID,
+                onSheetExpanded: _onSessionSheetExpansionChanged,
+              ),
+              ChatHomePage(
+                eventID: widget.eventID,
+                pushIntent: _chatPushIntent,
+              ),
+            ],
           ),
-          ChatHomePage(
-            eventID: widget.eventID,
-            pushIntent: _chatPushIntent,
+          bottomNavigationBar: DecoratedBox(
+            decoration: BoxDecoration(
+              border: hideBottomDivider
+                  ? null
+                  : Border(
+                      top: BorderSide(color: theme.colorScheme.outlineVariant),
+                    ),
+            ),
+            child: BlocBuilder<ChatUnreadCubit, ChatUnreadState>(
+              builder: (context, unreadState) {
+                final chatBadgeCount = unreadState.totalUnread;
+                return NavigationBar(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onDestinationSelected,
+                  destinations: [
+                    const NavigationDestination(
+                      icon: Icon(Icons.qr_code_scanner_rounded),
+                      label: 'Event actions',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.view_agenda_rounded),
+                      label: 'Sessions',
+                    ),
+                    NavigationDestination(
+                      icon: unreadBadge(
+                        count: chatBadgeCount,
+                        child: const Icon(Icons.chat_bubble_outline),
+                      ),
+                      selectedIcon: unreadBadge(
+                        count: chatBadgeCount,
+                        child: const Icon(Icons.chat_bubble),
+                      ),
+                      label: 'Chat',
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ],
-      ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: hideBottomDivider
-              ? null
-              : Border(
-                  top: BorderSide(color: theme.colorScheme.outlineVariant),
-                ),
-        ),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _onDestinationSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.qr_code_scanner_rounded),
-              label: 'Event actions',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.view_agenda_rounded),
-              label: 'Sessions',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.chat_bubble_outline),
-              label: 'Chat',
-            ),
-          ],
         ),
       ),
     );

@@ -9,3 +9,4 @@ export 'message_actions_overlay.dart';
 export 'quick_reaction_emojis.dart';
 export 'reaction_bar.dart';
 export 'reply_composer_banner.dart';
+export 'unread_badge_label.dart';

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/core/push/chat_push_dedupe.dart';
 import 'package:m3t_organizer/core/push/push_notification_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
+import 'package:m3t_organizer/features/chat/bloc/chat_unread_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_thread_cubit.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
 
@@ -29,11 +30,17 @@ final class DmThreadPage extends StatefulWidget {
 
 final class _DmThreadPageState extends State<DmThreadPage> {
   PushNotificationCubit? _pushNotificationCubit;
+  ChatUnreadCubit? _chatUnreadCubit;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _pushNotificationCubit = context.read<PushNotificationCubit>();
+    try {
+      _chatUnreadCubit = context.read<ChatUnreadCubit>();
+    } on Object {
+      _chatUnreadCubit = null;
+    }
   }
 
   @override
@@ -50,12 +57,16 @@ final class _DmThreadPageState extends State<DmThreadPage> {
         eventId: widget.eventID,
         conversationId: conversationId,
       );
+      _chatUnreadCubit
+        ?..setOpenDmConversation(conversationId)
+        ..markDmConversationRead(conversationId);
     });
   }
 
   @override
   void dispose() {
     _pushNotificationCubit?.setOpenDmThread();
+    _chatUnreadCubit?.setOpenDmConversation(null);
     super.dispose();
   }
 

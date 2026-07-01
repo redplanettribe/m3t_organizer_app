@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m3t_organizer/features/attendee/attendee.dart';
 import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
+import 'package:m3t_organizer/features/chat/bloc/chat_unread_cubit.dart';
 
 /// Opens the attendee registration profile for a chat message sender.
 void openAttendeeRegistration(
@@ -13,6 +14,12 @@ void openAttendeeRegistration(
   required ChatMessage message,
 }) {
   final chatCubit = context.read<ChatCubit>();
+  ChatUnreadCubit? chatUnreadCubit;
+  try {
+    chatUnreadCubit = context.read<ChatUnreadCubit>();
+  } on Object {
+    chatUnreadCubit = null;
+  }
 
   unawaited(
     Navigator.of(context).push<void>(
@@ -20,6 +27,8 @@ void openAttendeeRegistration(
         builder: (context) => MultiBlocProvider(
           providers: [
             BlocProvider<ChatCubit>.value(value: chatCubit),
+            if (chatUnreadCubit != null)
+              BlocProvider<ChatUnreadCubit>.value(value: chatUnreadCubit),
             BlocProvider(
               create: (context) => AttendeeRegistrationCubit(
                 eventsRepository: context.read<EventsRepository>(),
