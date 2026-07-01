@@ -18,8 +18,9 @@ final class ChatSenderAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resolvedUrl =
-        MediaUrlResolver.resolveAppUrl(message.senderProfilePictureUrl);
+    final resolvedUrl = MediaUrlResolver.resolveAppUrl(
+      message.senderProfilePictureUrl,
+    );
     final diameter = radius * 2;
     final initials = _initialsFromMessage(message);
     final style = theme.textTheme.labelSmall?.copyWith(

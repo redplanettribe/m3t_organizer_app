@@ -32,6 +32,7 @@ Code under `packages/` must **not** depend on Flutter or `dart:ui`. This keeps d
 ## Package Tests
 
 - Use the **`test`** package (`import 'package:test/test.dart';`), **not** `flutter_test`, so tests run without the Flutter SDK in packages.
+- After package edits: `fvm dart test` in the package and `fvm dart analyze` at repo root (`flutter-quality-gates` rule).
 
 ## References
 

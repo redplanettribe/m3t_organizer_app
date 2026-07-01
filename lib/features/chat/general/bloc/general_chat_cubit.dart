@@ -14,10 +14,12 @@ final class GeneralChatCubit extends Cubit<GeneralChatState> {
     required ChatRepository chatRepository,
     required AuthRepository authRepository,
     required String eventID,
+    void Function(String messageId)? onMessageDeliveredViaRealtime,
     bool autoInitialize = true,
   }) : _chatRepository = chatRepository,
        _authRepository = authRepository,
        _eventID = eventID,
+       _onMessageDeliveredViaRealtime = onMessageDeliveredViaRealtime,
        super(const GeneralChatState()) {
     if (autoInitialize) {
       unawaited(initialize());
@@ -27,6 +29,7 @@ final class GeneralChatCubit extends Cubit<GeneralChatState> {
   final ChatRepository _chatRepository;
   final AuthRepository _authRepository;
   final String _eventID;
+  final void Function(String messageId)? _onMessageDeliveredViaRealtime;
   ChatRealtimeHandle? _realtimeHandle;
 
   static const _pageSize = 50;
@@ -86,6 +89,7 @@ final class GeneralChatCubit extends Cubit<GeneralChatState> {
     switch (event) {
       case ChatMessageReceived(:final message):
         if (message.channelType != ChatChannelType.general) return;
+        _onMessageDeliveredViaRealtime?.call(message.messageId);
         emit(state.copyWith(messages: _upsertMessage(state.messages, message)));
       case ChatMessageDeleted(:final messageId, :final channelType):
         if (channelType != ChatChannelType.general) return;
@@ -218,9 +222,11 @@ final class GeneralChatCubit extends Cubit<GeneralChatState> {
     if (index < 0) return;
 
     final message = state.messages[index];
-    final existing = message.reactions?.where(
-      (r) => r.reactedByMe && r.emoji == emoji,
-    ).firstOrNull;
+    final existing = message.reactions
+        ?.where(
+          (r) => r.reactedByMe && r.emoji == emoji,
+        )
+        .firstOrNull;
 
     try {
       final reactions = existing != null

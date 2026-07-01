@@ -104,6 +104,49 @@ void main() {
       });
     });
 
+    group('parseVoidEnvelope', () {
+      test('accepts HTTP 204 with empty body', () {
+        final response = http.Response('', 204);
+
+        expect(
+          () => executor.parseVoidEnvelope(
+            response,
+            onError: _testError,
+          ),
+          returnsNormally,
+        );
+      });
+
+      test('accepts HTTP 204 with null data envelope', () {
+        final response = http.Response(
+          '{"data":null,"error":null}',
+          204,
+        );
+
+        expect(
+          () => executor.parseVoidEnvelope(
+            response,
+            onError: _testError,
+          ),
+          returnsNormally,
+        );
+      });
+    });
+
+    group('parseEnvelope', () {
+      test('rejects HTTP 204 with empty body', () {
+        final response = http.Response('', 204);
+
+        expect(
+          () => executor.parseEnvelope(
+            response,
+            onError: _testError,
+          ),
+          throwsA(isA<GetCurrentUserFailure>()),
+        );
+      });
+    });
+
     group('parseListEnvelope', () {
       test('invokes onSessionExpired for invalid_or_expired_token', () {
         final response = _errorResponse(

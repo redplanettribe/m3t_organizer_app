@@ -8,7 +8,13 @@ Create a well-structured pull request with a clear description, scope, and testi
 
 1. **Prepare branch**
    - Ensure all changes are committed and the branch is pushed.
-   - Rebase or merge from the target branch (e.g. `main`) if needed. Run `flutter test` (and package tests) so the PR is green.
+   - Rebase or merge from the target branch (e.g. `main`) if needed.
+   - Run the full quality-gate sequence (`flutter-quality-gates` rule) so the PR is green:
+     - `fvm dart analyze`
+     - `fvm dart format lib test packages` (if not already formatted)
+     - `fvm dart run build_runner build --delete-conflicting-outputs` in `packages/m3t_api` (if models changed)
+     - `fvm flutter test`
+     - `fvm dart test` in `packages/domain`, `packages/auth_repository`, `packages/m3t_api`
 
 2. **Write PR description**
    - **Summary:** One or two sentences on what this PR does.
@@ -31,4 +37,4 @@ Create a well-structured pull request with a clear description, scope, and testi
   - …
 - **Breaking changes:** None / …
 - **Testing:** Unit tests added/updated; manual testing done for …
-- **Checklist:** [ ] Tests pass, [ ] No new analyzer/lint issues, [ ] Routes/API follow project conventions
+- **Checklist:** [ ] `fvm dart analyze` clean, [ ] formatted, [ ] tests pass (app + packages), [ ] codegen in sync, [ ] routes/API follow project conventions

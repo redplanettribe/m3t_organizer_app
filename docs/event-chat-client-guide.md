@@ -613,7 +613,7 @@ Common codes: `forbidden`, `invalid_topic`, `invalid_message`.
 
 ### Organizer backstage chat
 
-Private staff room for **event owner** and **team members**. Separate from attendee general/DM chat. Always available to managers (not gated by attendee chat feature flag). No push notifications.
+Private staff room for **event owner** and **team members**. Separate from attendee general/DM chat. Always available to managers (not gated by attendee chat feature flag). Push notifications notify other managers when the app is backgrounded — see [push-notifications-client-guide.md](./push-notifications-client-guide.md) (`organizer_chat_message`).
 
 | Method | Path | Notes |
 |--------|------|-------|
@@ -631,8 +631,9 @@ Private staff room for **event owner** and **team members**. Separate from atten
 2. `GET /events/{event_id}/chat/organizers/messages` → render history
 3. Send via `POST /events/{event_id}/chat/organizers/messages`
 4. On WS `chat.message` where `topic` is `organizer.chat.{event_id}` → append (dedupe by `message_id`)
-5. On delete → `DELETE /events/{event_id}/chat/organizers/messages/{messageID}` (sender only)
-6. On leave screen → `unsubscribe` organizer chat topic
+5. On foreground push for `organizer_chat_message` → dedupe by `message_id` (same as WS)
+6. On delete → `DELETE /events/{event_id}/chat/organizers/messages/{messageID}` (sender only)
+7. On leave screen → `unsubscribe` organizer chat topic
 
 **Auth:** `403 forbidden` when caller is not owner/team member. Registration **not** required.
 
@@ -734,9 +735,9 @@ Ban a registered attendee from **sending** chat (general + DM). Banned users can
 | Message delete (organizer) | Owner/team member; **general only**; `DELETE /events/...`; no registration required |
 | DM moderation by organizers | Not supported (message delete); chat **ban** blocks send for general + DM |
 | Chat ban (organizer) | Send-only block + hide from public profiles; list/unban via `/events/.../chat/bans` |
-| Push notifications (APNs/FCM) | DM recipient + general-chat reply to parent author — see [push-notifications-client-guide.md](./push-notifications-client-guide.md); in-app WS + REST still primary when online; dedupe by `message_id` |
+| Push notifications (APNs/FCM) | DM recipient + general-chat reply to parent author (attendee app) + backstage organizers chat to other managers (organizer app) — see [push-notifications-client-guide.md](./push-notifications-client-guide.md); in-app WS + REST still primary when online; dedupe by `message_id` |
 | Organizers using attendee chat | Must be registered like any attendee (send/list/subscribe) |
-| Organizers backstage chat | Owner/team only; `/events/.../chat/organizers/...`; WS `organizer.chat.{event_id}`; sender-only delete; no push |
+| Organizers backstage chat | Owner/team only; `/events/.../chat/organizers/...`; WS `organizer.chat.{event_id}`; sender-only delete; push to other managers |
 | Per-conversation WebSocket topic | Not supported — use DM inbox + `conversation_id` filter |
 
 ---

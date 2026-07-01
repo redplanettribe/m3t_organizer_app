@@ -12,8 +12,7 @@ extension EventCheckInFailureMessage on EventsFailure {
     EventsInvalidInput() => 'This QR code is not valid for check-in.',
     EventsUnprocessableEntity() =>
       'This attendee cannot be checked in to the event right now.',
-    EventsNotInvited() =>
-      'This attendee has not been invited to this event.',
+    EventsNotInvited() => 'This attendee has not been invited to this event.',
     EventsConflict() ||
     EventsLiveSessionConflict() ||
     EventsSessionFull() ||

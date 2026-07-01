@@ -12,7 +12,7 @@ Add a new backend API endpoint to the app: extend `M3tApiClient` in `packages/m3
    - Open `docs/api_rest/swagger.json` and find the path, HTTP method, parameters (path, query, body), and response schema. Note whether the endpoint uses Bearer auth (`security: BearerAuth`).
 
 2. **Add or reuse models**
-   - If the response has a new shape, add a model in `packages/m3t_api/lib/src/models/` following project conventions: `final class`, `Equatable`, `@JsonSerializable(fieldRename: FieldRename.snake)`, `part '*.g.dart'`, `fromJson`/`toJson`. Run `dart run build_runner build --delete-conflicting-outputs` in the package. Export from `models/models.dart`.
+   - If the response has a new shape, add a model in `packages/m3t_api/lib/src/models/` following project conventions: `final class`, `Equatable`, `@JsonSerializable(fieldRename: FieldRename.snake)`, `part '*.g.dart'`, `fromJson`/`toJson`. Run `fvm dart run build_runner build --delete-conflicting-outputs` in the package. Export from `models/models.dart`.
 
 3. **Add exception**
    - In `packages/m3t_api/lib/src/exceptions.dart`, add a new `final class` (e.g. `GetEventsFailure`) with a `message` field, implementing `Exception`. Export if needed.
@@ -34,4 +34,4 @@ Add a new backend API endpoint to the app: extend `M3tApiClient` in `packages/m3
 - [ ] New method on `M3tApiClient` with envelope handling and typed exception
 - [ ] Repository method (domain interface + implementation) that calls client and maps exceptions to domain failures
 - [ ] BLoC/Cubit uses repository only (no direct client use)
-- [ ] Project builds and has no errors
+- [ ] Quality gates pass: `fvm dart analyze`, format, `fvm dart test` in affected packages, `fvm flutter test` if presentation changed

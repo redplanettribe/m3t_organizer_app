@@ -108,11 +108,7 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
       if (reactionsAbove) {
         return top + bubbleHeight + _spacing;
       }
-      return top +
-          bubbleHeight +
-          _spacing +
-          _reactionBarHeight +
-          _spacing;
+      return top + bubbleHeight + _spacing + _reactionBarHeight + _spacing;
     }
 
     var menuAnchorY = menuAnchorFor(bubbleTop);
@@ -221,7 +217,8 @@ final class _MessageActionsOverlayState extends State<_MessageActionsOverlay> {
           AnimatedBuilder(
             animation: liftAnimation,
             builder: (context, child) {
-              final top = menuYAtStart +
+              final top =
+                  menuYAtStart +
                   (menuYAtEnd - menuYAtStart) * liftAnimation.value;
               return Positioned(
                 left: menuLeft,

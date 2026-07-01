@@ -70,8 +70,9 @@ final class _AttendeeRegistrationPageState
           appBar: AppBar(title: Text(displayName)),
           body: switch (state.status) {
             AttendeeRegistrationStatus.initial ||
-            AttendeeRegistrationStatus.loading =>
-              const Center(child: CircularProgressIndicator()),
+            AttendeeRegistrationStatus.loading => const Center(
+              child: CircularProgressIndicator(),
+            ),
             AttendeeRegistrationStatus.failure => _FailureBody(
               message: state.errorMessage ?? 'Could not load attendee.',
               onRetry: () => context.read<AttendeeRegistrationCubit>().load(

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:m3t_api/src/exceptions.dart';
 import 'package:m3t_api/src/http/api_http_executor.dart';
 import 'package:m3t_api/src/http/api_paths.dart';
+import 'package:m3t_api/src/models/register_device_push_token_request.dart';
+import 'package:m3t_api/src/models/unregister_device_push_token_request.dart';
 import 'package:m3t_api/src/models/user.dart';
 
 /// Handles all user profile and avatar API calls.
@@ -237,6 +239,74 @@ final class UserDataSource {
     }
 
     return User.fromJson(data);
+  }
+
+  Future<void> registerDevicePushToken({
+    required String app,
+    required String deviceId,
+    required String platform,
+    required String token,
+  }) async {
+    final response = await _executor.client.put(
+      _executor.uri(UserPaths.deviceTokens),
+      headers: await _executor.authHeaders(),
+      body: jsonEncode(
+        RegisterDevicePushTokenRequest(
+          app: app,
+          deviceId: deviceId,
+          platform: platform,
+          token: token,
+        ).toJson(),
+      ),
+    );
+
+    _executor.parseVoidEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => RegisterDevicePushTokenFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
+  }
+
+  Future<void> unregisterDevicePushToken({
+    required String app,
+    required String deviceId,
+  }) async {
+    final response = await _executor.client.delete(
+      _executor.uri(UserPaths.deviceTokens),
+      headers: await _executor.authHeaders(),
+      body: jsonEncode(
+        UnregisterDevicePushTokenRequest(
+          app: app,
+          deviceId: deviceId,
+        ).toJson(),
+      ),
+    );
+
+    _executor.parseVoidEnvelope(
+      response,
+      onError:
+          ({
+            required message,
+            required statusCode,
+            errorCode,
+            showToUser = false,
+          }) => UnregisterDevicePushTokenFailure(
+            message,
+            statusCode: statusCode,
+            errorCode: errorCode,
+            showToUser: showToUser,
+          ),
+    );
   }
 }
 

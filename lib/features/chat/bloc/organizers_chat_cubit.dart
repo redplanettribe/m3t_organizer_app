@@ -13,10 +13,12 @@ final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
     required ChatRepository chatRepository,
     required String eventID,
     String? currentUserId,
+    void Function(String messageId)? onMessageDeliveredViaRealtime,
     bool autoInitialize = true,
   }) : _chatRepository = chatRepository,
        _eventID = eventID,
        _currentUserId = currentUserId,
+       _onMessageDeliveredViaRealtime = onMessageDeliveredViaRealtime,
        super(const OrganizersChatState()) {
     if (autoInitialize) {
       unawaited(loadInitial());
@@ -26,6 +28,7 @@ final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
   final ChatRepository _chatRepository;
   final String _eventID;
   final String? _currentUserId;
+  final void Function(String messageId)? _onMessageDeliveredViaRealtime;
   ChatRealtimeHandle? _realtimeHandle;
 
   static const _pageSize = 50;
@@ -84,6 +87,7 @@ final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
     switch (event) {
       case ChatMessageReceived(:final message):
         if (message.channelType != ChatChannelType.organizers) return;
+        _onMessageDeliveredViaRealtime?.call(message.messageId);
         emit(state.copyWith(messages: _upsertMessage(state.messages, message)));
       case ChatMessageDeleted(:final messageId, :final channelType):
         if (channelType != ChatChannelType.organizers) return;
@@ -221,9 +225,11 @@ final class OrganizersChatCubit extends Cubit<OrganizersChatState> {
     if (index < 0) return;
 
     final message = state.messages[index];
-    final existing = message.reactions?.where(
-      (r) => r.reactedByMe && r.emoji == emoji,
-    ).firstOrNull;
+    final existing = message.reactions
+        ?.where(
+          (r) => r.reactedByMe && r.emoji == emoji,
+        )
+        .firstOrNull;
 
     try {
       final reactions = existing != null

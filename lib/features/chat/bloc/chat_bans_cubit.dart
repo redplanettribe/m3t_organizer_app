@@ -180,9 +180,7 @@ final class ChatBansCubit extends Cubit<ChatBansState> {
         userID: userId,
       );
       final updatedBans = state.bans.any((b) => b.userId == userId)
-          ? state.bans
-              .map((b) => b.userId == userId ? ban : b)
-              .toList()
+          ? state.bans.map((b) => b.userId == userId ? ban : b).toList()
           : [ban, ...state.bans];
       emit(
         state.copyWith(

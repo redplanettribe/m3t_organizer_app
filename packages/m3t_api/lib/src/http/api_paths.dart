@@ -7,6 +7,7 @@ abstract final class UserPaths {
   static const me = '/users/me';
   static const avatarUploadUrl = '/users/me/avatar/upload-url';
   static const avatar = '/users/me/avatar';
+  static const deviceTokens = '/users/me/device-tokens';
 }
 
 abstract final class EventPaths {

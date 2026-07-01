@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/push/push_navigation_intent.dart';
+import 'package:m3t_organizer/core/push/push_notification_cubit.dart';
 import 'package:m3t_organizer/features/chat/chat.dart';
 import 'package:m3t_organizer/features/session_selector/session_selector.dart';
 import 'package:m3t_organizer/layout/sections/event_actions_section.dart';
@@ -8,11 +11,13 @@ final class EventWorkspaceScaffold extends StatefulWidget {
   const EventWorkspaceScaffold({
     required this.eventID,
     required this.appBar,
+    this.pushIntent,
     super.key,
   });
 
   final String eventID;
   final PreferredSizeWidget appBar;
+  final PushNavigationIntent? pushIntent;
 
   @override
   State<EventWorkspaceScaffold> createState() => _EventWorkspaceScaffoldState();
@@ -20,8 +25,62 @@ final class EventWorkspaceScaffold extends StatefulWidget {
 
 final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
     with AutomaticKeepAliveClientMixin {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   bool _isSessionSheetExpanded = false;
+  PushNotificationCubit? _pushNotificationCubit;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pushNotificationCubit = context.read<PushNotificationCubit>();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = _initialTabIndex(widget.pushIntent);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncChatNavPresence();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pushNotificationCubit?.clearChatForegroundPresence();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant EventWorkspaceScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pushIntent != widget.pushIntent &&
+        widget.pushIntent != null) {
+      setState(() {
+        _selectedIndex = _initialTabIndex(widget.pushIntent);
+      });
+      _syncChatNavPresence();
+    }
+  }
+
+  int _initialTabIndex(PushNavigationIntent? intent) {
+    return switch (intent) {
+      OpenEventChatGeneralIntent() ||
+      OpenEventDmIntent() ||
+      OpenEventChatOrganizersIntent() => 2,
+      OpenEventSessionsIntent() => 1,
+      _ => 0,
+    };
+  }
+
+  PushNavigationIntent? get _chatPushIntent {
+    return switch (widget.pushIntent) {
+      OpenEventChatGeneralIntent() ||
+      OpenEventDmIntent() ||
+      OpenEventChatOrganizersIntent() => widget.pushIntent,
+      _ => null,
+    };
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -34,7 +93,15 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
           _isSessionSheetExpanded = false;
         }
       });
+      _syncChatNavPresence();
     }
+  }
+
+  void _syncChatNavPresence() {
+    _pushNotificationCubit?.setEventChatNavActive(
+      eventId: widget.eventID,
+      active: _selectedIndex == 2,
+    );
   }
 
   void _onSessionSheetExpansionChanged(bool expanded) {
@@ -62,7 +129,10 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
             eventID: widget.eventID,
             onSheetExpanded: _onSessionSheetExpansionChanged,
           ),
-          ChatHomePage(eventID: widget.eventID),
+          ChatHomePage(
+            eventID: widget.eventID,
+            pushIntent: _chatPushIntent,
+          ),
         ],
       ),
       bottomNavigationBar: DecoratedBox(

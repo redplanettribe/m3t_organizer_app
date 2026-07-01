@@ -16,6 +16,7 @@ export 'event_registration.dart';
 export 'event_with_rooms.dart';
 export 'mobile_remote_config.dart';
 export 'organizer_session_status_changed.dart';
+export 'push_notification_message.dart';
 export 'room.dart';
 export 'room_with_sessions.dart';
 export 'session.dart';

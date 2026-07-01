@@ -2,7 +2,15 @@
 
 ## Overview
 
-Use this checklist when reviewing code in this repo. The app uses a three-layer architecture (presentation, domain, data), BLoC/Cubit, GoRouter, and pure-Dart packages. Apply the project rules (flutter-architecture, bloc-conventions, packages-pure-dart, testing, go-router, m3t-api-usage) when evaluating changes.
+Use this checklist when reviewing code in this repo. The app uses a three-layer architecture (presentation, domain, data), BLoC/Cubit, GoRouter, and pure-Dart packages. Apply the project rules (flutter-architecture, flutter-quality-gates, bloc-conventions, packages-pure-dart, testing, go-router, m3t-api-usage) when evaluating changes.
+
+## Quality gates
+
+- [ ] `fvm dart analyze` passes; no new linter or type errors.
+- [ ] Changed Dart files formatted (`fvm dart format`).
+- [ ] If `packages/m3t_api` models changed: `build_runner` run and `.g.dart` files committed in sync.
+- [ ] `fvm flutter test` and package `fvm dart test` runs pass.
+- [ ] New or changed behavior has tests (see Tests section below).
 
 ## Review Categories
 
@@ -40,4 +48,4 @@ Use this checklist when reviewing code in this repo. The app uses a three-layer 
 ### General
 
 - [ ] No hardcoded secrets or sensitive data.
-- [ ] Code follows existing style and passes `dart analyze` / project lints (e.g. very_good_analysis).
+- [ ] Code follows existing style and `very_good_analysis` lints (enforced via `fvm dart analyze`).

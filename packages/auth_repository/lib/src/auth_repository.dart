@@ -10,11 +10,14 @@ final class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required M3tApiClient apiClient,
     required TokenStorage tokenStorage,
+    Future<void> Function()? onBeforeLogout,
   }) : _apiClient = apiClient,
-       _tokenStorage = tokenStorage;
+       _tokenStorage = tokenStorage,
+       _onBeforeLogout = onBeforeLogout;
 
   final M3tApiClient _apiClient;
   final TokenStorage _tokenStorage;
+  final Future<void> Function()? _onBeforeLogout;
 
   AuthStatus _currentStatus = AuthStatus.unknown;
   final _statusController = StreamController<AuthStatus>.broadcast();
@@ -206,6 +209,7 @@ final class AuthRepositoryImpl implements AuthRepository {
   /// Deletes the stored token and emits [AuthStatus.unauthenticated].
   @override
   Future<void> logout() async {
+    await _onBeforeLogout?.call();
     _currentUser = null;
     await _tokenStorage.delete();
     _emitStatus(.unauthenticated);

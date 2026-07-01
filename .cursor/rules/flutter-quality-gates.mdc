@@ -1,0 +1,41 @@
+---
+description: Mandatory analyze, format, test, and codegen checks after every Dart/Flutter change.
+alwaysApply: true
+---
+
+# Flutter Quality Gates
+
+After **any** edit to Dart code (`lib/`, `packages/`, `test/`), run the gates below before marking work complete. Fix failures in changed code first; do not leave analyzer errors, format drift, stale codegen, or broken tests.
+
+## When to run what
+
+| Change type | Required before done |
+|-------------|----------------------|
+| Any Dart file | `fvm dart analyze` (repo root) + `ReadLints` on edited files |
+| Any Dart file | `fvm dart format` on changed paths |
+| Behavior change | Add or update tests; run affected suites |
+| `@JsonSerializable` or `.g.dart` | `fvm dart run build_runner build --delete-conflicting-outputs` in `packages/m3t_api` |
+| Task complete or PR-ready | Full gate sequence (below) |
+
+## Full gate sequence
+
+Run from the repo root in order; fix each step before the next:
+
+1. **Analyze:** `fvm dart analyze` — zero new issues from your changes.
+2. **Format:** `fvm dart format lib test packages` (or only changed paths).
+3. **Codegen** (if models touched): `cd packages/m3t_api && fvm dart run build_runner build --delete-conflicting-outputs`
+4. **App tests:** `fvm flutter test`
+5. **Package tests:** `fvm dart test` in `packages/domain`, `packages/auth_repository`, and `packages/m3t_api`
+
+## Agent workflow
+
+- Run gates yourself; do not ask the user to verify.
+- After each fix, re-run the failing gate and related tests.
+- Pre-existing failures outside your scope may be noted, but your changes must introduce none.
+
+## Do not
+
+- Skip analyze for "small" edits.
+- Use raw `flutter` or `dart` (use FVM — see `fvm-terminal` rule).
+- Leave generated `.g.dart` files out of sync with their sources.
+- Finish with failing tests or analyzer errors unless the user explicitly defers.

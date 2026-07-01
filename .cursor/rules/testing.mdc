@@ -41,6 +41,11 @@ When writing or editing tests in this project, follow these patterns.
 
 - In `packages/*`, use the **`test`** package (`import 'package:test/test.dart';`), **not** `flutter_test`. This keeps packages runnable without the Flutter SDK.
 
+## Before finishing
+
+- Run affected tests: `fvm flutter test <path>` for app tests; `fvm dart test` in the package for package tests.
+- Run `fvm dart analyze` on the repo (`flutter-quality-gates` rule).
+
 ## References
 
 - `test/app/bloc/auth_bloc_test.dart`

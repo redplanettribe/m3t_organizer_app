@@ -395,3 +395,23 @@ final class RemoveChatMessageReactionFailure extends M3tApiException {
     super.showToUser,
   });
 }
+
+/// Thrown when registering a device push token fails.
+final class RegisterDevicePushTokenFailure extends M3tApiException {
+  RegisterDevicePushTokenFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}
+
+/// Thrown when unregistering a device push token fails.
+final class UnregisterDevicePushTokenFailure extends M3tApiException {
+  UnregisterDevicePushTokenFailure(
+    super.message, {
+    super.statusCode,
+    super.errorCode,
+    super.showToUser,
+  });
+}

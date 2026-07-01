@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/push/chat_push_dedupe.dart';
 import 'package:m3t_organizer/features/chat/general/bloc/general_chat_cubit.dart';
 import 'package:m3t_organizer/features/chat/view/open_attendee_registration.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
@@ -19,6 +20,7 @@ final class GeneralChatTab extends StatelessWidget {
         chatRepository: context.read<ChatRepository>(),
         authRepository: context.read<AuthRepository>(),
         eventID: eventID,
+        onMessageDeliveredViaRealtime: rememberChatMessageForPush(context),
       ),
       child: const GeneralChatView(),
     );
@@ -184,8 +186,7 @@ final class _MessageListState extends State<_MessageList> {
         final messageIndex = messages.length - 1 - index;
         final message = messages[messageIndex];
         final isOwn = message.senderUserId == widget.state.currentUserId;
-        final previous =
-            messageIndex > 0 ? messages[messageIndex - 1] : null;
+        final previous = messageIndex > 0 ? messages[messageIndex - 1] : null;
         return ChatMessageBubble(
           message: message,
           isOwn: isOwn,
@@ -205,9 +206,7 @@ final class _MessageListState extends State<_MessageList> {
             emoji: emoji,
           ),
           onReply: () => cubit.startReply(message),
-          onDelete: isOwn
-              ? () => cubit.deleteMessage(message.messageId)
-              : null,
+          onDelete: isOwn ? () => cubit.deleteMessage(message.messageId) : null,
         );
       },
     );

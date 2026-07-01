@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "651906325857",
+    "project_id": "m3t-dev",
+    "storage_bucket": "m3t-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651906325857:android:9953bfc761bb95e893b920",
+        "android_client_info": {
+          "package_name": "com.pedrodcsjostrom.m3tattendee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxBRGV3UGhoVOQnuHCCIS6JeByrTiGw_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651906325857:android:6d21991dc7e0624a93b920",
+        "android_client_info": {
+          "package_name": "com.pedrodcsjostrom.m3torganizer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxBRGV3UGhoVOQnuHCCIS6JeByrTiGw_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

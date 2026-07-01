@@ -30,6 +30,10 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to scan attendee QR codes for event check-in.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

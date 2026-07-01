@@ -16,11 +16,13 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
     required String eventID,
     required Stream<ChatRealtimeEvent> realtimeEvents,
     String? currentUserId,
+    void Function(String messageId)? onMessageDeliveredViaRealtime,
     bool autoInitialize = true,
   }) : _chatRepository = chatRepository,
        _eventsRepository = eventsRepository,
        _eventID = eventID,
        _currentUserId = currentUserId,
+       _onMessageDeliveredViaRealtime = onMessageDeliveredViaRealtime,
        super(const DmInboxState()) {
     _realtimeSubscription = realtimeEvents.listen(
       _onRealtimeEvent,
@@ -35,6 +37,7 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
   final EventsRepository _eventsRepository;
   final String _eventID;
   final String? _currentUserId;
+  final void Function(String messageId)? _onMessageDeliveredViaRealtime;
   static const _pageSize = 50;
   static const _searchPageSize = 20;
 
@@ -120,6 +123,7 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
     switch (event) {
       case ChatMessageReceived(:final message):
         if (message.channelType != ChatChannelType.dm) return;
+        _onMessageDeliveredViaRealtime?.call(message.messageId);
         final conversations = _upsertConversation(state.conversations, message);
         emit(state.copyWith(conversations: conversations));
         unawaited(_enrichMissingNames(conversations));
@@ -184,22 +188,19 @@ final class DmInboxCubit extends Cubit<DmInboxState> {
     String messageId,
     String? conversationId,
   ) {
-    return conversations
-        .map((conversation) {
-          if (conversationId != null &&
-              conversation.conversationId != conversationId) {
-            return conversation;
-          }
-          final last = conversation.lastMessage;
-          if (last?.messageId != messageId) return conversation;
-          return ChatConversation(
-            conversationId: conversation.conversationId,
-            otherUserId: conversation.otherUserId,
-            otherParticipantDisplayName:
-                conversation.otherParticipantDisplayName,
-          );
-        })
-        .toList();
+    return conversations.map((conversation) {
+      if (conversationId != null &&
+          conversation.conversationId != conversationId) {
+        return conversation;
+      }
+      final last = conversation.lastMessage;
+      if (last?.messageId != messageId) return conversation;
+      return ChatConversation(
+        conversationId: conversation.conversationId,
+        otherUserId: conversation.otherUserId,
+        otherParticipantDisplayName: conversation.otherParticipantDisplayName,
+      );
+    }).toList();
   }
 
   Future<List<EventRegistration>> searchAttendees(String query) async {

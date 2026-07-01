@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/push/chat_push_dedupe.dart';
 import 'package:m3t_organizer/features/chat/bloc/organizers_chat_cubit.dart';
 import 'package:m3t_organizer/features/chat/view/open_attendee_registration.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
@@ -24,6 +25,7 @@ final class OrganizersChatView extends StatelessWidget {
         chatRepository: context.read<ChatRepository>(),
         eventID: eventID,
         currentUserId: currentUserId,
+        onMessageDeliveredViaRealtime: rememberChatMessageForPush(context),
       ),
       child: BlocListener<OrganizersChatCubit, OrganizersChatState>(
         listenWhen: (previous, current) =>
@@ -148,8 +150,9 @@ final class _OrganizersMessageListState extends State<_OrganizersMessageList> {
             final messageIndex = state.messages.length - 1 - index;
             final message = state.messages[messageIndex];
             final isOwn = cubit.isOwnMessage(message);
-            final previous =
-                messageIndex > 0 ? state.messages[messageIndex - 1] : null;
+            final previous = messageIndex > 0
+                ? state.messages[messageIndex - 1]
+                : null;
 
             return ChatMessageBubble(
               message: message,
@@ -214,8 +217,7 @@ final class _OrganizersComposerState extends State<_OrganizersComposer> {
           if (replyingTo != null)
             ReplyComposerBanner(
               message: replyingTo,
-              onCancel: () =>
-                  context.read<OrganizersChatCubit>().cancelReply(),
+              onCancel: () => context.read<OrganizersChatCubit>().cancelReply(),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),

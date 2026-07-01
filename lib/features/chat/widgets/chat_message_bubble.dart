@@ -158,8 +158,9 @@ final class _ChatMessageBubbleState extends State<ChatMessageBubble> {
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment:
-            widget.isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: widget.isOwn
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!widget.isOwn) ...[
             if (widget.showSenderHeader)

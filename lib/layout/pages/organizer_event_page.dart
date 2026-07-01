@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:m3t_organizer/core/push/push_navigation_intent.dart';
 import 'package:m3t_organizer/layout/pages/event_workspace_scaffold.dart';
 
 final class OrganizerEventPage extends StatelessWidget {
   const OrganizerEventPage({
     required this.eventID,
     this.eventName,
+    this.pushIntent,
     super.key,
   });
 
   final String eventID;
   final String? eventName;
+  final PushNavigationIntent? pushIntent;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +23,7 @@ final class OrganizerEventPage extends StatelessWidget {
 
     return EventWorkspaceScaffold(
       eventID: eventID,
+      pushIntent: pushIntent,
       appBar: AppBar(
         titleSpacing: 0,
         elevation: 0,

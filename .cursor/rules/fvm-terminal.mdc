@@ -23,6 +23,18 @@ This project uses **FVM** (Flutter Version Management). All Flutter and Dart com
   - Use **`fvm flutter add <package_name>`** (not `flutter pub add` or editing `pubspec.yaml` by hand for new deps).
 - This keeps dependencies resolved against the project’s pinned Flutter version (3.41.3).
 
+## Quality gates
+
+After Dart/Flutter edits, run checks through FVM (see `flutter-quality-gates` rule):
+
+| Gate | Command |
+|------|---------|
+| Analyze | `fvm dart analyze` |
+| Format | `fvm dart format <paths>` |
+| App tests | `fvm flutter test` |
+| Package tests | `fvm dart test` (in each `packages/*` with tests) |
+| Codegen | `fvm dart run build_runner build --delete-conflicting-outputs` (in `packages/m3t_api` when models change) |
+
 ## Summary
 
 | Do | Don’t |
@@ -31,3 +43,4 @@ This project uses **FVM** (Flutter Version Management). All Flutter and Dart com
 | `fvm flutter pub get` | `flutter pub get` |
 | `fvm flutter add some_package` | `flutter pub add` or manual `pubspec.yaml` edits for new deps |
 | `fvm dart run build_runner build` | `dart run build_runner build` |
+| `fvm dart analyze` before finishing | Ship changes without running analyze |

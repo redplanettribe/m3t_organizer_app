@@ -16,9 +16,11 @@ final class DmThreadCubit extends Cubit<DmThreadState> {
     required String currentUserId,
     required Stream<ChatRealtimeEvent> realtimeEvents,
     String? recipientDisplayName,
+    void Function(String messageId)? onMessageDeliveredViaRealtime,
   }) : _chatRepository = chatRepository,
        _eventID = eventID,
        _recipientUserId = recipientUserId,
+       _onMessageDeliveredViaRealtime = onMessageDeliveredViaRealtime,
        _conversationId = dmConversationId(
          eventId: eventID,
          userIdA: currentUserId,
@@ -40,6 +42,7 @@ final class DmThreadCubit extends Cubit<DmThreadState> {
   final String _eventID;
   final String _recipientUserId;
   final String _conversationId;
+  final void Function(String messageId)? _onMessageDeliveredViaRealtime;
   static const _pageSize = 50;
 
   late final StreamSubscription<ChatRealtimeEvent> _realtimeSubscription;
@@ -83,6 +86,7 @@ final class DmThreadCubit extends Cubit<DmThreadState> {
       case ChatMessageReceived(:final message):
         if (message.channelType != ChatChannelType.dm) return;
         if (message.conversationId != _conversationId) return;
+        _onMessageDeliveredViaRealtime?.call(message.messageId);
         emit(
           state.copyWith(
             messages: _upsertMessage(state.messages, message),
@@ -230,9 +234,11 @@ final class DmThreadCubit extends Cubit<DmThreadState> {
     if (index < 0) return;
 
     final message = state.messages[index];
-    final existing = message.reactions?.where(
-      (r) => r.reactedByMe && r.emoji == emoji,
-    ).firstOrNull;
+    final existing = message.reactions
+        ?.where(
+          (r) => r.reactedByMe && r.emoji == emoji,
+        )
+        .firstOrNull;
 
     try {
       final reactions = existing != null

@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m3t_organizer/core/push/chat_push_dedupe.dart';
+import 'package:m3t_organizer/core/push/push_notification_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/chat_cubit.dart';
 import 'package:m3t_organizer/features/chat/bloc/dm_thread_cubit.dart';
 import 'package:m3t_organizer/features/chat/widgets/widgets.dart';
 
-final class DmThreadPage extends StatelessWidget {
+final class DmThreadPage extends StatefulWidget {
   const DmThreadPage({
     required this.eventID,
     required this.recipientUserId,
@@ -22,19 +24,56 @@ final class DmThreadPage extends StatelessWidget {
   final String? recipientDisplayName;
 
   @override
+  State<DmThreadPage> createState() => _DmThreadPageState();
+}
+
+final class _DmThreadPageState extends State<DmThreadPage> {
+  PushNotificationCubit? _pushNotificationCubit;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pushNotificationCubit = context.read<PushNotificationCubit>();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final conversationId = dmConversationId(
+        eventId: widget.eventID,
+        userIdA: widget.currentUserId,
+        userIdB: widget.recipientUserId,
+      );
+      _pushNotificationCubit?.setOpenDmThread(
+        eventId: widget.eventID,
+        conversationId: conversationId,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _pushNotificationCubit?.setOpenDmThread();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chatCubit = context.read<ChatCubit>();
 
     return BlocProvider(
       create: (context) => DmThreadCubit(
         chatRepository: context.read<ChatRepository>(),
-        eventID: eventID,
-        recipientUserId: recipientUserId,
-        currentUserId: currentUserId,
+        eventID: widget.eventID,
+        recipientUserId: widget.recipientUserId,
+        currentUserId: widget.currentUserId,
         realtimeEvents: chatCubit.realtimeEvents,
-        recipientDisplayName: recipientDisplayName,
+        recipientDisplayName: widget.recipientDisplayName,
+        onMessageDeliveredViaRealtime: rememberChatMessageForPush(context),
       ),
-      child: _DmThreadView(currentUserId: currentUserId),
+      child: _DmThreadView(currentUserId: widget.currentUserId),
     );
   }
 }

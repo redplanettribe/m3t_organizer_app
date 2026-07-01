@@ -120,6 +120,23 @@ class M3tApiClient {
   Future<User> confirmAvatar({required String key}) =>
       _user.confirmAvatar(key: key);
 
+  Future<void> registerDevicePushToken({
+    required String app,
+    required String deviceId,
+    required String platform,
+    required String token,
+  }) => _user.registerDevicePushToken(
+    app: app,
+    deviceId: deviceId,
+    platform: platform,
+    token: token,
+  );
+
+  Future<void> unregisterDevicePushToken({
+    required String app,
+    required String deviceId,
+  }) => _user.unregisterDevicePushToken(app: app, deviceId: deviceId);
+
   // ── Events ─────────────────────────────────────────────────────────────
 
   Future<List<Event>> getMyEvents() => _events.getMyEvents();
