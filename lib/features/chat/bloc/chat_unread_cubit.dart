@@ -13,17 +13,16 @@ final class ChatUnreadCubit extends Cubit<ChatUnreadState> {
   ChatUnreadCubit({
     required ChatRepository chatRepository,
     required String eventID,
-    String? currentUserId,
+    this.currentUserId,
   }) : _chatRepository = chatRepository,
        _eventID = eventID,
-       _currentUserId = currentUserId,
        super(const ChatUnreadState()) {
     _connectRealtime();
   }
 
   final ChatRepository _chatRepository;
   final String _eventID;
-  String? _currentUserId;
+  String? currentUserId;
   ChatRealtimeHandle? _realtimeHandle;
   final _countedMessageIds = <String>{};
 
@@ -43,10 +42,6 @@ final class ChatUnreadCubit extends Cubit<ChatUnreadState> {
       onEvent: _onRealtimeEvent,
       onError: (error) => addError(error, StackTrace.current),
     );
-  }
-
-  void setCurrentUserId(String? userId) {
-    _currentUserId = userId;
   }
 
   void setChatNavActive({required bool active}) {
@@ -102,7 +97,7 @@ final class ChatUnreadCubit extends Cubit<ChatUnreadState> {
 
   @visibleForTesting
   void handleMessageForTest(ChatMessage message) {
-    final currentUserId = _currentUserId;
+    final currentUserId = this.currentUserId;
     if (currentUserId == null) {
       return;
     }

@@ -138,7 +138,7 @@ final class _EventWorkspaceScaffoldState extends State<EventWorkspaceScaffold>
         listenWhen: (previous, current) =>
             previous.user?.id != current.user?.id,
         listener: (context, state) {
-          context.read<ChatUnreadCubit>().setCurrentUserId(state.user?.id);
+          context.read<ChatUnreadCubit>().currentUserId = state.user?.id;
         },
         child: Scaffold(
           key: ValueKey('scaffold-${widget.eventID}'),
